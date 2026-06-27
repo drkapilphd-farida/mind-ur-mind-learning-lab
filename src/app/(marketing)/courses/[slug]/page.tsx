@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen, Clock } from 'lucide-react'
+import { BookOpen, ChevronRight, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -147,20 +147,23 @@ export default async function CourseDetailPage({
         {isEnrolled && lessons.length > 0 ? (
           <ol className="space-y-2">
             {lessons.map((lesson, index) => (
-              <li
-                key={lesson.id}
-                className="bg-card flex items-center gap-4 rounded-lg border px-4 py-3 text-sm"
-              >
-                <span className="text-muted-foreground w-6 shrink-0 text-right font-mono text-xs">
-                  {index + 1}
-                </span>
-                <span className="flex-1 font-medium">{lesson.title}</span>
-                {lesson.duration_seconds > 0 && (
-                  <span className="text-muted-foreground flex items-center gap-1 shrink-0">
-                    <Clock className="size-3" />
-                    {formatDuration(lesson.duration_seconds)}
+              <li key={lesson.id}>
+                <Link
+                  href={`/courses/${course.slug}/lessons/${lesson.slug}`}
+                  className="bg-card hover:bg-muted/50 flex items-center gap-4 rounded-lg border px-4 py-3 text-sm transition-colors"
+                >
+                  <span className="text-muted-foreground w-6 shrink-0 text-right font-mono text-xs">
+                    {index + 1}
                   </span>
-                )}
+                  <span className="flex-1 font-medium">{lesson.title}</span>
+                  {lesson.duration_seconds > 0 && (
+                    <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                      <Clock className="size-3" />
+                      {formatDuration(lesson.duration_seconds)}
+                    </span>
+                  )}
+                  <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+                </Link>
               </li>
             ))}
           </ol>
