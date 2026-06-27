@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { LessonContent } from '@/features/courses/components/LessonContent'
 import { LessonSidebar } from '@/features/courses/components/LessonSidebar'
+import { LessonRightPanel } from '@/features/courses/components/LessonRightPanel'
 import { MarkCompleteButton } from '@/features/courses/components/MarkCompleteButton'
 
 type LessonPageProps = {
@@ -143,13 +144,19 @@ export default async function LessonPage({
           <LessonContent lesson={lesson} />
         </div>
 
-        {/* Lesson list sidebar (desktop only) */}
-        <LessonSidebar
+        {/* Right panel: lesson list + AI tutor tabs (desktop only) */}
+        <LessonRightPanel
+          lessonTitle={lesson.title}
           courseTitle={course.title}
-          courseSlug={slug}
-          lessons={allLessons}
-          currentLessonId={lesson.id}
-          completedIds={completedIds}
+          sidebar={
+            <LessonSidebar
+              courseTitle={course.title}
+              courseSlug={slug}
+              lessons={allLessons}
+              currentLessonId={lesson.id}
+              completedIds={completedIds}
+            />
+          }
         />
       </div>
 

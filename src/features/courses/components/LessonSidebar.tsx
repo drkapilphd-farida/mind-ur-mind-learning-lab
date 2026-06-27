@@ -29,7 +29,7 @@ export function LessonSidebar({
   const completedSet = new Set(completedIds)
 
   return (
-    <aside className="bg-card hidden w-72 shrink-0 flex-col overflow-y-auto border-l lg:flex">
+    <>
       <div className="shrink-0 border-b p-4">
         <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
           Course
@@ -40,7 +40,7 @@ export function LessonSidebar({
         </p>
       </div>
 
-      <nav className="flex-1 p-2">
+      <nav className="flex-1 overflow-y-auto p-2">
         {lessons.map((lesson, index) => {
           const isActive = lesson.id === currentLessonId
           const isCompleted = completedSet.has(lesson.id)
@@ -78,6 +78,6 @@ export function LessonSidebar({
           )
         })}
       </nav>
-    </aside>
+    </>
   )
 }
