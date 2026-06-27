@@ -66,8 +66,8 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
     )
   }
 
-  // Step 2 — courses + lessons + completions in parallel
-  const [courseRes, lessonRes, completionRes] = await Promise.all([
+  // Step 2 — courses, lessons, completions, certificates in parallel
+  const [courseRes, lessonRes, completionRes, certRes] = await Promise.all([
     supabase
       .from('courses')
       .select('id, title, slug, thumbnail_url')
@@ -84,11 +84,18 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
       .select('lesson_id, completed_at')
       .eq('user_id', user.id)
       .order('completed_at', { ascending: false }),
+    supabase
+      .from('certificates')
+      .select('course_id, token')
+      .eq('user_id', user.id),
   ])
 
   const courses = courseRes.data ?? []
   const allLessons = lessonRes.data ?? []
   const allCompletions = completionRes.data ?? []
+  const certByCourse = new Map(
+    (certRes.data ?? []).map((c) => [c.course_id, c.token]),
+  )
 
   // Build lookup structures
   const courseMap = new Map(courses.map((c) => [c.id, c]))
@@ -129,6 +136,7 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
     completedLessons: number
     lastActivityLabel: string | null
     nextLessonSlug: string | null
+    certificateToken: string | null
   }
 
   const progressItems: ProgressItem[] = enrollments.flatMap((enrollment) => {
@@ -151,6 +159,7 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
         lastActivityLabel:
           lastActivity !== null ? formatRelativeDate(lastActivity) : null,
         nextLessonSlug: nextLesson?.slug ?? null,
+        certificateToken: certByCourse.get(enrollment.course_id) ?? null,
       },
     ]
   })
@@ -217,6 +226,7 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
             completedLessons={item.completedLessons}
             lastActivityLabel={item.lastActivityLabel}
             nextLessonSlug={item.nextLessonSlug}
+            certificateToken={item.certificateToken}
           />
         ))}
       </section>

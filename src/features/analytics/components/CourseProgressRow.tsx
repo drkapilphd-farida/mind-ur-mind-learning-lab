@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Award, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +13,7 @@ type CourseProgressRowProps = {
   completedLessons: number
   lastActivityLabel: string | null
   nextLessonSlug: string | null
+  certificateToken: string | null
 }
 
 export function CourseProgressRow({
@@ -21,11 +22,11 @@ export function CourseProgressRow({
   completedLessons,
   lastActivityLabel,
   nextLessonSlug,
+  certificateToken,
 }: CourseProgressRowProps): React.JSX.Element {
   const pct =
     totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
-  const isFinished =
-    completedLessons === totalLessons && totalLessons > 0
+  const isFinished = completedLessons === totalLessons && totalLessons > 0
   const isStarted = completedLessons > 0
 
   const continueHref =
@@ -68,12 +69,22 @@ export function CourseProgressRow({
           </p>
         </div>
 
-        <Button asChild size="sm" variant="ghost" className="shrink-0">
-          <Link href={continueHref}>
-            {isFinished ? 'Review' : isStarted ? 'Continue' : 'Start'}
-            <ChevronRight className="size-3.5" />
-          </Link>
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          {isFinished && certificateToken !== null && (
+            <Button asChild size="sm" variant="ghost">
+              <Link href={`/certificates/${certificateToken}`}>
+                <Award className="size-3.5" />
+                Certificate
+              </Link>
+            </Button>
+          )}
+          <Button asChild size="sm" variant="ghost" className="shrink-0">
+            <Link href={continueHref}>
+              {isFinished ? 'Review' : isStarted ? 'Continue' : 'Start'}
+              <ChevronRight className="size-3.5" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {totalLessons > 0 && (

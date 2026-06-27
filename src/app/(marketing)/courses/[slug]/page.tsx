@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen, CheckCircle2, ChevronRight, Clock } from 'lucide-react'
+import { Award, BookOpen, CheckCircle2, ChevronRight, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { EnrollButton } from '@/features/courses/components/EnrollButton'
 import { BuyButton } from '@/features/billing/components/BuyButton'
+import { ClaimCertificateButton } from '@/features/certificates/components/ClaimCertificateButton'
 import { formatDuration } from '@/features/courses/types'
 
 type CourseDetailPageProps = {
@@ -85,6 +87,31 @@ export default async function CourseDetailPage({
     }
   }
 
+  // Certificate state — only checked when enrolled and there are lessons
+  let isAllCompleted = false
+  let certificateToken: string | null = null
+
+  if (isEnrolled && lessons.length > 0 && user !== null) {
+    const lessonIds = lessons.map((l) => l.id)
+
+    const [{ count: completedCount }, { data: cert }] = await Promise.all([
+      supabase
+        .from('lesson_completions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .in('lesson_id', lessonIds),
+      supabase
+        .from('certificates')
+        .select('token')
+        .eq('user_id', user.id)
+        .eq('course_id', course.id)
+        .single(),
+    ])
+
+    isAllCompleted = (completedCount ?? 0) >= lessonIds.length
+    certificateToken = cert?.token ?? null
+  }
+
   const loginHref = `/login?next=/courses/${course.slug}`
   const isPaid = course.price_cents > 0
 
@@ -111,16 +138,30 @@ export default async function CourseDetailPage({
             </p>
           )}
 
-          <div className="pt-2">
+          <div className="space-y-3 pt-2">
             {isEnrolled ? (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-sm">
-                  ✓ Enrolled
-                </Badge>
-                <span className="text-muted-foreground text-sm">
-                  {lessons.length} lesson{lessons.length !== 1 ? 's' : ''} below
-                </span>
-              </div>
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="text-sm">
+                    ✓ Enrolled
+                  </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {lessons.length} lesson{lessons.length !== 1 ? 's' : ''}{' '}
+                    below
+                  </span>
+                </div>
+
+                {isAllCompleted && certificateToken !== null ? (
+                  <Button asChild variant="outline">
+                    <Link href={`/certificates/${certificateToken}`}>
+                      <Award className="size-4" />
+                      View your certificate
+                    </Link>
+                  </Button>
+                ) : isAllCompleted ? (
+                  <ClaimCertificateButton courseId={course.id} />
+                ) : null}
+              </>
             ) : isPaid ? (
               <BuyButton
                 courseId={course.id}
