@@ -1,32 +1,137 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { BookOpen } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { CourseProgressCard } from '@/features/courses/components/CourseProgressCard'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
 }
 
-export default function DashboardPage(): React.JSX.Element {
+export default async function DashboardPage(): Promise<React.JSX.Element> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Layout redirects unauthenticated users; user is guaranteed here
+  if (!user) return <div />
+
+  // Step 1 — enrollments
+  const { data: enrollmentData } = await supabase
+    .from('enrollments')
+    .select('course_id, enrolled_at')
+    .eq('user_id', user.id)
+    .order('enrolled_at', { ascending: false })
+
+  const enrollments = enrollmentData ?? []
+  const courseIds = enrollments.map((e) => e.course_id)
+
+  if (courseIds.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            My learning
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Your enrolled courses and progress.
+          </p>
+        </div>
+
+        <div className="bg-card rounded-xl border p-8 text-center">
+          <BookOpen className="text-muted-foreground/30 mx-auto mb-4 size-10" />
+          <p className="font-medium">You haven&apos;t enrolled in any courses yet.</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            <Link
+              href="/courses"
+              className="text-foreground underline-offset-4 hover:underline"
+            >
+              Browse the catalog
+            </Link>{' '}
+            to get started.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 2 — courses + lessons + completions in parallel
+  const [courseRes, lessonRes, completionRes] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('id, title, slug, thumbnail_url')
+      .in('id', courseIds)
+      .eq('is_published', true),
+    supabase
+      .from('lessons')
+      .select('id, course_id, slug, sort_order')
+      .in('course_id', courseIds)
+      .eq('is_published', true)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', user.id),
+  ])
+
+  const courses = courseRes.data ?? []
+  const allLessons = lessonRes.data ?? []
+  const completedIds = new Set((completionRes.data ?? []).map((c) => c.lesson_id))
+
+  // Index courses and lessons by course_id
+  const courseMap = new Map(courses.map((c) => [c.id, c]))
+
+  const lessonsByCourse = new Map<
+    string,
+    Array<{ id: string; slug: string; sort_order: number }>
+  >()
+  for (const lesson of allLessons) {
+    const existing = lessonsByCourse.get(lesson.course_id) ?? []
+    existing.push(lesson)
+    lessonsByCourse.set(lesson.course_id, existing)
+  }
+
+  // Build ordered progress entries (respects enrollment order)
+  const progressItems = enrollments.flatMap((enrollment) => {
+    const course = courseMap.get(enrollment.course_id)
+    if (!course) return []
+
+    const lessons = lessonsByCourse.get(enrollment.course_id) ?? []
+    const totalLessons = lessons.length
+    const completedLessons = lessons.filter((l) => completedIds.has(l.id)).length
+    const nextLesson = lessons.find((l) => !completedIds.has(l.id)) ?? null
+
+    return [
+      {
+        course,
+        totalLessons,
+        completedLessons,
+        nextLessonSlug: nextLesson?.slug ?? null,
+      },
+    ]
+  })
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">My learning</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Your learning overview.
+          {progressItems.length} course{progressItems.length !== 1 ? 's' : ''}{' '}
+          enrolled
         </p>
       </div>
 
-      <div className="bg-card rounded-xl border p-6">
-        <h2 className="mb-2 font-medium">Your courses</h2>
-        <p className="text-muted-foreground text-sm">
-          You haven&apos;t enrolled in any courses yet.{' '}
-          <Link
-            href="/courses"
-            className="text-foreground underline-offset-4 hover:underline"
-          >
-            Browse the catalog
-          </Link>{' '}
-          to get started.
-        </p>
+      <div className="space-y-4">
+        {progressItems.map((item) => (
+          <CourseProgressCard
+            key={item.course.id}
+            course={item.course}
+            totalLessons={item.totalLessons}
+            completedLessons={item.completedLessons}
+            nextLessonSlug={item.nextLessonSlug}
+          />
+        ))}
       </div>
     </div>
   )
