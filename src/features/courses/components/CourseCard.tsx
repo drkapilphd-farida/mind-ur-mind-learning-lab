@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import type { Course } from '../types'
 
 type CourseCardProps = {
@@ -26,6 +27,22 @@ export function CourseCard({ course }: CourseCardProps): React.JSX.Element {
             <BookOpen className="text-muted-foreground/30 size-12" />
           </div>
         )}
+
+        {/* Price badge */}
+        <div className="absolute right-2 top-2">
+          {course.price_cents > 0 ? (
+            <Badge className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
+              ${(course.price_cents / 100).toFixed(2)}
+            </Badge>
+          ) : (
+            <Badge
+              variant="secondary"
+              className="bg-background/90 shadow-sm backdrop-blur-sm"
+            >
+              Free
+            </Badge>
+          )}
+        </div>
       </div>
 
       <CardHeader className="flex-1">
