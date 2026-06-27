@@ -21,7 +21,7 @@ export default async function EditCoursePage({
   const supabase = await createClient()
   const { data: course } = await supabase
     .from('courses')
-    .select('id, title, slug, description, thumbnail_url, is_published')
+    .select('id, title, slug, description, thumbnail_url, is_published, price_cents')
     .eq('id', courseId)
     .single()
 
@@ -54,6 +54,7 @@ export default async function EditCoursePage({
           description: course.description ?? '',
           thumbnail_url: course.thumbnail_url ?? '',
           is_published: course.is_published,
+          price_cents: course.price_cents,
         }}
         action={action}
         submitLabel="Save changes"

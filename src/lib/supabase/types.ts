@@ -20,6 +20,7 @@ export type Database = {
           description: string | null
           thumbnail_url: string | null
           is_published: boolean
+          price_cents: number
           created_at: string
           updated_at: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           description?: string | null
           thumbnail_url?: string | null
           is_published?: boolean
+          price_cents?: number
           created_at?: string
           updated_at?: string
         }
@@ -40,6 +42,7 @@ export type Database = {
           description?: string | null
           thumbnail_url?: string | null
           is_published?: boolean
+          price_cents?: number
           created_at?: string
           updated_at?: string
         }

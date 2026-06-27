@@ -32,6 +32,7 @@ const CourseSchema = z.object({
   description: z.string().max(2000).optional(),
   thumbnail_url: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   is_published: z.boolean().default(false),
+  price_cents: z.number().int().min(0),
 })
 
 export async function createCourse(input: unknown): Promise<AuthActionResult> {
@@ -49,7 +50,8 @@ export async function createCourse(input: unknown): Promise<AuthActionResult> {
   const { error } = await supabase.from('courses').insert({
     ...rest,
     description: description ?? null,
-    thumbnail_url: thumbnail_url !== '' && thumbnail_url !== undefined ? thumbnail_url : null,
+    thumbnail_url:
+      thumbnail_url !== '' && thumbnail_url !== undefined ? thumbnail_url : null,
   })
 
   if (error) {
@@ -81,7 +83,8 @@ export async function updateCourse(
     .update({
       ...rest,
       description: description ?? null,
-      thumbnail_url: thumbnail_url !== '' && thumbnail_url !== undefined ? thumbnail_url : null,
+      thumbnail_url:
+        thumbnail_url !== '' && thumbnail_url !== undefined ? thumbnail_url : null,
     })
     .eq('id', courseId)
 

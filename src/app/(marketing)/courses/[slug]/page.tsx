@@ -2,15 +2,17 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen, ChevronRight, Clock } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronRight, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { EnrollButton } from '@/features/courses/components/EnrollButton'
+import { BuyButton } from '@/features/billing/components/BuyButton'
 import { formatDuration } from '@/features/courses/types'
 
 type CourseDetailPageProps = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ payment?: string | undefined }>
 }
 
 export async function generateMetadata({
@@ -33,8 +35,10 @@ export async function generateMetadata({
 
 export default async function CourseDetailPage({
   params,
+  searchParams,
 }: CourseDetailPageProps): Promise<React.JSX.Element> {
   const { slug } = await params
+  const { payment } = await searchParams
 
   const supabase = await createClient()
   const {
@@ -50,7 +54,6 @@ export default async function CourseDetailPage({
 
   if (!course) notFound()
 
-  // Check enrollment and load lessons if the user is enrolled
   let isEnrolled = false
   let lessons: Array<{
     id: string
@@ -83,9 +86,20 @@ export default async function CourseDetailPage({
   }
 
   const loginHref = `/login?next=/courses/${course.slug}`
+  const isPaid = course.price_cents > 0
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
+      {payment === 'success' && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
+          <CheckCircle2 className="size-5 shrink-0" />
+          <span>
+            Payment successful — you&apos;re now enrolled. Welcome to the
+            course!
+          </span>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
@@ -107,6 +121,13 @@ export default async function CourseDetailPage({
                   {lessons.length} lesson{lessons.length !== 1 ? 's' : ''} below
                 </span>
               </div>
+            ) : isPaid ? (
+              <BuyButton
+                courseId={course.id}
+                priceCents={course.price_cents}
+                isAuthenticated={user !== null}
+                loginHref={loginHref}
+              />
             ) : (
               <EnrollButton
                 courseId={course.id}
@@ -157,7 +178,7 @@ export default async function CourseDetailPage({
                   </span>
                   <span className="flex-1 font-medium">{lesson.title}</span>
                   {lesson.duration_seconds > 0 && (
-                    <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                    <span className="text-muted-foreground flex shrink-0 items-center gap-1">
                       <Clock className="size-3" />
                       {formatDuration(lesson.duration_seconds)}
                     </span>
@@ -176,8 +197,10 @@ export default async function CourseDetailPage({
             <BookOpen className="text-muted-foreground/40 mx-auto mb-3 size-8" />
             <p className="text-muted-foreground text-sm">
               {user !== null
-                ? 'Enroll to unlock the full curriculum.'
-                : 'Sign in and enroll to see the lessons.'}
+                ? isPaid
+                  ? 'Purchase this course to unlock the full curriculum.'
+                  : 'Enroll to unlock the full curriculum.'
+                : 'Sign in to access this course.'}
             </p>
             {user === null && (
               <Link

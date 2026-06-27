@@ -34,6 +34,7 @@ const CourseSchema = z.object({
   description: z.string().max(2000),
   thumbnail_url: z.string().url('Must be a valid URL').or(z.literal('')),
   is_published: z.boolean(),
+  price_cents: z.number().int().min(0),
 })
 
 type CourseFormValues = z.infer<typeof CourseSchema>
@@ -69,6 +70,7 @@ export function CourseForm({
       description: '',
       thumbnail_url: '',
       is_published: false,
+      price_cents: 0,
     },
   })
 
@@ -158,6 +160,31 @@ export function CourseForm({
                   type="url"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="price_cents"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Price (cents) — 0 = free</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  value={field.value}
+                  onChange={(e) =>
+                    field.onChange(parseInt(e.target.value, 10) || 0)
+                  }
+                  placeholder="0"
+                />
+              </FormControl>
+              <p className="text-muted-foreground text-xs">
+                e.g. 1999 = $19.99. Set to 0 for a free course.
+              </p>
               <FormMessage />
             </FormItem>
           )}
