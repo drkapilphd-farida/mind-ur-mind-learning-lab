@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Lock } from 'lucide-react'
+import { Check, Lock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { ProgressRing } from '@/components/exercises/ProgressRing'
+import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
 import { getModuleProgress, type ExerciseAvailability } from '@/lib/exercises/queries/getModuleProgress'
+import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
@@ -29,11 +31,8 @@ const AVAILABILITY_BADGE_VARIANT: Record<ExerciseAvailability, 'outline' | 'seco
 
 export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.Element> {
   const progress = await getModuleProgress('quantum-speed-reading', EXERCISE_IDS)
-  const isModuleComplete = progress.completedCount === progress.totalCount
+  const summary = getContinueLearningSummary(progress, EYE_FOUNDATION_MODULE)
 
-  const nextExercise = EYE_FOUNDATION_MODULE.find(
-    (exercise) => exercise.exerciseId === progress.nextRecommendedExerciseId,
-  )
   const resumeExercise =
     progress.resumeExerciseId !== null && progress.resumeExerciseId !== progress.nextRecommendedExerciseId
       ? EYE_FOUNDATION_MODULE.find((exercise) => exercise.exerciseId === progress.resumeExerciseId)
@@ -49,52 +48,67 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
           Six calm, guided exercises that build the visual habits real reading speed is built on. Practice them
           in order, at your own pace — there&apos;s no rush and no score.
         </p>
+      </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <ProgressRing
-            progress={progress.totalCount > 0 ? progress.completedCount / progress.totalCount : 0}
-            label={`${progress.completedCount}/${progress.totalCount}`}
-          />
+      <div className="mt-8">
+        <ContinueLearningCard
+          variant="hero"
+          eyebrow="Quantum Speed Reading Lab™"
+          title={summary.isComplete ? 'Module complete' : (summary.currentExercise?.title ?? 'Eye Foundation Module™')}
+          actionLabel={summary.actionLabel}
+          actionHref={summary.currentExercise?.href ?? null}
+          completedCount={summary.completedCount}
+          totalCount={summary.totalCount}
+          lastCompletedTitle={summary.lastCompletedTitle}
+          isComplete={summary.isComplete}
+        />
 
-          {isModuleComplete ? (
-            <p className="mt-2 text-sm font-medium text-foreground">
-              You&apos;ve completed every exercise in this module. Feel free to revisit any of them below.
-            </p>
-          ) : (
-            nextExercise && (
-              <Button asChild size="lg" className="mt-2 min-w-[220px] rounded-full shadow-sm">
-                <Link href={nextExercise.href}>Continue Learning: {nextExercise.title}</Link>
-              </Button>
-            )
-          )}
-
-          {resumeExercise && (
+        {resumeExercise && (
+          <div className="mt-3 text-center">
             <Button asChild variant="ghost" size="sm">
               <Link href={resumeExercise.href}>Resume {resumeExercise.title}</Link>
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <ol className="mt-12 space-y-3">
         {EYE_FOUNDATION_MODULE.map((exercise, index) => {
           const availability = progress.availabilityByExerciseId[exercise.exerciseId] ?? 'locked'
           const isLocked = availability === 'locked'
+          const isCompleted = availability === 'completed'
+          const isCurrent = availability === 'current'
 
           return (
             <li key={exercise.exerciseId}>
-              <Card className={availability === 'current' ? 'ring-2 ring-primary/40' : undefined}>
+              <Card
+                {...(isCurrent ? { 'aria-current': 'step' } : {})}
+                className={cn(
+                  'transition-shadow duration-200',
+                  isCurrent ? 'ring-2 ring-primary/40' : 'hover:shadow-md',
+                )}
+              >
                 <CardContent className="flex items-center gap-4">
                   <div
                     aria-hidden="true"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground"
+                    className={cn(
+                      'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                      isCompleted
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground',
+                    )}
                   >
-                    {isLocked ? <Lock className="size-3.5" /> : index + 1}
+                    {isLocked ? <Lock className="size-3.5" /> : isCompleted ? <Check className="size-4" /> : index + 1}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h2 className={isLocked ? 'truncate text-sm font-medium text-muted-foreground' : 'truncate text-sm font-medium text-foreground'}>
+                      <h2
+                        className={cn(
+                          'truncate text-sm font-medium',
+                          isLocked ? 'text-muted-foreground' : 'text-foreground',
+                        )}
+                      >
                         {exercise.title}
                       </h2>
                       <Badge variant={AVAILABILITY_BADGE_VARIANT[availability]}>
@@ -110,7 +124,7 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
                     </Button>
                   ) : (
                     <Button asChild variant="outline" size="sm" className="shrink-0">
-                      <Link href={exercise.href}>{availability === 'completed' ? 'Review' : 'Open'}</Link>
+                      <Link href={exercise.href}>{isCompleted ? 'Review' : 'Open'}</Link>
                     </Button>
                   )}
                 </CardContent>

@@ -14,6 +14,7 @@ export type ModuleProgress = {
   availabilityByExerciseId: Record<string, ExerciseAvailability>
   nextRecommendedExerciseId: string | null
   resumeExerciseId: string | null
+  lastCompletedExerciseId: string | null
   completedCount: number
   totalCount: number
 }
@@ -50,6 +51,7 @@ function buildEmptyProgress(orderedExerciseIds: readonly string[]): ModuleProgre
     availabilityByExerciseId: deriveAvailability(orderedExerciseIds, statusByExerciseId),
     nextRecommendedExerciseId: orderedExerciseIds[0] ?? null,
     resumeExerciseId: null,
+    lastCompletedExerciseId: null,
     completedCount: 0,
     totalCount: orderedExerciseIds.length,
   }
@@ -73,7 +75,7 @@ export async function getModuleProgress(
 
   const { data: rows } = await supabase
     .from('exercise_progress')
-    .select('exercise_id, status, updated_at')
+    .select('exercise_id, status, updated_at, completed_at')
     .eq('user_id', user.id)
     .eq('lab_id', labId)
 
@@ -84,6 +86,7 @@ export async function getModuleProgress(
 
   const exerciseIdSet = new Set(orderedExerciseIds)
   let mostRecentInProgress: { exerciseId: string; updatedAt: string } | null = null
+  let mostRecentCompleted: { exerciseId: string; completedAt: string } | null = null
 
   for (const row of rows) {
     if (!exerciseIdSet.has(row.exercise_id)) continue
@@ -96,9 +99,18 @@ export async function getModuleProgress(
     ) {
       mostRecentInProgress = { exerciseId: row.exercise_id, updatedAt: row.updated_at }
     }
+
+    if (
+      row.status === 'completed' &&
+      row.completed_at !== null &&
+      (mostRecentCompleted === null || row.completed_at > mostRecentCompleted.completedAt)
+    ) {
+      mostRecentCompleted = { exerciseId: row.exercise_id, completedAt: row.completed_at }
+    }
   }
 
   progress.resumeExerciseId = mostRecentInProgress?.exerciseId ?? null
+  progress.lastCompletedExerciseId = mostRecentCompleted?.exerciseId ?? null
   progress.nextRecommendedExerciseId =
     orderedExerciseIds.find((exerciseId) => progress.statusByExerciseId[exerciseId] !== 'completed') ?? null
   progress.availabilityByExerciseId = deriveAvailability(orderedExerciseIds, progress.statusByExerciseId)

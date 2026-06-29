@@ -3,10 +3,16 @@ import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { CourseProgressCard } from '@/features/courses/components/CourseProgressCard'
+import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
+import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
+import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
 }
+
+const QUANTUM_SPEED_READING_EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
@@ -16,6 +22,25 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
   // Layout redirects unauthenticated users; user is guaranteed here
   if (!user) return <div />
+
+  // Quantum Speed Reading Lab summary — reused from the Learning Journey
+  // Engine (Sprint 2A), not re-derived here. Shown regardless of course
+  // enrollment, since the Lab is independent of the course catalog.
+  const labProgress = await getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS)
+  const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
+  const labCard = (
+    <ContinueLearningCard
+      variant="compact"
+      eyebrow="Quantum Speed Reading Lab™"
+      title="Eye Foundation Module™"
+      actionLabel={labSummary.actionLabel}
+      actionHref={labSummary.currentExercise?.href ?? null}
+      completedCount={labSummary.completedCount}
+      totalCount={labSummary.totalCount}
+      lastCompletedTitle={labSummary.lastCompletedTitle}
+      isComplete={labSummary.isComplete}
+    />
+  )
 
   // Step 1 — enrollments
   const { data: enrollmentData } = await supabase
@@ -38,6 +63,8 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
             Your enrolled courses and progress.
           </p>
         </div>
+
+        {labCard}
 
         <div className="bg-card rounded-xl border p-8 text-center">
           <BookOpen className="text-muted-foreground/30 mx-auto mb-4 size-10" />
@@ -121,6 +148,8 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
           enrolled
         </p>
       </div>
+
+      {labCard}
 
       <div className="space-y-4">
         {progressItems.map((item) => (

@@ -7,13 +7,19 @@ type ProgressRingProps = {
   progress: number
   size?: number
   label?: string
+  accessibleLabel?: string
 }
 
 const STROKE_WIDTH = 4
 
 // A real 0–1 ratio in, a ring out — no lab-specific knowledge here, so any
 // future Lab's progress can drive the same component.
-export function ProgressRing({ progress, size = 72, label }: ProgressRingProps): React.JSX.Element {
+export function ProgressRing({
+  progress,
+  size = 72,
+  label,
+  accessibleLabel,
+}: ProgressRingProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const radius = (size - STROKE_WIDTH) / 2
   const circumference = 2 * Math.PI * radius
@@ -21,7 +27,12 @@ export function ProgressRing({ progress, size = 72, label }: ProgressRingProps):
   const offset = circumference * (1 - clampedProgress)
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+      role="img"
+      {...(accessibleLabel !== undefined ? { 'aria-label': accessibleLabel } : { 'aria-hidden': true })}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={STROKE_WIDTH} className="stroke-muted" />
         <circle
