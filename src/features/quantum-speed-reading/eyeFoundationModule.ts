@@ -1,14 +1,9 @@
+import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
+
 // The locked Eye Foundation Module sequence (see docs/QUANTUM_SPEED_READING_CURRICULUM.md).
 // Single source of truth for order, copy, and routing — the landing page and
 // the progress system both read from this instead of each hardcoding the list.
-export type EyeFoundationExercise = {
-  exerciseId: string
-  title: string
-  summary: string
-  href: string
-}
-
-export const EYE_FOUNDATION_MODULE: readonly EyeFoundationExercise[] = [
+export const EYE_FOUNDATION_MODULE: readonly ExerciseSequenceItem[] = [
   {
     exerciseId: 'eye-warm-up',
     title: 'Eye Warm-up',

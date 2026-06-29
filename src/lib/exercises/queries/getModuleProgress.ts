@@ -3,10 +3,40 @@ import type { LabId } from '../types'
 
 export type ExerciseStatus = 'not-started' | 'in-progress' | 'completed'
 
+// Three states a student actually needs to recognize — "Learning Path":
+// completed exercises stay completed regardless of position; the first
+// not-yet-completed exercise in order is 'current' (always unlocked); every
+// not-yet-completed exercise after that is 'locked'.
+export type ExerciseAvailability = 'completed' | 'current' | 'locked'
+
 export type ModuleProgress = {
   statusByExerciseId: Record<string, ExerciseStatus>
+  availabilityByExerciseId: Record<string, ExerciseAvailability>
   nextRecommendedExerciseId: string | null
   resumeExerciseId: string | null
+  completedCount: number
+  totalCount: number
+}
+
+function deriveAvailability(
+  orderedExerciseIds: readonly string[],
+  statusByExerciseId: Record<string, ExerciseStatus>,
+): Record<string, ExerciseAvailability> {
+  const availabilityByExerciseId: Record<string, ExerciseAvailability> = {}
+  let reachedCurrent = false
+
+  for (const exerciseId of orderedExerciseIds) {
+    if (statusByExerciseId[exerciseId] === 'completed') {
+      availabilityByExerciseId[exerciseId] = 'completed'
+    } else if (!reachedCurrent) {
+      availabilityByExerciseId[exerciseId] = 'current'
+      reachedCurrent = true
+    } else {
+      availabilityByExerciseId[exerciseId] = 'locked'
+    }
+  }
+
+  return availabilityByExerciseId
 }
 
 function buildEmptyProgress(orderedExerciseIds: readonly string[]): ModuleProgress {
@@ -17,8 +47,11 @@ function buildEmptyProgress(orderedExerciseIds: readonly string[]): ModuleProgre
 
   return {
     statusByExerciseId,
+    availabilityByExerciseId: deriveAvailability(orderedExerciseIds, statusByExerciseId),
     nextRecommendedExerciseId: orderedExerciseIds[0] ?? null,
     resumeExerciseId: null,
+    completedCount: 0,
+    totalCount: orderedExerciseIds.length,
   }
 }
 
@@ -68,6 +101,10 @@ export async function getModuleProgress(
   progress.resumeExerciseId = mostRecentInProgress?.exerciseId ?? null
   progress.nextRecommendedExerciseId =
     orderedExerciseIds.find((exerciseId) => progress.statusByExerciseId[exerciseId] !== 'completed') ?? null
+  progress.availabilityByExerciseId = deriveAvailability(orderedExerciseIds, progress.statusByExerciseId)
+  progress.completedCount = orderedExerciseIds.filter(
+    (exerciseId) => progress.statusByExerciseId[exerciseId] === 'completed',
+  ).length
 
   return progress
 }

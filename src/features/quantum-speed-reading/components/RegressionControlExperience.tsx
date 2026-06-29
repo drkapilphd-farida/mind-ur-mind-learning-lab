@@ -2,6 +2,8 @@
 
 import { ExerciseRunner } from '@/components/exercises/ExerciseRunner'
 import type { ExerciseDefinition } from '@/lib/exercises/types'
+import { getAdjacentExercises } from '@/lib/exercises/sequence'
+import { EYE_FOUNDATION_MODULE } from '../eyeFoundationModule'
 import { RegressionControlCanvas } from './RegressionControlCanvas'
 
 const REGRESSION_CONTROL_DEFINITION: ExerciseDefinition = {
@@ -19,6 +21,16 @@ const REGRESSION_CONTROL_DEFINITION: ExerciseDefinition = {
   },
 }
 
+const { previous, next } = getAdjacentExercises(EYE_FOUNDATION_MODULE, 'regression-control')
+
 export function RegressionControlExperience(): React.JSX.Element {
-  return <ExerciseRunner definition={REGRESSION_CONTROL_DEFINITION} Canvas={RegressionControlCanvas} />
+  return (
+    <ExerciseRunner
+      definition={REGRESSION_CONTROL_DEFINITION}
+      Canvas={RegressionControlCanvas}
+      labHref="/labs/quantum-speed-reading"
+      previousExercise={previous}
+      nextExercise={next}
+    />
+  )
 }

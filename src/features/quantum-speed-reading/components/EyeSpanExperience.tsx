@@ -2,6 +2,8 @@
 
 import { ExerciseRunner } from '@/components/exercises/ExerciseRunner'
 import type { ExerciseDefinition } from '@/lib/exercises/types'
+import { getAdjacentExercises } from '@/lib/exercises/sequence'
+import { EYE_FOUNDATION_MODULE } from '../eyeFoundationModule'
 import { EyeSpanCanvas } from './EyeSpanCanvas'
 
 const EYE_SPAN_DEFINITION: ExerciseDefinition = {
@@ -19,6 +21,16 @@ const EYE_SPAN_DEFINITION: ExerciseDefinition = {
   },
 }
 
+const { previous, next } = getAdjacentExercises(EYE_FOUNDATION_MODULE, 'eye-span')
+
 export function EyeSpanExperience(): React.JSX.Element {
-  return <ExerciseRunner definition={EYE_SPAN_DEFINITION} Canvas={EyeSpanCanvas} />
+  return (
+    <ExerciseRunner
+      definition={EYE_SPAN_DEFINITION}
+      Canvas={EyeSpanCanvas}
+      labHref="/labs/quantum-speed-reading"
+      previousExercise={previous}
+      nextExercise={next}
+    />
+  )
 }

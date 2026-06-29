@@ -1,26 +1,26 @@
 import type { Metadata } from 'next'
-import { ReadingSpeedExperience } from '@/features/quantum-speed-reading/components/ReadingSpeedExperience'
+import { EyeWarmupExperience } from '@/features/quantum-speed-reading/components/EyeWarmupExperience'
 import { ExerciseLockedScreen } from '@/components/exercises/ExerciseLockedScreen'
 import { getExerciseAccess } from '@/lib/exercises/queries/getExerciseAccess'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
-  title: 'Reading Speed — Quantum Speed Reading Lab™',
-  description: "Let's build a smooth, comfortable reading rhythm.",
+  title: 'Eye Warm-up — Quantum Speed Reading Lab™',
+  description: "Let's loosen up your eyes before we begin.",
 }
 
-export default async function ReadingSpeedPage(): Promise<React.JSX.Element> {
-  const access = await getExerciseAccess('quantum-speed-reading', EYE_FOUNDATION_MODULE, 'reading-speed')
+export default async function EyeWarmupPage(): Promise<React.JSX.Element> {
+  const access = await getExerciseAccess('quantum-speed-reading', EYE_FOUNDATION_MODULE, 'eye-warm-up')
 
   if (!access.allowed) {
     return (
       <ExerciseLockedScreen
-        title="Reading Speed"
+        title="Eye Warm-up"
         unlockHref={access.nextExercise?.href ?? '/labs/quantum-speed-reading'}
         unlockLabel={access.nextExercise ? `Go to ${access.nextExercise.title}` : 'Back to Lab'}
       />
     )
   }
 
-  return <ReadingSpeedExperience />
+  return <EyeWarmupExperience />
 }

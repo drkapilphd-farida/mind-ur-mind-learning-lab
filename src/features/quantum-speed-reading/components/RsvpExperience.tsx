@@ -2,6 +2,8 @@
 
 import { ExerciseRunner } from '@/components/exercises/ExerciseRunner'
 import type { ExerciseDefinition } from '@/lib/exercises/types'
+import { getAdjacentExercises } from '@/lib/exercises/sequence'
+import { EYE_FOUNDATION_MODULE } from '../eyeFoundationModule'
 import { RsvpCanvas } from './RsvpCanvas'
 
 const RSVP_DEFINITION: ExerciseDefinition = {
@@ -19,6 +21,16 @@ const RSVP_DEFINITION: ExerciseDefinition = {
   },
 }
 
+const { previous, next } = getAdjacentExercises(EYE_FOUNDATION_MODULE, 'rsvp')
+
 export function RsvpExperience(): React.JSX.Element {
-  return <ExerciseRunner definition={RSVP_DEFINITION} Canvas={RsvpCanvas} />
+  return (
+    <ExerciseRunner
+      definition={RSVP_DEFINITION}
+      Canvas={RsvpCanvas}
+      labHref="/labs/quantum-speed-reading"
+      previousExercise={previous}
+      nextExercise={next}
+    />
+  )
 }

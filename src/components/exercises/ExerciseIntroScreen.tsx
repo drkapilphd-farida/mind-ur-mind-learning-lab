@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +14,9 @@ type ExerciseIntroScreenProps = {
   durationLabel: string
   postureNote: string
   onStart: () => void
+  previousHref?: string
+  previousLabel?: string
+  labHref?: string
 }
 
 export function ExerciseIntroScreen({
@@ -21,7 +25,12 @@ export function ExerciseIntroScreen({
   durationLabel,
   postureNote,
   onStart,
+  previousHref,
+  previousLabel,
+  labHref,
 }: ExerciseIntroScreenProps): React.JSX.Element {
+  const hasSecondaryNav = previousHref !== undefined || labHref !== undefined
+
   return (
     <div className={EXERCISE_SCREEN_CLASSNAME}>
       <div className="mx-auto max-w-sm">
@@ -34,6 +43,21 @@ export function ExerciseIntroScreen({
         <Button size="lg" className="mt-10 min-w-[200px] rounded-full shadow-sm" onClick={onStart}>
           Start
         </Button>
+
+        {hasSecondaryNav && (
+          <div className="mt-6 flex items-center justify-center gap-4">
+            {previousHref !== undefined && (
+              <Link href={previousHref} className={cn('hover:text-foreground', EXERCISE_CAPTION_CLASSNAME)}>
+                ← {previousLabel ?? 'Previous'}
+              </Link>
+            )}
+            {labHref !== undefined && (
+              <Link href={labHref} className={cn('hover:text-foreground', EXERCISE_CAPTION_CLASSNAME)}>
+                Exit to Lab
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

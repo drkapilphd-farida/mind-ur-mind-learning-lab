@@ -11,15 +11,28 @@ type ExerciseCanvasComponent = (props: {
   onExit: (durationMs: number) => void
 }) => React.JSX.Element
 
+type AdjacentExerciseLink = { title: string; href: string }
+
 type ExerciseRunnerProps = {
   definition: ExerciseDefinition
   Canvas: ExerciseCanvasComponent
+  labHref?: string
+  previousExercise?: AdjacentExerciseLink | null
+  nextExercise?: AdjacentExerciseLink | null
 }
 
 // The shared intro → active → completion lifecycle every exercise runs.
 // Authoring a new exercise means writing an ExerciseDefinition and a Canvas —
 // never re-implementing this runner, the session wiring, or navigation.
-export function ExerciseRunner({ definition, Canvas }: ExerciseRunnerProps): React.JSX.Element {
+// `labHref`/`previousExercise`/`nextExercise` are optional and structural
+// (Learning Journey Engine) — omitting them keeps Sprint 1's exact behavior.
+export function ExerciseRunner({
+  definition,
+  Canvas,
+  labHref,
+  previousExercise,
+  nextExercise,
+}: ExerciseRunnerProps): React.JSX.Element {
   const router = useRouter()
   const { stage, start, recordCompletion, recordExit } = useExerciseSession({
     labId: definition.labId,
@@ -32,6 +45,14 @@ export function ExerciseRunner({ definition, Canvas }: ExerciseRunnerProps): Rea
   }
 
   function handleDone(): void {
+    if (nextExercise) {
+      router.push(nextExercise.href)
+      return
+    }
+    if (labHref !== undefined) {
+      router.push(labHref)
+      return
+    }
     router.back()
   }
 
@@ -43,6 +64,8 @@ export function ExerciseRunner({ definition, Canvas }: ExerciseRunnerProps): Rea
         durationLabel={definition.intro.durationLabel}
         postureNote={definition.intro.postureNote}
         onStart={start}
+        {...(previousExercise ? { previousHref: previousExercise.href, previousLabel: previousExercise.title } : {})}
+        {...(labHref !== undefined ? { labHref } : {})}
       />
     )
   }
@@ -55,8 +78,11 @@ export function ExerciseRunner({ definition, Canvas }: ExerciseRunnerProps): Rea
     <ExerciseCompletionScreen
       title={definition.completion.title}
       mentorLine={definition.completion.mentorLine}
-      primaryActionLabel="Done"
+      primaryActionLabel={nextExercise ? `Continue Learning: ${nextExercise.title}` : 'Back to Lab'}
       onPrimaryAction={handleDone}
+      {...(nextExercise && labHref !== undefined
+        ? { secondaryActionLabel: 'Back to Lab', secondaryActionHref: labHref }
+        : {})}
     />
   )
 }
