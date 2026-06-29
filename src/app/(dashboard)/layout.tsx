@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Topbar } from '@/components/Topbar'
 
@@ -15,11 +16,7 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, avatar_url')
-    .eq('id', user.id)
-    .single()
+  const profile = await getCurrentUserProfile(user.id)
 
   return (
     <div className="bg-muted/30 flex h-screen overflow-hidden">
@@ -31,8 +28,8 @@ export default async function DashboardLayout({
       {/* Main column */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
-          fullName={profile?.full_name ?? null}
-          avatarUrl={profile?.avatar_url ?? null}
+          fullName={profile?.fullName ?? null}
+          avatarUrl={profile?.avatarUrl ?? null}
           email={user.email ?? ''}
         />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>

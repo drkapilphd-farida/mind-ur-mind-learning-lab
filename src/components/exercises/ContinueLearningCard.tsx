@@ -14,6 +14,7 @@ type ContinueLearningCardProps = {
   lastCompletedTitle: string | null
   isComplete: boolean
   resumeContextLabel?: string
+  remainingCount?: number
   variant?: 'hero' | 'compact'
 }
 
@@ -31,6 +32,7 @@ export function ContinueLearningCard({
   lastCompletedTitle,
   isComplete,
   resumeContextLabel,
+  remainingCount,
   variant = 'hero',
 }: ContinueLearningCardProps): React.JSX.Element {
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
@@ -84,7 +86,9 @@ export function ContinueLearningCard({
         <p className="mt-2 text-sm text-muted-foreground">
           {isComplete
             ? "You've completed every exercise in this module."
-            : `${completedCount} of ${totalCount} exercises complete`}
+            : `${completedCount} of ${totalCount} exercises complete${
+                remainingCount !== undefined ? ` — ${remainingCount} remaining` : ''
+              }`}
         </p>
       )}
 

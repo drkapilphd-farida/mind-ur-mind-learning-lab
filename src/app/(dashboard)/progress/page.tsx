@@ -21,25 +21,13 @@ import {
   formatDurationLabel,
 } from '@/lib/exercises/practiceHistory'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
+import { formatRelativeDate } from '@/lib/formatRelativeDate'
 
 export const metadata: Metadata = {
   title: 'Progress',
 }
 
 const QUANTUM_SPEED_READING_EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
-
-function formatRelativeDate(isoDate: string): string {
-  const diffMs = Date.now() - new Date(isoDate).getTime()
-  const diffDays = Math.floor(diffMs / 86_400_000)
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays}d ago`
-  const weeks = Math.floor(diffDays / 7)
-  if (weeks < 5) return `${weeks}w ago`
-  const months = Math.floor(diffDays / 30)
-  if (months < 12) return `${months}mo ago`
-  return `${Math.floor(diffDays / 365)}y ago`
-}
 
 export default async function ProgressPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()

@@ -27,5 +27,12 @@ export async function createClient(): Promise<ReturnType<typeof createServerClie
         }
       },
     },
+    // Supabase-js calls the global fetch, which Next.js patches to apply its
+    // own Data Cache by default — without this, a request moments after a
+    // write can silently get a cached pre-write response. Every query from
+    // this client must be genuinely live, never cached.
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
   })
 }

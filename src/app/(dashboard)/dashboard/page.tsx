@@ -1,15 +1,27 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Target } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
+import { formatRelativeDate } from '@/lib/formatRelativeDate'
 import { CourseProgressCard } from '@/features/courses/components/CourseProgressCard'
 import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
 import { PracticeSummaryCard } from '@/components/exercises/PracticeSummaryCard'
 import { WeeklyActivityChart } from '@/components/exercises/WeeklyActivityChart'
+import { SessionHistoryList } from '@/components/exercises/SessionHistoryList'
+import { GreetingHeading } from '@/components/dashboard/GreetingHeading'
+import { ModuleProgressCard } from '@/components/dashboard/ModuleProgressCard'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
-import { computeDailyStreak, computeWeeklyActivity, computeTotalPracticeStats } from '@/lib/exercises/practiceHistory'
+import {
+  computeDailyStreak,
+  computeTodaysProgress,
+  computeWeeklyActivity,
+  computeTotalPracticeStats,
+  buildSessionHistory,
+} from '@/lib/exercises/practiceHistory'
+import { getMotivationalMessage, getTodaysGoal } from '@/lib/exercises/dashboardInsights'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
@@ -17,6 +29,7 @@ export const metadata: Metadata = {
 }
 
 const QUANTUM_SPEED_READING_EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
+const EYE_FOUNDATION_MODULE_TITLE = 'Eye Foundation Module™'
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
@@ -30,31 +43,56 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
   // Quantum Speed Reading Lab summary — reused from the Learning Journey
   // Engine (Sprint 2A) and the practice-session engine (Sprint 2C), not
   // re-derived here. Shown regardless of course enrollment, since the Lab
-  // is independent of the course catalog. The one new query on this page
-  // is getPracticeSessions — getModuleProgress was already fetched here.
-  const [labProgress, labSessions] = await Promise.all([
+  // is independent of the course catalog. getCurrentUserProfile is wrapped
+  // in React's cache(), so this doesn't re-query profiles — the dashboard
+  // layout already fetched it for the Topbar in the same request.
+  const [labProgress, labSessions, profile] = await Promise.all([
     getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS),
     getPracticeSessions('quantum-speed-reading'),
+    getCurrentUserProfile(user.id),
   ])
   const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
   const labStreak = computeDailyStreak(labSessions)
+  const labToday = computeTodaysProgress(labSessions)
   const labWeek = computeWeeklyActivity(labSessions)
   const labTotals = computeTotalPracticeStats(labSessions)
   const labCompletionPercent =
     labProgress.totalCount > 0 ? Math.round((labProgress.completedCount / labProgress.totalCount) * 100) : 0
+  const labRemaining = labProgress.totalCount - labProgress.completedCount
+  const studentFirstName = profile?.fullName?.trim().split(' ')[0] ?? 'there'
+
+  const welcomeSection = (
+    <div>
+      <GreetingHeading studentName={studentFirstName} />
+      <p className="mt-1 text-sm text-muted-foreground">
+        {getMotivationalMessage(labProgress, labStreak, EYE_FOUNDATION_MODULE_TITLE)}
+      </p>
+    </div>
+  )
 
   const labCard = (
     <ContinueLearningCard
-      variant="compact"
+      variant="hero"
       eyebrow="Quantum Speed Reading Lab™"
-      title="Eye Foundation Module™"
+      title={labSummary.isComplete ? 'Module complete' : (labSummary.currentExercise?.title ?? EYE_FOUNDATION_MODULE_TITLE)}
       actionLabel={labSummary.actionLabel}
       actionHref={labSummary.currentExercise?.href ?? null}
       completedCount={labSummary.completedCount}
       totalCount={labSummary.totalCount}
       lastCompletedTitle={labSummary.lastCompletedTitle}
       isComplete={labSummary.isComplete}
+      remainingCount={labRemaining}
     />
+  )
+
+  const todaysGoalBlock = (
+    <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
+      <Target className="size-4 shrink-0 text-primary" aria-hidden="true" />
+      <p className="text-sm text-foreground">
+        <span className="font-medium">Today&apos;s goal — </span>
+        {getTodaysGoal(labProgress, labStreak, labToday, labSummary.currentExercise ?? null)}
+      </p>
+    </div>
   )
 
   const practiceSection = (
@@ -67,6 +105,30 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         completionPercent={labCompletionPercent}
       />
       <WeeklyActivityChart days={labWeek} />
+    </div>
+  )
+
+  const moduleProgressSection = (
+    <div className="space-y-3">
+      <h2 className="text-base font-semibold">Your Labs</h2>
+      <div className="space-y-3">
+        <ModuleProgressCard
+          status="available"
+          labName="Quantum Speed Reading Lab™"
+          completedCount={labProgress.completedCount}
+          totalCount={labProgress.totalCount}
+          href="/labs/quantum-speed-reading"
+        />
+        <ModuleProgressCard status="coming-soon" labName="Memory Intelligence Lab™" />
+        <ModuleProgressCard status="coming-soon" labName="Focus Intelligence Lab™" />
+      </div>
+    </div>
+  )
+
+  const recentActivitySection = (
+    <div className="space-y-3">
+      <h2 className="text-base font-semibold">Recent activity</h2>
+      <SessionHistoryList sessions={buildSessionHistory(labSessions, EYE_FOUNDATION_MODULE, 5)} formatDate={formatRelativeDate} />
     </div>
   )
 
@@ -83,17 +145,12 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
   if (courseIds.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            My learning
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Your enrolled courses and progress.
-          </p>
-        </div>
-
+        {welcomeSection}
         {labCard}
+        {todaysGoalBlock}
         {practiceSection}
+        {moduleProgressSection}
+        {recentActivitySection}
 
         <div className="bg-card rounded-xl border p-8 text-center">
           <BookOpen className="text-muted-foreground/30 mx-auto mb-4 size-10" />
@@ -170,16 +227,16 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My learning</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {progressItems.length} course{progressItems.length !== 1 ? 's' : ''}{' '}
-          enrolled
-        </p>
-      </div>
+      {welcomeSection}
+      <p className="text-sm text-muted-foreground">
+        {progressItems.length} course{progressItems.length !== 1 ? 's' : ''} enrolled
+      </p>
 
       {labCard}
+      {todaysGoalBlock}
       {practiceSection}
+      {moduleProgressSection}
+      {recentActivitySection}
 
       <div className="space-y-4">
         {progressItems.map((item) => (
