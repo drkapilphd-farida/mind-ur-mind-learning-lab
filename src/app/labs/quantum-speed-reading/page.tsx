@@ -97,10 +97,13 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
           return (
             <li key={exercise.exerciseId}>
               <Card
+                role="group"
+                aria-label={`${exercise.title}, ${AVAILABILITY_LABEL[availability]}`}
                 {...(isCurrent ? { 'aria-current': 'step' } : {})}
+                {...(isLocked ? { 'aria-disabled': true } : {})}
                 className={cn(
                   'transition-shadow duration-200',
-                  isCurrent ? 'ring-2 ring-primary/40' : 'hover:shadow-md',
+                  isCurrent ? 'ring-2 ring-primary/40' : isLocked ? 'cursor-not-allowed' : 'hover:shadow-md',
                 )}
               >
                 <CardContent className="flex items-center gap-4">
