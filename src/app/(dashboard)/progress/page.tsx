@@ -8,8 +8,10 @@ import { DailyStreakCard } from '@/components/exercises/DailyStreakCard'
 import { WeeklyActivityChart } from '@/components/exercises/WeeklyActivityChart'
 import { ProgressTimeline } from '@/components/exercises/ProgressTimeline'
 import { SessionHistoryList } from '@/components/exercises/SessionHistoryList'
+import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
+import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import {
   computeDailyStreak,
   computeTodaysProgress,
@@ -61,6 +63,7 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
   const labTimeline = buildProgressTimeline(labSessions, EYE_FOUNDATION_MODULE)
   const labHistory = buildSessionHistory(labSessions, EYE_FOUNDATION_MODULE)
   const labRemaining = labModuleProgress.totalCount - labModuleProgress.completedCount
+  const labSummary = getContinueLearningSummary(labModuleProgress, EYE_FOUNDATION_MODULE)
 
   const labSection = (
     <section className="space-y-4">
@@ -68,6 +71,18 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
         <h2 className="text-base font-semibold">Quantum Speed Reading Lab™</h2>
         <p className="text-muted-foreground text-sm">Eye Foundation Module™ activity</p>
       </div>
+
+      <ContinueLearningCard
+        variant="compact"
+        eyebrow="Quantum Speed Reading Lab™"
+        title="Eye Foundation Module™"
+        actionLabel={labSummary.actionLabel}
+        actionHref={labSummary.currentExercise?.href ?? null}
+        completedCount={labSummary.completedCount}
+        totalCount={labSummary.totalCount}
+        lastCompletedTitle={labSummary.lastCompletedTitle}
+        isComplete={labSummary.isComplete}
+      />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <DailyStreakCard
