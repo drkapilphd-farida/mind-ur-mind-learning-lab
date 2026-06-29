@@ -46,6 +46,36 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+/*
+ * Z-index scale — every stacking-context value in the app should reference
+ * one of these via Tailwind's z-(--z-name) arbitrary-value syntax, so future
+ * overlays (modals, toasts, tooltips) never fight for layers ad hoc.
+ */
+@theme {
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-toast: 1400;
+  --z-tooltip: 1500;
+}
+
+/*
+ * Motion duration scale — pair with duration-(--duration-name) instead of
+ * raw duration-200/duration-500, so every Lab's motion reads from the same
+ * four speeds. See docs/DESIGN_SYSTEM.md for when to use which.
+ */
+@theme {
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
 }
 
 :root {
@@ -64,6 +94,10 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.52 0.13 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.48 0.15 70);
+  --warning-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -99,6 +133,10 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.72 0.15 145);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.8 0.16 70);
+  --warning-foreground: oklch(0.145 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
