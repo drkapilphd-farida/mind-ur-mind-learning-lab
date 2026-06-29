@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
 import type { LabId } from '@/lib/exercises/types'
 
@@ -14,8 +14,9 @@ type UseExerciseSessionOptions = {
 type UseExerciseSessionResult = {
   stage: ExerciseSessionStage
   start: () => void
-  recordCompletion: (durationMs: number) => void
+  recordCompletion: (durationMs: number) => Promise<void>
   recordExit: (durationMs: number) => Promise<void>
+  awaitPendingSave: () => Promise<void>
 }
 
 // Owns the intro → active → completion lifecycle shared by every exercise, and
@@ -24,23 +25,33 @@ type UseExerciseSessionResult = {
 // will eventually chain exercises together, which this hook shouldn't assume.
 export function useExerciseSession({ labId, exerciseId }: UseExerciseSessionOptions): UseExerciseSessionResult {
   const [stage, setStage] = useState<ExerciseSessionStage>('intro')
+  // Tracks the most recent save so a caller that navigates afterward (either
+  // exit, immediately, or "Continue Learning" on the completion screen) can
+  // await it first. Found necessary in Sprint 2F's verification: a fast
+  // click could outrace the fire-and-forget save, navigating away before the
+  // write landed and silently showing stale progress on the next page.
+  const pendingSaveRef = useRef<Promise<void>>(Promise.resolve())
 
   function start(): void {
     setStage('active')
   }
 
-  function recordCompletion(durationMs: number): void {
+  async function recordCompletion(durationMs: number): Promise<void> {
     setStage('completion')
-    void savePracticeSession({ labId, exerciseId, durationMs, completed: true })
+    const promise = savePracticeSession({ labId, exerciseId, durationMs, completed: true }).then(() => undefined)
+    pendingSaveRef.current = promise
+    return promise
   }
 
-  // Returns a promise (unlike recordCompletion) because the caller navigates
-  // away immediately on exit, with no natural delay like a completion-screen
-  // button click — awaiting this avoids a real race where the lab page
-  // re-fetches progress before this write has landed.
   async function recordExit(durationMs: number): Promise<void> {
-    await savePracticeSession({ labId, exerciseId, durationMs, completed: false })
+    const promise = savePracticeSession({ labId, exerciseId, durationMs, completed: false }).then(() => undefined)
+    pendingSaveRef.current = promise
+    return promise
   }
 
-  return { stage, start, recordCompletion, recordExit }
+  function awaitPendingSave(): Promise<void> {
+    return pendingSaveRef.current
+  }
+
+  return { stage, start, recordCompletion, recordExit, awaitPendingSave }
 }

@@ -34,7 +34,7 @@ export function ExerciseRunner({
   nextExercise,
 }: ExerciseRunnerProps): React.JSX.Element {
   const router = useRouter()
-  const { stage, start, recordCompletion, recordExit } = useExerciseSession({
+  const { stage, start, recordCompletion, recordExit, awaitPendingSave } = useExerciseSession({
     labId: definition.labId,
     exerciseId: definition.exerciseId,
   })
@@ -50,7 +50,11 @@ export function ExerciseRunner({
     router.back()
   }
 
-  function handleDone(): void {
+  async function handleDone(): Promise<void> {
+    // recordCompletion's save was already fired when the exercise finished;
+    // wait for that same save to land before navigating, rather than
+    // re-triggering it.
+    await awaitPendingSave()
     if (nextExercise) {
       router.push(nextExercise.href)
       return

@@ -4,8 +4,12 @@ import { BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { CourseProgressCard } from '@/features/courses/components/CourseProgressCard'
 import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
+import { PracticeSummaryCard } from '@/components/exercises/PracticeSummaryCard'
+import { WeeklyActivityChart } from '@/components/exercises/WeeklyActivityChart'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
+import { computeDailyStreak, computeWeeklyActivity, computeTotalPracticeStats } from '@/lib/exercises/practiceHistory'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
@@ -24,10 +28,21 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
   if (!user) return <div />
 
   // Quantum Speed Reading Lab summary — reused from the Learning Journey
-  // Engine (Sprint 2A), not re-derived here. Shown regardless of course
-  // enrollment, since the Lab is independent of the course catalog.
-  const labProgress = await getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS)
+  // Engine (Sprint 2A) and the practice-session engine (Sprint 2C), not
+  // re-derived here. Shown regardless of course enrollment, since the Lab
+  // is independent of the course catalog. The one new query on this page
+  // is getPracticeSessions — getModuleProgress was already fetched here.
+  const [labProgress, labSessions] = await Promise.all([
+    getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS),
+    getPracticeSessions('quantum-speed-reading'),
+  ])
   const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
+  const labStreak = computeDailyStreak(labSessions)
+  const labWeek = computeWeeklyActivity(labSessions)
+  const labTotals = computeTotalPracticeStats(labSessions)
+  const labCompletionPercent =
+    labProgress.totalCount > 0 ? Math.round((labProgress.completedCount / labProgress.totalCount) * 100) : 0
+
   const labCard = (
     <ContinueLearningCard
       variant="compact"
@@ -40,6 +55,19 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       lastCompletedTitle={labSummary.lastCompletedTitle}
       isComplete={labSummary.isComplete}
     />
+  )
+
+  const practiceSection = (
+    <div className="space-y-4">
+      <PracticeSummaryCard
+        currentStreak={labStreak.currentStreak}
+        bestStreak={labStreak.bestStreak}
+        totalCompletedSessions={labTotals.totalCompletedSessions}
+        totalPracticeMinutes={Math.round(labTotals.totalPracticeMs / 60_000)}
+        completionPercent={labCompletionPercent}
+      />
+      <WeeklyActivityChart days={labWeek} />
+    </div>
   )
 
   // Step 1 — enrollments
@@ -65,6 +93,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         </div>
 
         {labCard}
+        {practiceSection}
 
         <div className="bg-card rounded-xl border p-8 text-center">
           <BookOpen className="text-muted-foreground/30 mx-auto mb-4 size-10" />
@@ -150,6 +179,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       </div>
 
       {labCard}
+      {practiceSection}
 
       <div className="space-y-4">
         {progressItems.map((item) => (

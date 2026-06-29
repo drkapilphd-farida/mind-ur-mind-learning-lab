@@ -120,6 +120,22 @@ export function computeWeeklyActivity(
   return days
 }
 
+export type TotalPracticeStats = {
+  totalCompletedSessions: number
+  totalPracticeMs: number
+}
+
+// All-time totals, not "today" — totalCompletedSessions counts only
+// completed attempts (an exited-early attempt isn't a finished session),
+// but totalPracticeMs sums every attempt's duration, since time spent
+// practicing is real whether or not the student finished that attempt.
+export function computeTotalPracticeStats(sessions: readonly PracticeSessionRecord[]): TotalPracticeStats {
+  const totalCompletedSessions = sessions.filter((session) => session.completed).length
+  const totalPracticeMs = sessions.reduce((sum, session) => sum + session.durationMs, 0)
+
+  return { totalCompletedSessions, totalPracticeMs }
+}
+
 export type SessionHistoryItem = {
   exerciseId: string
   title: string
