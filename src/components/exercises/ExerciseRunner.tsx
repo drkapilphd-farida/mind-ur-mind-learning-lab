@@ -39,8 +39,14 @@ export function ExerciseRunner({
     exerciseId: definition.exerciseId,
   })
 
-  function handleExit(durationMs: number): void {
-    recordExit(durationMs)
+  async function handleExit(durationMs: number): Promise<void> {
+    await recordExit(durationMs)
+    // router.back() can serve a stale cached render of the page we're
+    // returning to; pushing to a known labHref forces a fresh fetch instead.
+    if (labHref !== undefined) {
+      router.push(labHref)
+      return
+    }
     router.back()
   }
 

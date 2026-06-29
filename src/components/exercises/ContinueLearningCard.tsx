@@ -13,6 +13,7 @@ type ContinueLearningCardProps = {
   totalCount: number
   lastCompletedTitle: string | null
   isComplete: boolean
+  resumeContextLabel?: string
   variant?: 'hero' | 'compact'
 }
 
@@ -29,6 +30,7 @@ export function ContinueLearningCard({
   totalCount,
   lastCompletedTitle,
   isComplete,
+  resumeContextLabel,
   variant = 'hero',
 }: ContinueLearningCardProps): React.JSX.Element {
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
@@ -57,6 +59,10 @@ export function ContinueLearningCard({
 
           {lastCompletedTitle !== null && (
             <p className="mt-1 text-sm text-muted-foreground">Last completed: {lastCompletedTitle}</p>
+          )}
+
+          {resumeContextLabel !== undefined && (
+            <p className="mt-1 text-sm text-muted-foreground">{resumeContextLabel}</p>
           )}
 
           {!isHero && (

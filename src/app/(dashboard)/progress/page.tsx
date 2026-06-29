@@ -4,10 +4,27 @@ import { BarChart3, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/features/analytics/components/StatCard'
 import { CourseProgressRow } from '@/features/analytics/components/CourseProgressRow'
+import { DailyStreakCard } from '@/components/exercises/DailyStreakCard'
+import { WeeklyActivityChart } from '@/components/exercises/WeeklyActivityChart'
+import { ProgressTimeline } from '@/components/exercises/ProgressTimeline'
+import { SessionHistoryList } from '@/components/exercises/SessionHistoryList'
+import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
+import {
+  computeDailyStreak,
+  computeTodaysProgress,
+  computeWeeklyActivity,
+  buildSessionHistory,
+  buildProgressTimeline,
+  formatDurationLabel,
+} from '@/lib/exercises/practiceHistory'
+import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
   title: 'Progress',
 }
+
+const QUANTUM_SPEED_READING_EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
 
 function formatRelativeDate(isoDate: string): string {
   const diffMs = Date.now() - new Date(isoDate).getTime()
@@ -30,6 +47,58 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
 
   if (!user) return <div />
 
+  // Quantum Speed Reading Lab section — reuses Sprint 2A's getModuleProgress
+  // (for remaining-exercise count) and Sprint 2C's getPracticeSessions, with
+  // all streak/today/weekly/timeline derivation done once via the pure
+  // helpers in practiceHistory.ts. Shown regardless of course enrollment.
+  const [labModuleProgress, labSessions] = await Promise.all([
+    getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS),
+    getPracticeSessions('quantum-speed-reading'),
+  ])
+  const labStreak = computeDailyStreak(labSessions)
+  const labToday = computeTodaysProgress(labSessions)
+  const labWeek = computeWeeklyActivity(labSessions)
+  const labTimeline = buildProgressTimeline(labSessions, EYE_FOUNDATION_MODULE)
+  const labHistory = buildSessionHistory(labSessions, EYE_FOUNDATION_MODULE)
+  const labRemaining = labModuleProgress.totalCount - labModuleProgress.completedCount
+
+  const labSection = (
+    <section className="space-y-4">
+      <div>
+        <h2 className="text-base font-semibold">Quantum Speed Reading Lab™</h2>
+        <p className="text-muted-foreground text-sm">Eye Foundation Module™ activity</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <DailyStreakCard
+          currentStreak={labStreak.currentStreak}
+          bestStreak={labStreak.bestStreak}
+          lastPracticedLabel={
+            labStreak.lastPracticedDateKey !== null ? formatRelativeDate(labStreak.lastPracticedDateKey) : null
+          }
+        />
+        <StatCard label="Completed today" value={labToday.exercisesCompletedToday} />
+        <StatCard label="Practice time today" value={formatDurationLabel(labToday.totalDurationMsToday)} />
+        <StatCard label="Remaining exercises" value={labRemaining} />
+      </div>
+
+      <WeeklyActivityChart days={labWeek} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="bg-card rounded-xl border p-5">
+          <h3 className="text-sm font-semibold">Progress timeline</h3>
+          <div className="mt-4">
+            <ProgressTimeline items={labTimeline} />
+          </div>
+        </div>
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Session history</h3>
+          <SessionHistoryList sessions={labHistory} formatDate={formatRelativeDate} />
+        </div>
+      </div>
+    </section>
+  )
+
   // Step 1 — enrollments
   const { data: enrollmentData } = await supabase
     .from('enrollments')
@@ -49,6 +118,9 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
             Your learning stats and activity.
           </p>
         </div>
+
+        {labSection}
+
         <div className="bg-card rounded-xl border p-8 text-center">
           <BarChart3 className="text-muted-foreground/30 mx-auto mb-4 size-10" />
           <p className="font-medium">No progress data yet.</p>
@@ -206,6 +278,8 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
           Your learning stats and activity.
         </p>
       </div>
+
+      {labSection}
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

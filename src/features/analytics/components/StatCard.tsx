@@ -1,6 +1,6 @@
 type StatCardProps = {
   label: string
-  value: number
+  value: number | string
   description?: string | undefined
 }
 

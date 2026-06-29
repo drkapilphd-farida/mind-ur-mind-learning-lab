@@ -16,7 +16,7 @@ export async function savePracticeSession(input: unknown): Promise<PracticeSessi
     return { success: false, error: 'Invalid practice session data.' }
   }
 
-  const { labId, exerciseId, completed } = parsed.data
+  const { labId, exerciseId, durationMs, completed } = parsed.data
 
   const supabase = await createClient()
   const {
@@ -25,6 +25,22 @@ export async function savePracticeSession(input: unknown): Promise<PracticeSessi
 
   if (!user) {
     return { success: true }
+  }
+
+  // Append-only history record of this attempt — logged regardless of
+  // whether it changes the exercise's current status below. Powers streaks,
+  // session history, and the weekly/timeline views; never read by anything
+  // in the locking/progression engine.
+  const { error: sessionError } = await supabase.from('practice_sessions').insert({
+    user_id: user.id,
+    lab_id: labId,
+    exercise_id: exerciseId,
+    duration_ms: Math.round(durationMs),
+    completed,
+  })
+
+  if (sessionError) {
+    logger.warn('failed to log practice session', { labId, exerciseId, error: sessionError.message })
   }
 
   const { data: existing } = await supabase

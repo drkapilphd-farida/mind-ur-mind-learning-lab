@@ -15,7 +15,7 @@ type UseExerciseSessionResult = {
   stage: ExerciseSessionStage
   start: () => void
   recordCompletion: (durationMs: number) => void
-  recordExit: (durationMs: number) => void
+  recordExit: (durationMs: number) => Promise<void>
 }
 
 // Owns the intro → active → completion lifecycle shared by every exercise, and
@@ -34,8 +34,12 @@ export function useExerciseSession({ labId, exerciseId }: UseExerciseSessionOpti
     void savePracticeSession({ labId, exerciseId, durationMs, completed: true })
   }
 
-  function recordExit(durationMs: number): void {
-    void savePracticeSession({ labId, exerciseId, durationMs, completed: false })
+  // Returns a promise (unlike recordCompletion) because the caller navigates
+  // away immediately on exit, with no natural delay like a completion-screen
+  // button click — awaiting this avoids a real race where the lab page
+  // re-fetches progress before this write has landed.
+  async function recordExit(durationMs: number): Promise<void> {
+    await savePracticeSession({ labId, exerciseId, durationMs, completed: false })
   }
 
   return { stage, start, recordCompletion, recordExit }

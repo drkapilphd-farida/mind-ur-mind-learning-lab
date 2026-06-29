@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
 import { getModuleProgress, type ExerciseAvailability } from '@/lib/exercises/queries/getModuleProgress'
+import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
+import { getLastIncompleteAttemptDuration, formatDurationLabel } from '@/lib/exercises/practiceHistory'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
@@ -30,8 +32,18 @@ const AVAILABILITY_BADGE_VARIANT: Record<ExerciseAvailability, 'outline' | 'seco
 }
 
 export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.Element> {
-  const progress = await getModuleProgress('quantum-speed-reading', EXERCISE_IDS)
+  const [progress, sessions] = await Promise.all([
+    getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
+    getPracticeSessions('quantum-speed-reading'),
+  ])
   const summary = getContinueLearningSummary(progress, EYE_FOUNDATION_MODULE)
+
+  // Better resume experience: how far the student got last time, if this
+  // is a genuine resume rather than a fresh start.
+  const lastAttemptDurationMs =
+    summary.isResuming && summary.currentExercise !== null
+      ? getLastIncompleteAttemptDuration(sessions, summary.currentExercise.exerciseId)
+      : null
 
   const resumeExercise =
     progress.resumeExerciseId !== null && progress.resumeExerciseId !== progress.nextRecommendedExerciseId
@@ -61,6 +73,9 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
           totalCount={summary.totalCount}
           lastCompletedTitle={summary.lastCompletedTitle}
           isComplete={summary.isComplete}
+          {...(lastAttemptDurationMs !== null
+            ? { resumeContextLabel: `You stopped ${formatDurationLabel(lastAttemptDurationMs)} in last time` }
+            : {})}
         />
 
         {resumeExercise && (

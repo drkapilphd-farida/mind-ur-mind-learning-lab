@@ -164,6 +164,44 @@ export type Database = {
           },
         ]
       }
+      practice_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          lab_id: string
+          exercise_id: string
+          duration_ms: number
+          completed: boolean
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          lab_id: string
+          exercise_id: string
+          duration_ms: number
+          completed: boolean
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          lab_id?: string
+          exercise_id?: string
+          duration_ms?: number
+          completed?: boolean
+          occurred_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'practice_sessions_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       lesson_completions: {
         Row: {
           id: string

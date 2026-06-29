@@ -8,6 +8,7 @@ export type ContinueLearningSummary = {
   currentExercise: ExerciseSequenceItem | null
   actionLabel: string
   lastCompletedTitle: string | null
+  isResuming: boolean
 }
 
 // Pure transform on top of getModuleProgress + a Lab's sequence — no DB
@@ -40,5 +41,6 @@ export function getContinueLearningSummary(
     currentExercise,
     actionLabel,
     lastCompletedTitle: lastCompletedItem?.title ?? null,
+    isResuming,
   }
 }
