@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, BookOpen, LayoutDashboard, Settings } from 'lucide-react'
+import { BarChart3, BookOpen, Eye, LayoutDashboard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/courses', label: 'My Courses', icon: BookOpen },
+  { href: '/labs/quantum-speed-reading', label: 'Quantum Speed Reading', icon: Eye },
   { href: '/progress', label: 'Progress', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const

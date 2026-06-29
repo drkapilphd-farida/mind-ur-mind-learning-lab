@@ -87,6 +87,47 @@ export type Database = {
           },
         ]
       }
+      exercise_progress: {
+        Row: {
+          id: string
+          user_id: string
+          lab_id: string
+          exercise_id: string
+          status: string
+          started_at: string
+          completed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          lab_id: string
+          exercise_id: string
+          status?: string
+          started_at?: string
+          completed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          lab_id?: string
+          exercise_id?: string
+          status?: string
+          started_at?: string
+          completed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_progress_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       enrollments: {
         Row: {
           id: string
