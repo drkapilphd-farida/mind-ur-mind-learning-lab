@@ -8,7 +8,8 @@ export const PracticeSessionInputSchema = z
   .object({
     labId: LabIdSchema,
     exerciseId: z.string().min(1),
-    durationMs: z.number().int().positive(),
+    // rAF timestamps are sub-millisecond floats — not an integer by nature.
+    durationMs: z.number().positive(),
     completed: z.boolean(),
   })
   .strict()
