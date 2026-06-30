@@ -1,337 +1,173 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { BarChart3, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { StatCard } from '@/features/analytics/components/StatCard'
-import { CourseProgressRow } from '@/features/analytics/components/CourseProgressRow'
-import { DailyStreakCard } from '@/components/exercises/DailyStreakCard'
-import { WeeklyActivityChart } from '@/components/exercises/WeeklyActivityChart'
-import { ProgressTimeline } from '@/components/exercises/ProgressTimeline'
-import { SessionHistoryList } from '@/components/exercises/SessionHistoryList'
-import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import {
   computeDailyStreak,
-  computeTodaysProgress,
   computeWeeklyActivity,
-  buildSessionHistory,
-  buildProgressTimeline,
-  formatDurationLabel,
+  computeTotalPracticeStats,
 } from '@/lib/exercises/practiceHistory'
+import {
+  computeReadingScore,
+  computeMindScore,
+  getMindScoreLabel,
+  computeWeeklyTrend,
+  computeJourneyStatus,
+  buildJourneyStatusMeta,
+  buildStrengthSummary,
+} from '@/lib/exercises/mindScore'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
-import { formatRelativeDate } from '@/lib/formatRelativeDate'
+import { MindScoreHeroCard } from '@/components/mindScore/MindScoreHeroCard'
+import { DimensionScoreGrid } from '@/components/mindScore/DimensionScoreGrid'
+import { GrowthTrendChart } from '@/components/mindScore/GrowthTrendChart'
+import { MindScoreInsightsSection, MindScoreInsightsSkeleton } from '@/components/mindScore/MindScoreInsightsSection'
+import { StrengthAreasCard } from '@/components/mindScore/StrengthAreasCard'
+import { TodaysRecommendationCard } from '@/components/mindScore/TodaysRecommendationCard'
+import { WeeklyIntelligenceReport } from '@/components/mindScore/WeeklyIntelligenceReport'
+import { MindJourneyCard } from '@/components/mindScore/MindJourneyCard'
+import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 
 export const metadata: Metadata = {
-  title: 'Progress',
+  title: 'Mind Score™',
 }
 
-const QUANTUM_SPEED_READING_EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
+const EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((ex) => ex.exerciseId)
 
-export default async function ProgressPage(): Promise<React.JSX.Element> {
+// Derives the weekly trend label used by WeeklyIntelligenceReport from a
+// numeric trend value. Positive = up, negative = down, null/zero = stable.
+function toTrendLabel(trend: number | null): 'up' | 'down' | 'stable' {
+  if (trend === null) return 'stable'
+  if (trend > 5) return 'up'
+  if (trend < -5) return 'down'
+  return 'stable'
+}
+
+// Derives an overall growth classification for the Weekly Intelligence Report.
+function toOverallGrowth(
+  trend: number | null,
+  streak: number,
+  completedCount: number,
+): 'Excellent' | 'Good' | 'Steady' | 'Recovering' | 'Beginning' {
+  if (completedCount === 0) return 'Beginning'
+  if (streak === 0) return 'Recovering'
+  if (trend !== null && trend > 20 && streak >= 3) return 'Excellent'
+  if (trend !== null && trend > 0 && streak >= 1) return 'Good'
+  return 'Steady'
+}
+
+export default async function MindScorePage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return <div />
 
-  // Quantum Speed Reading Lab section — reuses Sprint 2A's getModuleProgress
-  // (for remaining-exercise count) and Sprint 2C's getPracticeSessions, with
-  // all streak/today/weekly/timeline derivation done once via the pure
-  // helpers in practiceHistory.ts. Shown regardless of course enrollment.
-  const [labModuleProgress, labSessions] = await Promise.all([
-    getModuleProgress('quantum-speed-reading', QUANTUM_SPEED_READING_EXERCISE_IDS),
+  const [labProgress, labSessions, profile] = await Promise.all([
+    getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
     getPracticeSessions('quantum-speed-reading'),
+    getCurrentUserProfile(user.id),
   ])
+
+  // ── Core data ─────────────────────────────────────────────────────────────
+  const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
   const labStreak = computeDailyStreak(labSessions)
-  const labToday = computeTodaysProgress(labSessions)
   const labWeek = computeWeeklyActivity(labSessions)
-  const labTimeline = buildProgressTimeline(labSessions, EYE_FOUNDATION_MODULE)
-  const labHistory = buildSessionHistory(labSessions, EYE_FOUNDATION_MODULE)
-  const labRemaining = labModuleProgress.totalCount - labModuleProgress.completedCount
-  const labSummary = getContinueLearningSummary(labModuleProgress, EYE_FOUNDATION_MODULE)
+  const labTotals = computeTotalPracticeStats(labSessions)
 
-  const labSection = (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-base font-semibold">Quantum Speed Reading Lab™</h2>
-        <p className="text-muted-foreground text-sm">Eye Foundation Module™ activity</p>
-      </div>
+  const completionPercent = labProgress.totalCount > 0
+    ? Math.round((labProgress.completedCount / labProgress.totalCount) * 100)
+    : 0
 
-      <ContinueLearningCard
-        variant="compact"
-        eyebrow="Quantum Speed Reading Lab™"
-        title="Eye Foundation Module™"
-        actionLabel={labSummary.actionLabel}
-        actionHref={labSummary.currentExercise?.href ?? null}
-        completedCount={labSummary.completedCount}
-        totalCount={labSummary.totalCount}
-        lastCompletedTitle={labSummary.lastCompletedTitle}
-        isComplete={labSummary.isComplete}
-      />
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <DailyStreakCard
-          currentStreak={labStreak.currentStreak}
-          bestStreak={labStreak.bestStreak}
-          lastPracticedLabel={
-            labStreak.lastPracticedDateKey !== null ? formatRelativeDate(labStreak.lastPracticedDateKey) : null
-          }
-        />
-        <StatCard label="Completed today" value={labToday.exercisesCompletedToday} />
-        <StatCard label="Practice time today" value={formatDurationLabel(labToday.totalDurationMsToday)} />
-        <StatCard label="Remaining exercises" value={labRemaining} />
-      </div>
-
-      <WeeklyActivityChart days={labWeek} />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="bg-card rounded-xl border p-5">
-          <h3 className="text-sm font-semibold">Progress timeline</h3>
-          <div className="mt-4">
-            <ProgressTimeline items={labTimeline} />
-          </div>
-        </div>
-        <div>
-          <h3 className="mb-3 text-sm font-semibold">Session history</h3>
-          <SessionHistoryList sessions={labHistory} formatDate={formatRelativeDate} />
-        </div>
-      </div>
-    </section>
+  // ── Mind Score™ computation ───────────────────────────────────────────────
+  const readingScore = computeReadingScore(completionPercent, labStreak.currentStreak)
+  const mindScore = computeMindScore([readingScore]) // expand array when new Labs ship
+  const scoreMeta = getMindScoreLabel(mindScore)
+  const weeklyTrend = computeWeeklyTrend(labWeek)
+  const journeyStatus = computeJourneyStatus(labStreak.currentStreak, labProgress.completedCount, weeklyTrend)
+  const journeyMeta = buildJourneyStatusMeta(
+    labStreak.currentStreak,
+    labStreak.bestStreak,
+    labWeek.filter((d) => d.sessionCount > 0).length,
+    labProgress.completedCount,
+    weeklyTrend,
   )
+  const strengthSummary = buildStrengthSummary(readingScore, weeklyTrend, labStreak.currentStreak)
 
-  // Step 1 — enrollments
-  const { data: enrollmentData } = await supabase
-    .from('enrollments')
-    .select('course_id, enrolled_at')
-    .eq('user_id', user.id)
-    .order('enrolled_at', { ascending: false })
-
-  const enrollments = enrollmentData ?? []
-  const courseIds = enrollments.map((e) => e.course_id)
-
-  if (courseIds.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My progress</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Your learning stats and activity.
-          </p>
-        </div>
-
-        {labSection}
-
-        <div className="bg-card rounded-xl border p-8 text-center">
-          <BarChart3 className="text-muted-foreground/30 mx-auto mb-4 size-10" />
-          <p className="font-medium">No progress data yet.</p>
-          <p className="text-muted-foreground mt-1 text-sm">
-            <Link
-              href="/courses"
-              className="text-foreground underline-offset-4 hover:underline"
-            >
-              Enroll in a course
-            </Link>{' '}
-            to start tracking your progress.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // Step 2 — courses, lessons, completions, certificates in parallel
-  const [courseRes, lessonRes, completionRes, certRes] = await Promise.all([
-    supabase
-      .from('courses')
-      .select('id, title, slug, thumbnail_url')
-      .in('id', courseIds)
-      .eq('is_published', true),
-    supabase
-      .from('lessons')
-      .select('id, course_id, title, slug')
-      .in('course_id', courseIds)
-      .eq('is_published', true)
-      .order('sort_order', { ascending: true }),
-    supabase
-      .from('lesson_completions')
-      .select('lesson_id, completed_at')
-      .eq('user_id', user.id)
-      .order('completed_at', { ascending: false }),
-    supabase
-      .from('certificates')
-      .select('course_id, token')
-      .eq('user_id', user.id),
-  ])
-
-  const courses = courseRes.data ?? []
-  const allLessons = lessonRes.data ?? []
-  const allCompletions = completionRes.data ?? []
-  const certByCourse = new Map(
-    (certRes.data ?? []).map((c) => [c.course_id, c.token]),
-  )
-
-  // Build lookup structures
-  const courseMap = new Map(courses.map((c) => [c.id, c]))
-
-  // lesson_id → lesson (includes course_id for cross-referencing)
-  const lessonMap = new Map(allLessons.map((l) => [l.id, l]))
-
-  // course_id → sorted lesson ID list
-  const lessonIdsByCourse = new Map<string, string[]>()
-  for (const lesson of allLessons) {
-    const ids = lessonIdsByCourse.get(lesson.course_id) ?? []
-    ids.push(lesson.id)
-    lessonIdsByCourse.set(lesson.course_id, ids)
-  }
-
-  // Set of completed lesson IDs (only those belonging to enrolled courses)
-  const enrolledLessonIds = new Set(allLessons.map((l) => l.id))
-  const completedIds = new Set(
-    allCompletions
-      .map((c) => c.lesson_id)
-      .filter((id) => enrolledLessonIds.has(id)),
-  )
-
-  // Latest completion timestamp per course (completions are newest-first)
-  const lastActivityByCourse = new Map<string, string>()
-  for (const c of allCompletions) {
-    const lesson = lessonMap.get(c.lesson_id)
-    if (!lesson) continue
-    if (!lastActivityByCourse.has(lesson.course_id)) {
-      lastActivityByCourse.set(lesson.course_id, c.completed_at)
-    }
-  }
-
-  // Build per-course progress items
-  type ProgressItem = {
-    course: { id: string; title: string; slug: string; thumbnail_url: string | null }
-    totalLessons: number
-    completedLessons: number
-    lastActivityLabel: string | null
-    nextLessonSlug: string | null
-    certificateToken: string | null
-  }
-
-  const progressItems: ProgressItem[] = enrollments.flatMap((enrollment) => {
-    const course = courseMap.get(enrollment.course_id)
-    if (!course) return []
-    const lessonIds = lessonIdsByCourse.get(enrollment.course_id) ?? []
-    const totalLessons = lessonIds.length
-    const completedLessons = lessonIds.filter((id) => completedIds.has(id)).length
-    const lastActivity = lastActivityByCourse.get(enrollment.course_id) ?? null
-    const nextLesson =
-      allLessons.find(
-        (l) => l.course_id === enrollment.course_id && !completedIds.has(l.id),
-      ) ?? null
-
-    return [
-      {
-        course,
-        totalLessons,
-        completedLessons,
-        lastActivityLabel:
-          lastActivity !== null ? formatRelativeDate(lastActivity) : null,
-        nextLessonSlug: nextLesson?.slug ?? null,
-        certificateToken: certByCourse.get(enrollment.course_id) ?? null,
-      },
-    ]
-  })
-
-  // Sort: in-progress → finished → not started
-  const sorted = [...progressItems].sort((a, b) => {
-    const rank = (item: ProgressItem): number => {
-      if (item.completedLessons > 0 && item.completedLessons < item.totalLessons)
-        return 0
-      if (
-        item.completedLessons === item.totalLessons &&
-        item.totalLessons > 0
-      )
-        return 1
-      return 2
-    }
-    return rank(a) - rank(b)
-  })
-
-  // Summary stats
-  const enrolled = enrollments.length
-  const finished = progressItems.filter(
-    (s) => s.completedLessons === s.totalLessons && s.totalLessons > 0,
-  ).length
-  const inProgress = progressItems.filter(
-    (s) => s.completedLessons > 0 && s.completedLessons < s.totalLessons,
-  ).length
-  const totalCompleted = completedIds.size
-
-  // Recent activity — top 5 completions with lesson + course info
-  const recentActivity = allCompletions.slice(0, 5).flatMap((c) => {
-    const lesson = lessonMap.get(c.lesson_id)
-    if (!lesson) return []
-    const course = courseMap.get(lesson.course_id)
-    if (!course) return []
-    return [{ lesson, course, completedAt: c.completed_at }]
-  })
+  const personalBestMs = Math.max(...labSessions.map((s) => s.durationMs), 0)
+  const studentName = profile?.fullName ?? 'there'
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
+      {/* Page heading */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My progress</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Your learning stats and activity.
+        <h1 className="text-2xl font-semibold tracking-tight">Mind Score™</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your living intelligence score — updated with every session.
         </p>
       </div>
 
-      {labSection}
+      {/* 1. Hero */}
+      <MindScoreHeroCard
+        score={mindScore}
+        scoreMeta={scoreMeta}
+        readingScore={readingScore}
+      />
 
-      {/* Summary stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Enrolled" value={enrolled} />
-        <StatCard label="Finished" value={finished} />
-        <StatCard label="In progress" value={inProgress} />
-        <StatCard label="Lessons done" value={totalCompleted} />
+      {/* 2. Dimension scores */}
+      <DimensionScoreGrid
+        readingScore={readingScore}
+        weeklyTrend={weeklyTrend}
+      />
+
+      {/* 3. Growth Trend + Today's Recommendation (side by side on desktop) */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
+        <GrowthTrendChart
+          days={labWeek}
+          personalBestMs={personalBestMs}
+          weeklyTrend={weeklyTrend}
+          totalSessions={labTotals.totalCompletedSessions}
+        />
+        <TodaysRecommendationCard
+          exerciseTitle={labSummary.currentExercise?.title ?? null}
+          exerciseHref={labSummary.currentExercise?.href ?? null}
+          actionLabel={labSummary.actionLabel}
+          isComplete={labSummary.isComplete}
+        />
       </div>
 
-      {/* Course breakdown */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Course breakdown</h2>
-        {sorted.map((item) => (
-          <CourseProgressRow
-            key={item.course.id}
-            course={item.course}
-            totalLessons={item.totalLessons}
-            completedLessons={item.completedLessons}
-            lastActivityLabel={item.lastActivityLabel}
-            nextLessonSlug={item.nextLessonSlug}
-            certificateToken={item.certificateToken}
-          />
-        ))}
-      </section>
+      {/* 4. AI Insights — Suspense-streamed */}
+      <Suspense fallback={<MindScoreInsightsSkeleton />}>
+        <MindScoreInsightsSection
+          studentName={studentName}
+          mindScore={mindScore}
+          readingScore={readingScore}
+          weeklyTrend={weeklyTrend}
+          currentStreak={labStreak.currentStreak}
+          completedCount={labProgress.completedCount}
+          totalCount={labProgress.totalCount}
+          journeyStatus={journeyStatus}
+        />
+      </Suspense>
 
-      {/* Recent activity */}
-      {recentActivity.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold">Recent activity</h2>
-          <div className="bg-card divide-y rounded-xl border">
-            {recentActivity.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
-                <CheckCircle2 className="size-4 shrink-0 text-green-600" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {item.lesson.title}
-                  </p>
-                  <p className="text-muted-foreground truncate text-xs">
-                    {item.course.title}
-                  </p>
-                </div>
-                <span className="text-muted-foreground shrink-0 text-xs">
-                  {formatRelativeDate(item.completedAt)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* 5. Strength Areas */}
+      <StrengthAreasCard {...strengthSummary} />
+
+      {/* 6. Weekly Intelligence Report + Mind Journey (side by side on desktop) */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+        <WeeklyIntelligenceReport
+          readingTrend={toTrendLabel(weeklyTrend)}
+          readingScore={readingScore}
+          overallGrowth={toOverallGrowth(weeklyTrend, labStreak.currentStreak, labProgress.completedCount)}
+        />
+        <MindJourneyCard
+          {...journeyMeta}
+          currentStreak={labStreak.currentStreak}
+          bestStreak={labStreak.bestStreak}
+          totalSessions={labTotals.totalCompletedSessions}
+          completedCount={labProgress.completedCount}
+          totalCount={labProgress.totalCount}
+        />
+      </div>
     </div>
   )
 }

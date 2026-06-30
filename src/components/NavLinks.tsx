@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/courses', label: 'My Courses', icon: BookOpen },
   { href: '/labs/quantum-speed-reading', label: 'Quantum Speed Reading', icon: Eye },
-  { href: '/progress', label: 'Progress', icon: BarChart3 },
+  { href: '/progress', label: 'Mind Score™', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
 
