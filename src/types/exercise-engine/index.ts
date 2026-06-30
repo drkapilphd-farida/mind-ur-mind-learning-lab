@@ -168,6 +168,32 @@ export type ExerciseI18nKeys = {
   keyboardHint: string
 }
 
+// ── Session Item™ ──────────────────────────────────────────────────────────
+
+// The universal item shape the runtime passes to the player for each stimulus.
+// Previously only FlashCanvas had its own FlashItem type; SessionItem replaces
+// it as the canonical cross-exercise item format.
+export type SessionItemRenderMode = 'text' | 'icon' | 'number' | 'symbol' | 'shape' | 'letter'
+
+export type SessionItem = {
+  id: string
+  stimulus: string               // text, number string, icon name, or shape name
+  stimulusLabel: string          // accessible label for screen readers
+  options: string[]              // 4 multiple-choice options (text labels)
+  correctIndex: number           // 0–3
+  renderAs?: SessionItemRenderMode  // default 'text'
+}
+
+// Per-item response recorded by the runtime
+export type ItemResponse = {
+  itemId: string
+  selectedIndex: number
+  correctIndex: number
+  isCorrect: boolean
+  reactionTimeMs: number         // ms from options appearing to selection
+  skipped: boolean
+}
+
 // ── Exercise Definition™ ───────────────────────────────────────────────────
 
 // The single configuration object that fully describes any exercise.
@@ -253,6 +279,9 @@ export type PerformanceMetrics = {
   sessionDurationMs: number
   speedMs: SpeedMs
   difficultyTier: DifficultyTier
+  // Reaction time (Sprint 5B — new)
+  averageReactionTimeMs: number  // average ms from options appearing to selection
+  fastestReactionTimeMs: number
   // Computed
   performanceScore: number       // 0–100: weighted accuracy + speed + difficulty bonus
   mindScoreContribution: number  // how much this session adds to Mind Score

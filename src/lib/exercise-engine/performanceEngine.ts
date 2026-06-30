@@ -57,6 +57,11 @@ export function computePerformanceMetrics(input: {
     sessionDurationMs,
     speedMs,
     difficultyTier,
+    // Reaction time fields default to 0 when called from Sprint 5A code paths
+    // that don't yet pass response-level timing. Sprint 5B's runtime hook
+    // computes these inline from ItemResponse[] instead.
+    averageReactionTimeMs: 0,
+    fastestReactionTimeMs: 0,
     performanceScore,
     mindScoreContribution,
   }
