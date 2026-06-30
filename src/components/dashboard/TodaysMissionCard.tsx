@@ -14,6 +14,7 @@ type TodaysMissionCardProps = {
   actionHref: string | null
   actionLabel: string
   isAllDone: boolean
+  mindScoreGoal?: number   // optional Sprint 3E addition; renders a score goal row when provided
 }
 
 // Average duration per exercise in minutes — used for the estimated time label.
@@ -24,6 +25,7 @@ export function TodaysMissionCard({
   actionHref,
   actionLabel,
   isAllDone,
+  mindScoreGoal,
 }: TodaysMissionCardProps): React.JSX.Element {
   const remaining = exercises.filter((e) => e.status !== 'completed').length
   const estimatedMinutes = remaining * MINUTES_PER_EXERCISE
@@ -41,6 +43,15 @@ export function TodaysMissionCard({
           </span>
         )}
       </div>
+
+      {mindScoreGoal !== undefined && (
+        <div className="mt-3 flex items-center gap-2.5">
+          <div className="size-4 shrink-0 rounded-full border-2 border-muted-foreground/30" aria-label="Goal" />
+          <span className="text-sm text-muted-foreground">
+            Reach Mind Score <span className="font-semibold text-foreground">{mindScoreGoal}</span>
+          </span>
+        </div>
+      )}
 
       <ul className="mt-4 flex flex-col gap-2.5" role="list" aria-label="Today's mission exercises">
         {exercises.map((exercise) => (

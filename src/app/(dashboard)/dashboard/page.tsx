@@ -12,6 +12,10 @@ import {
   computeTotalPracticeStats,
 } from '@/lib/exercises/practiceHistory'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
+import {
+  computeReadingScore,
+  computeMindScore as computeMindScore1000,
+} from '@/lib/exercises/mindScore'
 import { GreetingHeading } from '@/components/dashboard/GreetingHeading'
 import { AIMentorSection, AIMentorSkeleton } from '@/components/dashboard/AIMentorSection'
 import { TodaysMissionCard } from '@/components/dashboard/TodaysMissionCard'
@@ -19,8 +23,11 @@ import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { DailyMomentumCard } from '@/components/dashboard/DailyMomentumCard'
 import { QuickPracticeGrid } from '@/components/dashboard/QuickPracticeGrid'
 import { TransformationJourneyCard } from '@/components/dashboard/TransformationJourneyCard'
+import { TransformationJourneySection } from '@/components/dashboard/TransformationJourneySection'
+import { NextEvolutionCard } from '@/components/dashboard/NextEvolutionCard'
 import { AchievementsCard } from '@/components/dashboard/AchievementsCard'
 import { BrainEnergyCard } from '@/components/dashboard/BrainEnergyCard'
+import { AIMentorCTA } from '@/components/dashboard/AIMentorCTA'
 import { formatRelativeDate } from '@/lib/formatRelativeDate'
 
 export const metadata: Metadata = {
@@ -100,6 +107,15 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
   const weeklyActiveDays = labWeek.filter((d) => d.sessionCount > 0).length
   const consistencyPercent = Math.round((weeklyActiveDays / 7) * 100)
 
+  // 0–1000 scale Mind Score — used for Sprint 3E sections (TransformationJourneySection,
+  // NextEvolutionCard, AIMentorCTA). The local mindScore above remains 0–100 for MindScoreCard.
+  const readingScore = computeReadingScore(completionPercent, labStreak.currentStreak)
+  const mindScore1000 = computeMindScore1000([readingScore])
+
+  // Next Mind Score milestone (0–1000 scale)
+  const SCORE_THRESHOLDS = [100, 200, 400, 600, 800, 900, 1000] as const
+  const nextMindScoreGoal = SCORE_THRESHOLDS.find((t) => t > mindScore1000) ?? 1000
+
   // Yesterday is the second-to-last element in the 7-day array
   const yesterday = labWeek[labWeek.length - 2]
 
@@ -149,6 +165,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           actionHref={labSummary.currentExercise?.href ?? null}
           actionLabel={labSummary.actionLabel ?? 'Begin session'}
           isAllDone={labSummary.isComplete}
+          mindScoreGoal={nextMindScoreGoal}
         />
         <MindScoreCard
           mindScore={mindScore}
@@ -164,10 +181,26 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         lastPracticedLabel={lastPracticedLabel}
       />
 
+      {/* Next Evolution™ — Sprint 3E */}
+      <NextEvolutionCard
+        currentMindScore={mindScore1000}
+        nextMindScoreGoal={nextMindScoreGoal}
+        completedCount={labProgress.completedCount}
+        totalCount={labProgress.totalCount}
+        nextExerciseHref={labSummary.currentExercise?.href ?? null}
+        nextExerciseTitle={labSummary.currentExercise?.title ?? null}
+      />
+
       {/* Quick Practice™ */}
       <QuickPracticeGrid />
 
-      {/* Transformation Journey™ */}
+      {/* Transformation Journey™ — Sprint 3E stage path */}
+      <TransformationJourneySection
+        completedCount={labProgress.completedCount}
+        mindScore={mindScore1000}
+      />
+
+      {/* Yesterday / Today / Tomorrow card — Sprint 3C */}
       <TransformationJourneyCard
         yesterdaySessionCount={yesterday?.sessionCount ?? 0}
         yesterdayDurationMs={yesterday?.durationMs ?? 0}
@@ -190,6 +223,9 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
       {/* Brain Energy™ */}
       <BrainEnergyCard />
+
+      {/* AI Coach CTA — Sprint 3E */}
+      <AIMentorCTA studentFirstName={studentFirstName} mindScore={mindScore1000} />
     </div>
   )
 }
