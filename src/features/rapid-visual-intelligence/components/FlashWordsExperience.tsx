@@ -1,16 +1,13 @@
 'use client'
 
-// FlashWords™ — the reference AIEE™ consumer.
+// FlashWords™ — reference AIEE™ consumer, Sprint 5A-1 migration.
 //
-// This component shows how any exercise adopts the Universal Exercise Engine:
-//   1. Import the ExerciseDefinition
-//   2. Call useExerciseEngine — get speedMs, sessionSeed, completeSession
-//   3. Build items from the engine's seed (deterministic, varied)
-//   4. Render FlashCanvas (unchanged — it handles the UX timing)
-//   5. On complete, call engine.completeSession → get metrics + recommendation
-//   6. Render ExerciseResultScreen with the engine's output
+// No hardcoded word lists. All content comes from the Universal Dataset Engine™.
+// getContentForExercise() queries the registry across all registered word
+// datasets, applying difficulty tier and seeded randomization automatically.
 //
-// No local state for speed, difficulty, or session tracking — the engine owns all of it.
+// To swap content: add a new dataset file, import it in datasets/index.ts.
+// This component never changes — it only receives ContentItems.
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -18,33 +15,74 @@ import { FlashCanvas, type FlashItem } from './FlashCanvas'
 import { ExerciseResultScreen } from '@/components/exercise-engine/ExerciseResultScreen'
 import { useExerciseEngine } from '@/hooks/exercise-engine/useExerciseEngine'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
-import { shuffleIndices, ITEMS_PER_SESSION, type FlashDuration } from '../adaptiveEngine'
-import { getWordsByDifficulty } from '../data/wordLists'
+import { ITEMS_PER_SESSION, type FlashDuration } from '../adaptiveEngine'
 import { LAB_ID } from '../rapidVisualModule'
 import { FLASH_WORDS_DEFINITION } from '../definitions/flashWordsDefinition'
-import type { PerformanceMetrics, ExerciseRecommendation } from '@/types/exercise-engine'
+import type { PerformanceMetrics, ExerciseRecommendation, DifficultyTier } from '@/types/exercise-engine'
+import { getContentForExercise } from '@/lib/exercise-engine/datasetEngine'
+
+// Import dataset index — this triggers registration of all demo datasets
+// with the content engine. Without this import, the registry would be empty.
+import '@/lib/exercise-engine/datasets/index'
 
 const EXERCISE_ID = 'flash-words'
 const LAB_HREF = '/labs/quantum-speed-reading/rapid-visual-intelligence'
 
-// Item generation is unchanged from Sprint 4C-1 — the engine provides
-// the speed and seed; the item-building logic stays in the feature layer.
-function buildItems(flashDurationMs: FlashDuration, seed: number): FlashItem[] {
-  const words = getWordsByDifficulty(flashDurationMs)
-  const allWords = [...words]
-  const indices = shuffleIndices(allWords.length, seed)
+// Map flash duration to difficulty tier.
+// Shorter flash → simpler, shorter words (easier to process in limited time).
+// Longer flash → harder, more complex words are fair game.
+function flashDurationToDifficulty(ms: number): DifficultyTier {
+  if (ms >= 300) return 'medium'
+  if (ms >= 150) return 'easy'
+  return 'beginner'
+}
 
-  return indices.slice(0, ITEMS_PER_SESSION).map((idx, i) => {
-    const word = allWords[idx] ?? 'read'
-    const distractorIndices = indices.filter((n) => n !== idx).slice(i + 1, i + 4)
-    const options = [word, ...distractorIndices.map((n) => allWords[n] ?? 'scan')]
-    const shuffled = [...options].sort((_, __) => ((idx + i) % 3 === 0 ? 1 : -1))
-    const correctIndex = shuffled.indexOf(word)
+// Build FlashItems from the Dataset Engine — no raw word arrays.
+// The dataset engine handles: difficulty filtering, seeded randomization,
+// avoidRecentRepeats (future sessions). All 20 stimuli + their distractors
+// come from a single pool request, eliminating repeated lookups.
+function buildItems(flashDurationMs: FlashDuration, seed: number): FlashItem[] {
+  const difficulty = flashDurationToDifficulty(flashDurationMs)
+
+  // Request ITEMS_PER_SESSION stimuli + 3× distractor buffer
+  const pool = getContentForExercise({
+    contentType: 'word',
+    locale: 'en',
+    difficulty,
+    count: ITEMS_PER_SESSION + 15,  // 20 stimuli + 15 buffer for distractors
+    seed,
+  })
+
+  const stimuli = pool.slice(0, ITEMS_PER_SESSION)
+  const distractorPool = pool.slice(ITEMS_PER_SESSION)  // non-overlapping
+
+  return stimuli.map((item, i) => {
+    // Pick 3 distractors from the buffer; fall back to neighbouring stimuli
+    const d1 = distractorPool[i % distractorPool.length] ?? stimuli[(i + 1) % stimuli.length]
+    const d2 = distractorPool[(i + 1) % distractorPool.length] ?? stimuli[(i + 2) % stimuli.length]
+    const d3 = distractorPool[(i + 2) % distractorPool.length] ?? stimuli[(i + 3) % stimuli.length]
+
+    const rawOptions = [
+      item.content,
+      (d1 ?? item).content,
+      (d2 ?? item).content,
+      (d3 ?? item).content,
+    ]
+    // Deterministic option shuffle (same pattern used in Sprint 4C-1)
+    const sortSeed = (seed + i) % 4
+    const options = [
+      rawOptions[sortSeed % 4] ?? item.content,
+      rawOptions[(sortSeed + 1) % 4] ?? rawOptions[1] ?? item.content,
+      rawOptions[(sortSeed + 2) % 4] ?? rawOptions[2] ?? item.content,
+      rawOptions[(sortSeed + 3) % 4] ?? rawOptions[3] ?? item.content,
+    ]
+    const correctIndex = options.indexOf(item.content)
+
     return {
-      id: `${EXERCISE_ID}-${i}`,
-      stimulus: word,
-      stimulusLabel: word,
-      options: shuffled.slice(0, 4),
+      id: `${EXERCISE_ID}-${item.id}`,
+      stimulus: item.content,
+      stimulusLabel: item.contentLabel,
+      options,
       correctIndex: correctIndex >= 0 ? correctIndex : 0,
     }
   })
@@ -59,14 +97,11 @@ type CompletedResult = {
 export function FlashWordsExperience(): React.JSX.Element {
   const router = useRouter()
 
-  // ── Engine integration ────────────────────────────────────────────────────
   const engine = useExerciseEngine({ definition: FLASH_WORDS_DEFINITION })
   const [result, setResult] = useState<CompletedResult | null>(null)
   const [canvasKey, setCanvasKey] = useState(0)
 
-  // Items are seeded by the engine — deterministic per session, always varied
-  // engine.speedMs is SpeedMs (universal); FlashCanvas expects FlashDuration (subset).
-  // The definition caps maxSpeedMs at 500 so this cast is always safe for Flash Words.
+  // Cast: definition caps maxSpeedMs at 500, so engine.speedMs always fits FlashDuration
   const flashDuration = engine.speedMs as FlashDuration
 
   const items = useMemo(
@@ -74,13 +109,11 @@ export function FlashWordsExperience(): React.JSX.Element {
     [flashDuration, engine.sessionSeed, canvasKey],
   )
 
-  // ── Session completion ────────────────────────────────────────────────────
   async function handleComplete(input: {
     correctCount: number
     totalCount: number
     durationMs: number
   }): Promise<void> {
-    // Engine computes metrics, updates localStorage, returns recommendation
     const outcome = engine.completeSession({
       correctCount: input.correctCount,
       totalCount: input.totalCount,
@@ -88,7 +121,6 @@ export function FlashWordsExperience(): React.JSX.Element {
     })
     setResult(outcome)
 
-    // Record to Supabase for Mind Score and dashboard analytics
     await savePracticeSession({
       labId: LAB_ID,
       exerciseId: EXERCISE_ID,
@@ -97,14 +129,12 @@ export function FlashWordsExperience(): React.JSX.Element {
     })
   }
 
-  // ── Practice Again ────────────────────────────────────────────────────────
   function handlePracticeAgain(): void {
     setResult(null)
     setCanvasKey((k) => k + 1)
     engine.startNewSession()
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   if (result !== null) {
     return (
       <ExerciseResultScreen
@@ -130,7 +160,7 @@ export function FlashWordsExperience(): React.JSX.Element {
         handleComplete({
           correctCount: summary.correctCount,
           totalCount: summary.totalCount,
-          durationMs: summary.prevDurationMs * summary.totalCount,  // approximate
+          durationMs: summary.prevDurationMs * summary.totalCount,
         })
       }
       onExit={() => router.push(LAB_HREF)}

@@ -26,8 +26,37 @@ export type ContentType =
   | 'symbol'
   | 'icon'
   | 'image'
+  | 'shape'
+  | 'letter'
   | 'paragraph'
   | 'memory-card'
+
+// ── Dataset category ────────────────────────────────────────────────────────
+
+// The cognitive domain an item belongs to. Items can belong to multiple
+// categories (e.g. a word used in both reading speed and memory training).
+export type DatasetCategory =
+  | 'reading'
+  | 'memory'
+  | 'focus'
+  | 'visualization'
+  | 'right-brain'
+  | 'intuition'
+  | 'exam-practice'
+  | 'ai-learning-studio'
+
+// ── Dataset query ───────────────────────────────────────────────────────────
+
+// Passed to getNextExerciseContent() — the high-level dataset query.
+export type DatasetQuery = {
+  contentType?: ContentType
+  category?: DatasetCategory
+  locale?: Locale
+  difficulty?: DifficultyTier
+  count: number
+  excludeIds?: string[]   // avoid items shown recently
+  seed: number
+}
 
 export type InteractionType =
   | 'multiple-choice'   // Select from N options
@@ -105,6 +134,7 @@ export type ContentItem = {
   contentLabel: string          // accessible label (aria, screen readers)
   difficulty: DifficultyTier
   locale: Locale
+  categories?: DatasetCategory[] // cognitive domains this item belongs to
   metadata?: Record<string, unknown>
 }
 

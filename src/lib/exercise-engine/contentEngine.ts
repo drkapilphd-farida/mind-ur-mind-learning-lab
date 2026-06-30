@@ -5,7 +5,7 @@
 // multilingual packs simply register a new dataset; exercises reference it
 // by ID in their ExerciseDefinition.
 
-import type { ContentDataset, ContentItem, DifficultyTier, Locale } from '@/types/exercise-engine'
+import type { ContentDataset, ContentItem, DifficultyTier, Locale, DatasetCategory } from '@/types/exercise-engine'
 
 // Global dataset registry — populated at module initialisation.
 const REGISTRY = new Map<string, ContentDataset>()
@@ -29,7 +29,12 @@ export function createDataset(params: {
   id: string
   locale: Locale
   contentType: ContentDataset['contentType']
-  rawItems: Array<{ content: string; difficulty: DifficultyTier; metadata?: Record<string, unknown> }>
+  rawItems: Array<{
+    content: string
+    difficulty: DifficultyTier
+    categories?: DatasetCategory[]
+    metadata?: Record<string, unknown>
+  }>
 }): ContentDataset {
   const items: ContentItem[] = params.rawItems.map((raw, idx) => ({
     id: `${params.id}-${idx}`,
@@ -38,6 +43,7 @@ export function createDataset(params: {
     difficulty: raw.difficulty,
     locale: params.locale,
     // exactOptionalPropertyTypes: omit the key entirely when undefined
+    ...(raw.categories !== undefined ? { categories: raw.categories } : {}),
     ...(raw.metadata !== undefined ? { metadata: raw.metadata } : {}),
   }))
 
