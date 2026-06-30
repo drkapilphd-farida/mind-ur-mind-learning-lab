@@ -67,7 +67,7 @@ export function ContinueLearningCard({
           </h2>
 
           {lastCompletedTitle !== null && (
-            <p className="mt-1 text-sm text-muted-foreground">Last completed: {lastCompletedTitle}</p>
+            <p className="mt-1 text-sm text-muted-foreground">Last activated: {lastCompletedTitle}</p>
           )}
 
           {resumeContextLabel !== undefined && (
@@ -90,8 +90,8 @@ export function ContinueLearningCard({
       {isHero && (
         <p className="mt-3 text-sm text-muted-foreground">
           {isComplete
-            ? "You've completed every exercise in this module."
-            : `${completedCount} of ${totalCount} exercises complete${
+            ? 'All activations complete — Reading Intelligence fully activated.'
+            : `${completedCount} of ${totalCount} activations complete${
                 remainingCount !== undefined ? ` — ${remainingCount} remaining` : ''
               }`}
         </p>

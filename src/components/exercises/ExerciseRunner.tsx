@@ -88,7 +88,7 @@ export function ExerciseRunner({
     <ExerciseCompletionScreen
       title={definition.completion.title}
       mentorLine={definition.completion.mentorLine}
-      primaryActionLabel={nextExercise ? `Continue Learning: ${nextExercise.title}` : 'Back to Lab'}
+      primaryActionLabel={nextExercise ? `Continue Evolution: ${nextExercise.title}` : 'Back to Lab'}
       onPrimaryAction={handleDone}
       {...(nextExercise && labHref !== undefined
         ? { secondaryActionLabel: 'Back to Lab', secondaryActionHref: labHref }
