@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "locale": "hi",
+  "contentType": "word",
+  "difficulty": "beginner",
+  "categories": ["reading", "memory"],
+  "items": [
+    {
+      "id": "hi-word-beginner-001",
+      "content": "paani",
+      "contentLabel": "paani (water)",
+      "difficulty": "beginner",
+      "locale": "hi",
+      "assetType": "text",
+      "categories": ["reading", "memory"],
+      "phonetic": "pā-nī",
+      "translation": "water",
+      "tags": ["everyday", "6-letter", "noun"],
+      "metadata": { "script": "पानी" }
+    },
+    {
+      "id": "hi-word-beginner-002",
+      "content": "ghar",
+      "contentLabel": "ghar (home)",
+      "difficulty": "beginner",
+      "locale": "hi",
+      "assetType": "text",
+      "categories": ["reading", "memory"],
+      "phonetic": "ghar",
+      "translation": "home",
+      "tags": ["everyday", "4-letter", "noun"],
+      "metadata": { "script": "घर" }
+    },
+    {
+      "id": "hi-word-beginner-003",
+      "content": "kitab",
+      "contentLabel": "kitab (book)",
+      "difficulty": "beginner",
+      "locale": "hi",
+      "assetType": "text",
+      "categories": ["reading", "memory"],
+      "phonetic": "ki-tāb",
+      "translation": "book",
+      "tags": ["education", "5-letter", "noun"],
+      "metadata": { "script": "किताब" }
+    }
+  ],
+  "metadata": {
+    "author": "Mind Ur Mind Learning Lab™",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "totalItems": 3,
+    "language": "Hindi",
+    "description": "Demo beginner Hindi words in Latin transliteration. Production version contains 500+ items with full Devanagari script support."
+  }
+}

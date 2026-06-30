@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "locale": "en",
+  "contentType": "word",
+  "difficulty": "beginner",
+  "categories": ["reading", "memory"],
+  "items": [
+    {
+      "id": "en-word-beginner-001",
+      "content": "cat",
+      "contentLabel": "cat",
+      "difficulty": "beginner",
+      "locale": "en",
+      "assetType": "text",
+      "categories": ["reading", "memory"],
+      "tags": ["animal", "3-letter", "common"]
+    },
+    {
+      "id": "en-word-beginner-002",
+      "content": "sun",
+      "contentLabel": "sun",
+      "difficulty": "beginner",
+      "locale": "en",
+      "assetType": "text",
+      "categories": ["reading", "visualization"],
+      "tags": ["nature", "3-letter", "common"],
+      "iconPath": "lucide:Sun"
+    },
+    {
+      "id": "en-word-beginner-003",
+      "content": "mind",
+      "contentLabel": "mind",
+      "difficulty": "beginner",
+      "locale": "en",
+      "assetType": "text",
+      "categories": ["reading", "memory"],
+      "tags": ["cognitive", "4-letter"]
+    }
+  ],
+  "metadata": {
+    "author": "Mind Ur Mind Learning Lab™",
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "totalItems": 3,
+    "language": "English",
+    "description": "Demo beginner English words. Production version contains 500+ items."
+  }
+}

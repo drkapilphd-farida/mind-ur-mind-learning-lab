@@ -1,33 +1,57 @@
-// Universal Dataset Registry — import this file once to register all demo datasets.
-//
-// Every exercise that imports from the exercise engine will automatically have
-// access to all registered datasets via getDataset() / listDatasets().
-// Adding a new dataset: create its file, add one import line here. No other
-// code changes required — all consumers see the new dataset immediately.
+// Universal Intelligence Dataset™ Registry
+// Import this file ONCE to register all datasets with the engine.
+// Adding a new dataset: create its file, add one export line here.
+// Zero other code changes needed — all exercises see the new dataset immediately.
 
-// ── Built-in demo datasets ────────────────────────────────────────────────
+// ── English Language ──────────────────────────────────────────────────────
+export { ENGLISH_WORDS_DATASET } from './englishWords'        // 50 words, 5 tiers
 
-// English Words (50 items, 5 difficulty tiers)
-export { ENGLISH_WORDS_DATASET } from './englishWords'
+// ── Hindi Language ────────────────────────────────────────────────────────
+export { HINDI_WORDS_DATASET } from './hindi/words'           // 30 words, multilingual demo
 
-// Numbers (30 items, 5 difficulty tiers, 2–6 digits)
-export { NUMBERS_DATASET } from './numbers'
+// ── Numbers ───────────────────────────────────────────────────────────────
+export { NUMBERS_DATASET } from './numbers'                   // 30 numbers, 2-6 digits
 
-// Symbols (20 items, visual discrimination)
-export { SYMBOLS_DATASET } from './symbols'
+// ── Symbols & Characters ──────────────────────────────────────────────────
+export { SYMBOLS_DATASET } from './symbols'                   // 20 symbols
+export { LETTERS_DATASET } from './letters'                   // 20 letters
 
-// Shapes (20 items, visualization + right brain)
-export { SHAPES_DATASET } from './shapes'
+// ── Shapes ────────────────────────────────────────────────────────────────
+export { SHAPES_DATASET } from './shapes'                     // 20 shapes
 
-// Letters (20 items, reading readiness + right brain)
-export { LETTERS_DATASET } from './letters'
+// ── Colors ────────────────────────────────────────────────────────────────
+export { COLORS_DATASET } from './colors/index'               // 24 colors with hex values
+
+// ── Phrases & Sentences ───────────────────────────────────────────────────
+export { PHRASES_DATASET } from './phrases/index'             // 45 phrases, 5 tiers
+export { SENTENCES_DATASET } from './sentences/index'         // 25 sentences, 5 tiers
+
+// ── Visual / Illustrations ────────────────────────────────────────────────
+export { ILLUSTRATIONS_DATASET } from './illustrations/index' // 24 icon-based illustrations
 
 // ── Sprint 5A built-in datasets (still registered) ───────────────────────
 // ENGLISH_WORDS_FOUNDATION and ENGLISH_PHRASES_FOUNDATION from contentEngine.ts
-// register themselves on import of contentEngine. No additional lines needed.
+// register themselves on import of contentEngine — no additional lines needed.
 
 // ── Future datasets (add new imports here) ────────────────────────────────
-// export { HINDI_WORDS_DATASET } from './hindiWords'
-// export { GUJARATI_WORDS_DATASET } from './gujaratiWords'
-// export { MEMORY_CARDS_DATASET } from './memoryCards'
-// export { PDF_CHUNKS_DATASET } from './pdfContent'  // future AI Learning Studio
+// export { GUJARATI_WORDS_DATASET } from './gujarati/words'
+// export { TAMIL_WORDS_DATASET } from './tamil/words'
+// export { MARATHI_WORDS_DATASET } from './marathi/words'
+// export { MEMORY_CARDS_DATASET } from './memory/cards'
+// export { EXAM_VOCAB_DATASET } from './exam-practice/vocabulary'
+// export { PDF_CHUNKS_DATASET } from './ai-generated/pdf-extracted'  // Future AI Learning Studio
+// export { AI_GENERATED_DATASET } from './ai-generated/generated'
+
+// ── Total demo dataset summary ────────────────────────────────────────────
+// English words:   50 items
+// Hindi words:     30 items
+// Numbers:         30 items
+// Symbols:         20 items
+// Letters:         20 items
+// Shapes:          20 items
+// Colors:          24 items
+// Phrases:         45 items
+// Sentences:       25 items
+// Illustrations:   24 items
+// ─────────────────────────
+// Total:          288 items across 10 datasets / 2 languages

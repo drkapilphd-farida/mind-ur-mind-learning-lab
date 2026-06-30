@@ -1,37 +1,50 @@
 'use client'
 
+// Flash Phrases™ — Sprint 5B.1 migration.
+// Data now comes from PHRASES_DATASET (45 phrases) via the Universal Dataset Engine.
+// No more getPhrasesByDifficulty() from the raw phraseLists.ts.
+
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { FlashCanvas, type FlashItem } from './FlashCanvas'
 import { SessionResultScreen } from './SessionResultScreen'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
-import { getStoredDuration, saveDuration, shuffleIndices, type SessionSummary, ITEMS_PER_SESSION } from '../adaptiveEngine'
-import { getPhrasesByDifficulty } from '../data/phraseLists'
+import { getStoredDuration, saveDuration, type SessionSummary, ITEMS_PER_SESSION } from '../adaptiveEngine'
 import { LAB_ID } from '../rapidVisualModule'
+import { getContentForExercise } from '@/lib/exercise-engine/datasetEngine'
+import { ensureMinItems } from '@/lib/exercise-engine/datasetValidator'
+import { flashDurationToDifficulty } from '../lib/flashUtils'
+
+// Register all datasets on load
+import '@/lib/exercise-engine/datasets/index'
 
 const EXERCISE_ID = 'flash-phrases'
 const LAB_HREF = '/labs/quantum-speed-reading/rapid-visual-intelligence'
 
 function buildItems(flashDurationMs: number, seed: number): FlashItem[] {
-  const phrases = getPhrasesByDifficulty(flashDurationMs)
-  const all = [...phrases]
-  const indices = shuffleIndices(all.length, seed)
+  const difficulty = flashDurationToDifficulty(flashDurationMs)
+  const raw = getContentForExercise({ contentType: 'phrase', locale: 'en', difficulty, count: ITEMS_PER_SESSION + 15, seed })
+  const pool = ensureMinItems(raw, ITEMS_PER_SESSION, seed)
 
-  return indices.slice(0, ITEMS_PER_SESSION).map((idx, i) => {
-    const phrase = all[idx % all.length] ?? 'read fast'
-    const distractorIndices = indices.filter((n) => n !== idx).slice(i + 1, i + 4)
-    const options = [phrase, ...distractorIndices.map((n) => all[n % all.length] ?? 'stay calm')]
+  const stimuli = pool.slice(0, ITEMS_PER_SESSION)
+  const distractorPool = pool.slice(ITEMS_PER_SESSION)
+
+  return stimuli.map((item, i) => {
+    const phrase = item.content
+    const d1 = distractorPool[i % distractorPool.length] ?? stimuli[(i + 1) % stimuli.length]
+    const d2 = distractorPool[(i + 1) % distractorPool.length] ?? stimuli[(i + 2) % stimuli.length]
+    const d3 = distractorPool[(i + 2) % distractorPool.length] ?? stimuli[(i + 3) % stimuli.length]
+    const rawOptions = [phrase, (d1 ?? item).content, (d2 ?? item).content, (d3 ?? item).content]
     const sortSeed = (seed + i) % 4
     const shuffled = [
-      options[sortSeed % 4] ?? phrase,
-      options[(sortSeed + 1) % 4] ?? options[1] ?? 'stay calm',
-      options[(sortSeed + 2) % 4] ?? options[2] ?? 'think clear',
-      options[(sortSeed + 3) % 4] ?? options[3] ?? 'go deeper',
+      rawOptions[sortSeed % 4] ?? phrase,
+      rawOptions[(sortSeed + 1) % 4] ?? rawOptions[1] ?? 'stay calm',
+      rawOptions[(sortSeed + 2) % 4] ?? rawOptions[2] ?? 'think clear',
+      rawOptions[(sortSeed + 3) % 4] ?? rawOptions[3] ?? 'go deeper',
     ]
     const correctIndex = shuffled.indexOf(phrase)
-
     return {
-      id: `${EXERCISE_ID}-${i}`,
+      id: `${EXERCISE_ID}-${item.id}`,
       stimulus: phrase,
       stimulusLabel: phrase,
       options: shuffled.slice(0, 4),

@@ -1,24 +1,59 @@
 'use client'
 
+// Flash Symbols™ — Sprint 5B.1 migration.
+// Data now comes from SYMBOLS_DATASET via the Universal Dataset Engine.
+// Distractor selection prefers visually similar characters (feature-layer logic).
+
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { FlashCanvas, type FlashItem } from './FlashCanvas'
 import { SessionResultScreen } from './SessionResultScreen'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
-import { getStoredDuration, saveDuration, shuffleIndices, type SessionSummary, ITEMS_PER_SESSION } from '../adaptiveEngine'
-import { getSymbolsByDifficulty, getSymbolDistractors } from '../data/symbolSets'
+import { getStoredDuration, saveDuration, type SessionSummary, ITEMS_PER_SESSION } from '../adaptiveEngine'
 import { LAB_ID } from '../rapidVisualModule'
+import { getContentForExercise } from '@/lib/exercise-engine/datasetEngine'
+import { ensureMinItems } from '@/lib/exercise-engine/datasetValidator'
+import { flashDurationToDifficulty } from '../lib/flashUtils'
+import type { ContentItem } from '@/types/exercise-engine'
+
+// Register all datasets on load
+import '@/lib/exercise-engine/datasets/index'
 
 const EXERCISE_ID = 'flash-symbols'
 const LAB_HREF = '/labs/quantum-speed-reading/rapid-visual-intelligence'
 
-function buildItems(flashDurationMs: number, seed: number): FlashItem[] {
-  const pool = getSymbolsByDifficulty(flashDurationMs)
-  const indices = shuffleIndices(pool.length, seed)
+// Pairs of visually similar characters — used for distractor selection.
+// This remains in the feature layer: it's exercise-specific visual discrimination logic.
+const SIMILAR_PAIRS: [string, string][] = [
+  ['O', '0'], ['I', 'l'], ['S', '5'], ['Z', '2'], ['G', '6'],
+  ['B', '8'], ['!', 'l'], ['$', 'S'], ['1', 'l'],
+]
 
-  return indices.slice(0, ITEMS_PER_SESSION).map((idx, i) => {
-    const target = pool[idx % pool.length] ?? 'A'
-    const distractors = getSymbolDistractors(target, pool)
+function getSimilarDistractors(target: string, pool: ContentItem[]): string[] {
+  const similar = SIMILAR_PAIRS
+    .filter(([a, b]) => a === target || b === target)
+    .flatMap(([a, b]) => [a, b])
+    .filter((s) => s !== target)
+
+  const distractors: string[] = [...similar]
+  for (const item of pool) {
+    if (distractors.length >= 3) break
+    if (item.content !== target && !distractors.includes(item.content)) {
+      distractors.push(item.content)
+    }
+  }
+  return distractors.slice(0, 3)
+}
+
+function buildItems(flashDurationMs: number, seed: number): FlashItem[] {
+  const difficulty = flashDurationToDifficulty(flashDurationMs)
+  const raw = getContentForExercise({ contentType: 'symbol', locale: 'en', difficulty, count: ITEMS_PER_SESSION + 5, seed })
+  const pool = ensureMinItems(raw, ITEMS_PER_SESSION, seed)
+  const allPool = getContentForExercise({ contentType: 'symbol', locale: 'en', difficulty: 'medium', count: 30, seed })
+
+  return pool.slice(0, ITEMS_PER_SESSION).map((item, i) => {
+    const target = item.content
+    const distractors = getSimilarDistractors(target, allPool.filter((p) => p.content !== target))
     const rawOptions = [target, ...distractors]
     const sortSeed = (seed + i) % 4
     const options = [
@@ -28,9 +63,8 @@ function buildItems(flashDurationMs: number, seed: number): FlashItem[] {
       rawOptions[(sortSeed + 3) % 4] ?? distractors[2] ?? 'D',
     ]
     const correctIndex = options.indexOf(target)
-
     return {
-      id: `${EXERCISE_ID}-${i}`,
+      id: `${EXERCISE_ID}-${item.id}`,
       stimulus: target,
       stimulusLabel: `Symbol: ${target}`,
       options,

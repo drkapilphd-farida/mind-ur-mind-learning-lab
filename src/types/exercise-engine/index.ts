@@ -39,6 +39,7 @@ export type DatasetCategory =
   | 'reading'
   | 'memory'
   | 'focus'
+  | 'meditation'
   | 'visualization'
   | 'right-brain'
   | 'intuition'
