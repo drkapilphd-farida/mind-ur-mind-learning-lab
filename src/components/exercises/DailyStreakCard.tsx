@@ -13,21 +13,23 @@ export function DailyStreakCard({
   lastPracticedLabel,
 }: DailyStreakCardProps): React.JSX.Element {
   return (
-    <div className="bg-card rounded-xl border p-5">
+    <div className="rounded-2xl border bg-card p-5 shadow-sm">
       <div className="flex items-center gap-1.5">
         <Flame
           aria-hidden="true"
           className={cn('size-3.5', currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')}
         />
-        <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Daily streak</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Daily streak</p>
       </div>
-      <p className="mt-2 text-3xl font-bold tabular-nums">
+      <p className="mt-3 text-3xl font-bold tabular-nums tracking-tight text-foreground">
         {currentStreak}
-        <span className="ml-1 text-sm font-normal text-muted-foreground">day{currentStreak !== 1 ? 's' : ''}</span>
+        <span className="ml-1 text-sm font-normal text-muted-foreground">
+          day{currentStreak !== 1 ? 's' : ''}
+        </span>
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
         Best: {bestStreak} day{bestStreak !== 1 ? 's' : ''}
-        {lastPracticedLabel !== null ? ` · Last practiced ${lastPracticedLabel}` : ''}
+        {lastPracticedLabel !== null ? ` · ${lastPracticedLabel}` : ''}
       </p>
     </div>
   )

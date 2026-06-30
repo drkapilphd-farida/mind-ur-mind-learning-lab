@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ProgressRing } from './ProgressRing'
@@ -41,21 +41,28 @@ export function ContinueLearningCard({
   return (
     <div
       className={cn(
-        'rounded-xl border bg-gradient-to-br from-primary/8 to-primary/4',
-        isHero ? 'p-8 text-center' : 'p-6',
+        'group rounded-2xl border bg-card transition-shadow duration-200',
+        isHero
+          ? 'p-8 shadow-sm hover:shadow-md text-center'
+          : 'p-5 hover:shadow-sm',
       )}
     >
       <div className={cn('flex items-center gap-6', isHero ? 'flex-col' : 'flex-row')}>
         <ProgressRing
           progress={totalCount > 0 ? completedCount / totalCount : 0}
-          size={isHero ? 88 : 64}
-          label={`${completedCount}/${totalCount}`}
+          size={isHero ? 96 : 56}
+          label={isHero ? `${percent}%` : `${completedCount}/${totalCount}`}
           accessibleLabel={`${percent}% complete — ${completedCount} of ${totalCount} exercises finished`}
         />
 
         <div className={cn('min-w-0', isHero ? 'text-center' : 'flex-1 text-left')}>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{eyebrow}</p>
-          <h2 className={cn('mt-1 font-bold leading-snug tracking-tight', isHero ? 'text-2xl' : 'text-lg')}>
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">{eyebrow}</p>
+          <h2
+            className={cn(
+              'mt-1.5 font-semibold leading-snug tracking-tight text-foreground',
+              isHero ? 'text-2xl' : 'text-base',
+            )}
+          >
             {title}
           </h2>
 
@@ -67,23 +74,21 @@ export function ContinueLearningCard({
             <p className="mt-1 text-sm text-muted-foreground">{resumeContextLabel}</p>
           )}
 
-          {!isHero && (
+          {!isHero && actionHref !== null && (
             <div className="mt-3">
-              {actionHref !== null && (
-                <Button asChild size="sm">
-                  <Link href={actionHref}>
-                    {actionLabel}
-                    <ChevronRight className="size-3.5" />
-                  </Link>
-                </Button>
-              )}
+              <Button asChild size="sm">
+                <Link href={actionHref}>
+                  {actionLabel}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </Button>
             </div>
           )}
         </div>
       </div>
 
       {isHero && (
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           {isComplete
             ? "You've completed every exercise in this module."
             : `${completedCount} of ${totalCount} exercises complete${
@@ -93,8 +98,11 @@ export function ContinueLearningCard({
       )}
 
       {isHero && actionHref !== null && (
-        <Button asChild size="lg" className="mt-6 min-w-[220px] rounded-full shadow-sm">
-          <Link href={actionHref}>{actionLabel}</Link>
+        <Button asChild size="lg" className="mt-6 min-w-[200px] gap-2 rounded-full" aria-label={actionLabel}>
+          <Link href={actionHref}>
+            {actionLabel}
+            <ArrowRight className="size-4" />
+          </Link>
         </Button>
       )}
     </div>

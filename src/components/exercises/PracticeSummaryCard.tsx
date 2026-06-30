@@ -23,26 +23,26 @@ export function PracticeSummaryCard({
   const stats = [
     { value: currentStreak, label: 'Current streak' },
     { value: bestStreak, label: 'Best streak' },
-    { value: totalCompletedSessions, label: 'Sessions completed' },
-    { value: totalPracticeMinutes, label: 'Minutes practiced' },
-    { value: `${completionPercent}%`, label: 'Module complete' },
+    { value: totalCompletedSessions, label: 'Sessions' },
+    { value: totalPracticeMinutes, label: 'Minutes' },
+    { value: `${completionPercent}%`, label: 'Complete' },
   ]
 
   return (
-    <div className="rounded-xl border bg-card p-6">
+    <div className="rounded-2xl border bg-card p-6 shadow-sm">
       <div className="flex items-center gap-1.5">
         <Flame
           aria-hidden="true"
           className={cn('size-3.5', currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')}
         />
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Practice summary</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Practice summary</p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {stats.map((stat) => (
-          <div key={stat.label}>
-            <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+          <div key={stat.label} className="rounded-xl bg-muted/40 px-4 py-3">
+            <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground">{stat.value}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{stat.label}</p>
           </div>
         ))}
       </div>

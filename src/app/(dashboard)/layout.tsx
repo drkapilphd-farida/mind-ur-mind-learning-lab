@@ -32,7 +32,9 @@ export default async function DashboardLayout({
           avatarUrl={profile?.avatarUrl ?? null}
           email={user.email ?? ''}
         />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8">{children}</div>
+        </main>
       </div>
     </div>
   )

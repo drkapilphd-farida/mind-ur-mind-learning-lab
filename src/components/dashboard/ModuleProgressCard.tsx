@@ -35,42 +35,50 @@ export function ModuleProgressCard(props: ModuleProgressCardProps): React.JSX.El
         role="group"
         aria-label={`${props.labName}, coming soon`}
         aria-disabled="true"
-        className="flex items-center gap-4 rounded-xl border bg-card p-5 opacity-60"
+        className="flex items-center gap-4 rounded-2xl border border-dashed bg-card/40 p-5 opacity-50"
       >
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Lock className="size-4" aria-hidden="true" />
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <Lock className="size-3.5" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">{props.labName}</p>
-          <Badge variant="outline" className="mt-1">
-            Coming soon
-          </Badge>
+          <p className="mt-0.5 text-xs text-muted-foreground">Coming soon</p>
         </div>
       </div>
     )
   }
 
   const { labName, completedCount, totalCount, href } = props
-  const moduleStatus = completedCount === 0 ? 'not-started' : completedCount === totalCount ? 'completed' : 'in-progress'
+  const moduleStatus =
+    completedCount === 0 ? 'not-started' : completedCount === totalCount ? 'completed' : 'in-progress'
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return (
-    <div className="flex items-center gap-4 rounded-xl border bg-card p-5">
+    <div
+      className={cn(
+        'flex items-center gap-4 rounded-2xl border bg-card p-5 shadow-sm',
+        'transition-shadow duration-150 hover:shadow-md',
+      )}
+    >
       <ProgressRing
         progress={totalCount > 0 ? completedCount / totalCount : 0}
         size={48}
+        label={`${percent}%`}
         accessibleLabel={`${labName}: ${percent}% complete, ${completedCount} of ${totalCount} exercises`}
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{labName}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {completedCount} of {totalCount} exercises completed
+          {completedCount} of {totalCount} exercises
         </p>
-        <Badge variant={moduleStatus === 'completed' ? 'default' : 'secondary'} className="mt-1.5">
+        <Badge
+          variant={moduleStatus === 'in-progress' ? 'secondary' : 'outline'}
+          className="mt-1.5"
+        >
           {STATUS_LABEL[moduleStatus]}
         </Badge>
       </div>
-      <Button asChild variant="outline" size="sm" className={cn('shrink-0')}>
+      <Button asChild variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-foreground">
         <Link href={href}>Open</Link>
       </Button>
     </div>

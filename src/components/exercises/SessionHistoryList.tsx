@@ -11,20 +11,26 @@ type SessionHistoryListProps = {
 // instead of defining a second one.
 export function SessionHistoryList({ sessions, formatDate }: SessionHistoryListProps): React.JSX.Element {
   if (sessions.length === 0) {
-    return <p className="text-sm text-muted-foreground">No practice sessions yet.</p>
+    return <p className="py-2 text-sm text-muted-foreground">No practice sessions yet.</p>
   }
 
   return (
-    <div className="divide-y rounded-xl border bg-card">
+    <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       {sessions.map((session, index) => (
-        <div key={`${session.exerciseId}-${session.occurredAt}-${index}`} className="flex items-center gap-3 px-4 py-3">
+        <div
+          key={`${session.exerciseId}-${session.occurredAt}-${index}`}
+          className="flex items-center gap-3 border-b border-border/50 px-4 py-3.5 last:border-0 transition-colors duration-150 hover:bg-muted/40"
+        >
           {session.completed ? (
-            <CheckCircle2 className="size-4 shrink-0 text-green-600" aria-label="Completed" />
+            <CheckCircle2
+              className="size-4 shrink-0 text-success"
+              aria-label="Completed"
+            />
           ) : (
             <Circle className="size-4 shrink-0 text-muted-foreground/40" aria-label="Not completed" />
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{session.title}</p>
+            <p className="truncate text-sm font-medium text-foreground">{session.title}</p>
             <p className="truncate text-xs text-muted-foreground">
               {session.completed ? 'Completed' : 'Exited early'} · {formatDurationLabel(session.durationMs)}
             </p>
