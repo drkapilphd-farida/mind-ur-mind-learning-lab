@@ -1,11 +1,9 @@
 'use client'
 
 // UniversalExercisePlayer™ — executes any exercise from ExerciseDefinition + items.
-//
-// Session-level state: managed by useUniversalExerciseRuntime (idle/countdown/playing/paused/completed).
-// Item-level state:    managed locally (flash/response/feedback/gap) for each stimulus.
-//
-// This player never changes when exercises are added. New exercises = new Definition + items.
+// Session-level state: managed by useUniversalExerciseRuntime.
+// Item-level timing: managed locally (flash/response/feedback/gap).
+// This player never changes when exercises are added.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -20,9 +18,9 @@ import { FlashStimulus } from './FlashStimulus'
 import { ChoiceGrid } from './ChoiceGrid'
 import { SessionProgress } from './SessionProgress'
 import { RuntimeResultScreen } from './RuntimeResultScreen'
-import type { ExerciseDefinition, SessionItem, ItemResponse } from '@/types/exercise-engine'
+import { SpeedControl } from './SpeedControl'
+import type { ExerciseDefinition, SessionItem, ItemResponse, SpeedMs } from '@/types/exercise-engine'
 
-// Item-level micro phases (managed entirely within the player)
 type ItemPhase = 'flash' | 'response' | 'feedback' | 'gap'
 
 const FEEDBACK_MS = 450
@@ -34,6 +32,9 @@ type UniversalExercisePlayerProps<TConfig> = {
   nextExerciseId?: string | null
   nextExerciseHref?: string | null
   renderStimulus?: (stimulus: string) => React.ReactNode
+  // Called when the player's Practice Again button is pressed — parent should
+  // regenerate items with a new seed before the next session starts.
+  onRestart?: () => void
 }
 
 export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
@@ -42,6 +43,7 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
   nextExerciseId = null,
   nextExerciseHref = null,
   renderStimulus,
+  onRestart,
 }: UniversalExercisePlayerProps<TConfig>): React.JSX.Element {
   const router = useRouter()
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -51,6 +53,11 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const itemStartTimeRef = useRef<number>(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Manual speed override — stored locally so student can adjust without
+  // affecting the adaptive engine's persisted state.
+  const [manualSpeedMs, setManualSpeedMs] = useState<SpeedMs | null>(null)
+  const [isManualMode, setIsManualMode] = useState(false)
 
   function clearTimer(): void {
     if (timerRef.current !== null) clearTimeout(timerRef.current)
@@ -73,12 +80,20 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
     onSessionComplete,
   })
 
-  // The current item comes from items[] + runtime.currentIndex
+  // Apply manual speed override to the runtime when in manual mode
+  const effectiveSpeedMs = isManualMode && manualSpeedMs !== null ? manualSpeedMs : runtime.speedMs
+
+  // Sync manual speed to runtime when changed
+  useEffect(() => {
+    if (isManualMode && manualSpeedMs !== null) {
+      runtime.setManualSpeed(manualSpeedMs)
+    }
+  }, [isManualMode, manualSpeedMs, runtime])
+
   const currentItem = items[runtime.currentIndex] ?? null
 
   // ── Transitions ─────────────────────────────────────────────────────────
 
-  // When runtime enters 'playing', start the first item's flash
   useEffect(() => {
     if (runtime.phase === 'playing') {
       setItemPhase('flash')
@@ -86,13 +101,11 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
     }
   }, [runtime.phase, runtime.currentIndex])
 
-  // Flash ended → show options
   const handleFlashEnd = useCallback((): void => {
     itemStartTimeRef.current = Date.now()
     setItemPhase('response')
   }, [])
 
-  // User selected an answer
   const handleSelect = useCallback((idx: number): void => {
     if (itemPhase !== 'response' || !currentItem) return
     const reactionTimeMs = Date.now() - itemStartTimeRef.current
@@ -114,13 +127,12 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
       clearTimer()
       timerRef.current = setTimeout(() => {
         setSelectedIndex(null)
-        runtime.recordResponse(response)  // advances currentIndex or completes
-        setItemPhase('flash')             // will be re-set by the useEffect above
+        runtime.recordResponse(response)
+        setItemPhase('flash')
       }, GAP_MS)
     }, FEEDBACK_MS)
   }, [itemPhase, currentItem, runtime])
 
-  // Keyboard Escape to exit
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
       if (e.key === 'Escape') { clearTimer(); router.push(definition.labHref) }
@@ -131,6 +143,16 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
 
   useEffect(() => () => clearTimer(), [])
 
+  // ── Handle restart — tell parent to regenerate fresh items ───────────────
+  function handlePracticeAgain(): void {
+    clearTimer()
+    setItemPhase('flash')
+    setSelectedIndex(null)
+    // Signal parent to regenerate items with a new seed, then restart runtime
+    onRestart?.()
+    runtime.restart()
+  }
+
   // ── Completed ───────────────────────────────────────────────────────────
   if (runtime.phase === 'completed' && runtime.result !== null) {
     return (
@@ -139,14 +161,16 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
         trainsAbility={definition.trainsAbility}
         result={runtime.result}
         labHref={definition.labHref}
-        onPracticeAgain={() => { clearTimer(); runtime.restart(); setItemPhase('flash'); setSelectedIndex(null) }}
+        onPracticeAgain={handlePracticeAgain}
       />
     )
   }
 
   // ── Active session ──────────────────────────────────────────────────────
   const isPlaying = runtime.phase === 'playing'
-  const showProgress = isPlaying || runtime.phase === 'paused'
+  const isIdle = runtime.phase === 'idle'
+  const isPaused = runtime.phase === 'paused'
+  const showProgress = isPlaying || isPaused
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center bg-background px-6">
@@ -157,7 +181,7 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
           totalItems={runtime.totalItems}
           completionPercent={runtime.completionPercent}
           runningAccuracy={runtime.runningAccuracy}
-          speedMs={runtime.speedMs}
+          speedMs={effectiveSpeedMs}
           prefersReducedMotion={prefersReducedMotion}
         />
       )}
@@ -181,13 +205,29 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
           Pause
         </button>
       )}
+      {isPaused && (
+        <button
+          onClick={runtime.resume}
+          className="absolute top-4 right-20 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Resume exercise"
+        >
+          Resume
+        </button>
+      )}
 
       <div className="flex w-full max-w-sm flex-col items-center gap-8">
 
-        {/* ── Idle ── */}
-        {runtime.phase === 'idle' && (
-          <div className="flex flex-col items-center gap-6 text-center">
+        {/* ── Idle — Start screen with Speed Control ── */}
+        {isIdle && (
+          <div className="flex flex-col items-center gap-6 text-center w-full">
             <p className="text-sm text-muted-foreground">{definition.description}</p>
+            <SpeedControl
+              currentSpeedMs={effectiveSpeedMs}
+              isManual={isManualMode}
+              onSpeedChange={(ms) => { setManualSpeedMs(ms); setIsManualMode(true) }}
+              onToggleMode={(manual) => { setIsManualMode(manual); if (!manual) setManualSpeedMs(null) }}
+              className="w-full"
+            />
             <button
               onClick={runtime.startSession}
               className="rounded-full bg-foreground px-8 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
@@ -205,25 +245,20 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
         {/* ── Playing ── */}
         {isPlaying && currentItem !== null && (
           <>
-            {/* Flash stimulus */}
             {itemPhase === 'flash' && (
               <FlashStimulus
                 stimulus={currentItem.stimulus}
                 {...(currentItem.renderAs !== undefined ? { renderAs: currentItem.renderAs } : {})}
-                durationMs={runtime.speedMs}
+                durationMs={effectiveSpeedMs}
                 onHide={handleFlashEnd}
                 {...(renderStimulus !== undefined ? { renderStimulus } : {})}
               />
             )}
-
-            {/* Gap between items */}
             {itemPhase === 'gap' && (
               <div className="flex min-h-[140px] items-center justify-center" aria-hidden="true">
                 <div className="size-2 rounded-full bg-muted-foreground/30" />
               </div>
             )}
-
-            {/* Response + Feedback */}
             {(itemPhase === 'response' || itemPhase === 'feedback') && (
               <ChoiceGrid
                 options={currentItem.options}
@@ -240,13 +275,21 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
           </>
         )}
 
-        {/* ── Paused ── */}
-        {runtime.phase === 'paused' && (
-          <div className="flex flex-col items-center gap-4 text-center">
+        {/* ── Paused — show Speed Control ── */}
+        {isPaused && (
+          <div className="flex flex-col items-center gap-5 text-center w-full">
             <p className="text-lg font-semibold text-foreground">Paused</p>
             <p className="text-sm text-muted-foreground">
-              {runtime.currentIndex} of {runtime.totalItems} items complete
+              {runtime.currentIndex} of {runtime.totalItems} items complete ·{' '}
+              {runtime.runningAccuracy > 0 && `${runtime.runningAccuracy}% accuracy`}
             </p>
+            <SpeedControl
+              currentSpeedMs={effectiveSpeedMs}
+              isManual={isManualMode}
+              onSpeedChange={(ms) => { setManualSpeedMs(ms); setIsManualMode(true) }}
+              onToggleMode={(manual) => { setIsManualMode(manual); if (!manual) setManualSpeedMs(null) }}
+              className="w-full"
+            />
             <button
               onClick={runtime.resume}
               className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium text-background"

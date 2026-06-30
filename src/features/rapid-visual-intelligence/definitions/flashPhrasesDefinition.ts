@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { PHRASES_DATASET } from '@/lib/exercise-engine/datasets/phrases/index'
+
+export const FLASH_PHRASES_DEFINITION: ExerciseDefinition = {
+  id: 'flash-phrases',
+  labId: 'quantum-speed-reading',
+  title: 'Flash Phrases™',
+  description: 'A short phrase flashes across your vision. Recognise it entirely before it disappears — phrase length increases with accuracy.',
+  trainsAbility: 'Phrase recognition and chunking',
+  exerciseType: 'flash',
+  contentType: 'phrase',
+  interactionType: 'multiple-choice',
+  dataset: PHRASES_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 90,
+    decreaseSpeedBelow: 70,
+    minSpeedMs: 100,
+    maxSpeedMs: 1000,
+    defaultSpeedMs: 500,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/rapid-visual-intelligence/flash-phrases',
+  labHref: '/labs/quantum-speed-reading/rapid-visual-intelligence',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.flashPhrases.title',
+    description: 'exercise.flashPhrases.description',
+    instruction: 'exercise.flashPhrases.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.flashPhrases.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.flashPhrases.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}

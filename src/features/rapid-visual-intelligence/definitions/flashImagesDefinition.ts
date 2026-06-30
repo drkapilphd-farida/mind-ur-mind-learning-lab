@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { ILLUSTRATIONS_DATASET } from '@/lib/exercise-engine/datasets/illustrations/index'
+
+export const FLASH_IMAGES_DEFINITION: ExerciseDefinition = {
+  id: 'flash-images',
+  labId: 'quantum-speed-reading',
+  title: 'Flash Icons™',
+  description: 'A visual icon appears briefly — select it from four similar choices. Builds visual discrimination and shape memory.',
+  trainsAbility: 'Visual symbol recognition',
+  exerciseType: 'flash',
+  contentType: 'icon',
+  interactionType: 'multiple-choice',
+  dataset: ILLUSTRATIONS_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 90,
+    decreaseSpeedBelow: 70,
+    minSpeedMs: 80,
+    maxSpeedMs: 500,
+    defaultSpeedMs: 500,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/rapid-visual-intelligence/flash-images',
+  labHref: '/labs/quantum-speed-reading/rapid-visual-intelligence',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.flashImages.title',
+    description: 'exercise.flashImages.description',
+    instruction: 'exercise.flashImages.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.flashImages.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.flashImages.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}

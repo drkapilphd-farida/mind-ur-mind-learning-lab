@@ -1,91 +1,86 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Sun, Moon, Star, Heart, Home, Eye, Zap, Leaf, Flame, Cloud,
   BookOpen, Brain, Target, Trophy, Compass, Diamond, Mountain, Clock, Bell, Shield,
   Settings, BarChart2, GitBranch, Hexagon, Octagon, Triangle, Circle, Square, LayoutGrid,
   type LucideIcon,
 } from 'lucide-react'
-import { FlashCanvas, type FlashItem } from './FlashCanvas'
-import { SessionResultScreen } from './SessionResultScreen'
-import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
-import { getStoredDuration, saveDuration, shuffleIndices, type SessionSummary, ITEMS_PER_SESSION } from '../adaptiveEngine'
-import { getIconsByDifficulty, getIconDistractors } from '../data/imageSets'
-import { LAB_ID } from '../rapidVisualModule'
+import { UniversalExercisePlayer } from '@/components/exercise-engine/UniversalExercisePlayer'
+import { FLASH_IMAGES_DEFINITION } from '../definitions/flashImagesDefinition'
+import { getContentForExercise } from '@/lib/exercise-engine/datasetEngine'
+import { ensureMinItems } from '@/lib/exercise-engine/datasetValidator'
+import { loadState } from '@/lib/exercise-engine/sessionEngine'
+import { flashDurationToDifficulty } from '../lib/flashUtils'
+import type { SessionItem } from '@/types/exercise-engine'
+import type { FlashDuration } from '../adaptiveEngine'
+import '@/lib/exercise-engine/datasets/index'
 
 const EXERCISE_ID = 'flash-images'
-const LAB_HREF = '/labs/quantum-speed-reading/rapid-visual-intelligence'
+const ITEMS_PER_SESSION = 20
 
+// Map icon names to lucide components for the stimulus renderer
 const ICON_MAP: Record<string, LucideIcon> = {
   Sun, Moon, Star, Heart, Home, Eye, Zap, Leaf, Flame, Cloud,
   BookOpen, Brain, Target, Trophy, Compass, Diamond, Mountain, Clock, Bell, Shield,
   Settings, BarChart2, GitBranch, Hexagon, Octagon, Triangle, Circle, Square, LayoutGrid,
 }
 
-function renderIcon(id: string): React.ReactNode {
-  const Icon = ICON_MAP[id]
-  if (!Icon) return <span className="text-4xl">{id}</span>
+function renderIcon(iconName: string): React.ReactNode {
+  const Icon = ICON_MAP[iconName]
+  if (!Icon) return <span className="text-4xl font-bold">{iconName}</span>
   return <Icon className="size-16 text-foreground" strokeWidth={1.5} aria-hidden="true" />
 }
 
-function buildItems(flashDurationMs: number, seed: number): FlashItem[] {
-  const pool = getIconsByDifficulty(flashDurationMs)
-  const indices = shuffleIndices(pool.length, seed)
+function buildSessionItems(flashDurationMs: FlashDuration, seed: number): SessionItem[] {
+  const difficulty = flashDurationToDifficulty(flashDurationMs)
+  const raw = getContentForExercise({ contentType: 'icon', locale: 'en', difficulty, count: ITEMS_PER_SESSION + 10, seed })
+  const pool = ensureMinItems(raw, ITEMS_PER_SESSION, seed)
+  const stimuli = pool.slice(0, ITEMS_PER_SESSION)
+  const distractorPool = pool.slice(ITEMS_PER_SESSION)
 
-  return indices.slice(0, ITEMS_PER_SESSION).map((idx, i) => {
-    const target = pool[idx % pool.length]!
-    const distractors = getIconDistractors(target.id, pool)
-    const rawOptions = [target.label, ...distractors.map((d) => d.label)]
+  return stimuli.map((item, i) => {
+    // Options are text labels (icon names); stimulus is rendered as an icon
+    const targetLabel = item.contentLabel  // e.g. 'Sun', 'Moon'
+    const d1 = distractorPool[i % distractorPool.length] ?? stimuli[(i + 1) % stimuli.length]
+    const d2 = distractorPool[(i + 1) % distractorPool.length] ?? stimuli[(i + 2) % stimuli.length]
+    const d3 = distractorPool[(i + 2) % distractorPool.length] ?? stimuli[(i + 3) % stimuli.length]
+    const rawOptions = [targetLabel, (d1 ?? item).contentLabel, (d2 ?? item).contentLabel, (d3 ?? item).contentLabel]
     const sortSeed = (seed + i) % 4
     const options = [
-      rawOptions[sortSeed % 4] ?? target.label,
-      rawOptions[(sortSeed + 1) % 4] ?? distractors[0]?.label ?? 'none',
-      rawOptions[(sortSeed + 2) % 4] ?? distractors[1]?.label ?? 'none',
-      rawOptions[(sortSeed + 3) % 4] ?? distractors[2]?.label ?? 'none',
+      rawOptions[sortSeed % 4] ?? targetLabel,
+      rawOptions[(sortSeed + 1) % 4] ?? rawOptions[1] ?? 'Moon',
+      rawOptions[(sortSeed + 2) % 4] ?? rawOptions[2] ?? 'Star',
+      rawOptions[(sortSeed + 3) % 4] ?? rawOptions[3] ?? 'Heart',
     ]
-    const correctIndex = options.indexOf(target.label)
-
+    const correctIndex = options.indexOf(targetLabel)
     return {
-      id: `${EXERCISE_ID}-${i}`,
-      stimulus: target.id,   // lucide icon name
-      stimulusIsIcon: true,
-      stimulusLabel: target.label,
-      options,
+      id: `${EXERCISE_ID}-${item.id}`,
+      stimulus: item.content,         // icon name (e.g. 'Sun') — rendered by renderStimulus
+      stimulusLabel: item.contentLabel,
+      renderAs: 'icon' as const,
+      options,                         // text label options
       correctIndex: correctIndex >= 0 ? correctIndex : 0,
     }
   })
 }
 
 export function FlashImagesExperience(): React.JSX.Element {
-  const router = useRouter()
   const [sessionKey, setSessionKey] = useState(0)
-  const [summary, setSummary] = useState<SessionSummary | null>(null)
-
-  const flashDurationMs = getStoredDuration(EXERCISE_ID)
-  const items = useMemo(() => buildItems(flashDurationMs, Date.now() + sessionKey), [flashDurationMs, sessionKey])
-
-  async function handleComplete(result: SessionSummary): Promise<void> {
-    saveDuration(EXERCISE_ID, result.nextDurationMs)
-    await savePracticeSession({ labId: LAB_ID, exerciseId: EXERCISE_ID, durationMs: 60000, completed: result.accuracyPercent >= 60 })
-    setSummary(result)
-  }
-
-  if (summary !== null) {
-    return <SessionResultScreen exerciseName="Flash Icons™" summary={summary} trainsAbility="Visual symbol recognition" labHref={LAB_HREF} onPracticeAgain={() => { setSummary(null); setSessionKey((k) => k + 1) }} />
-  }
+  const state = useMemo(() => loadState(EXERCISE_ID), [])
+  const items = useMemo(
+    () => buildSessionItems(state.currentSpeedMs as FlashDuration, Date.now() + sessionKey * 99991),
+    [state.currentSpeedMs, sessionKey],
+  )
 
   return (
-    <FlashCanvas
+    <UniversalExercisePlayer
       key={sessionKey}
-      exerciseId={EXERCISE_ID}
-      exerciseName="Flash Icons™"
+      definition={FLASH_IMAGES_DEFINITION}
       items={items}
-      flashDurationMs={flashDurationMs}
       renderStimulus={renderIcon}
-      onComplete={handleComplete}
-      onExit={() => router.push(LAB_HREF)}
+      onRestart={() => setSessionKey((k) => k + 1)}
     />
   )
 }
