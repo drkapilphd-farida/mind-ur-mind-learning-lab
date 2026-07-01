@@ -20,6 +20,11 @@ import { computeRecommendation } from '@/lib/exercise-engine/recommendationEngin
 import { getSpeedLabel } from '@/lib/exercise-engine/speedEngine'
 import { getDifficultyLabel } from '@/lib/exercise-engine/difficultyEngine'
 import type { ExerciseRecommendation } from '@/types/exercise-engine'
+// Sprint 5E — Adaptive Runtime Integration™
+import { computePromotion } from '@/lib/exercise-engine/promotionRules'
+import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
+import { computeSpeedRecommendation } from '@/lib/exercise-engine/speedRecommendation'
+import { appendDifficultyEntry } from '@/lib/exercise-engine/difficultyHistory'
 
 // ── Session-level phases only ─────────────────────────────────────────────
 // Item-level phases (flash/response/feedback/gap) are managed by the Player.
@@ -161,24 +166,81 @@ export function useUniversalExerciseRuntime<TConfig = Record<string, unknown>>({
       const nextIdx = currentIndex + 1
 
       if (nextIdx >= totalItems) {
-        // Session complete
+        // ── Session complete — Adaptive Session Flow™ ───────────────────────
         const durationMs = Date.now() - sessionStartTime
-        const metrics = buildMetrics(
-          newResponses,
-          speedMs,
-          persistedState.currentDifficultyTier,
-          durationMs,
-        )
-        const nextSpeedMs = computeNextSpeed(speedMs, metrics.accuracyPercent, definition.adaptiveRules)
+        const currentTier = persistedState.currentDifficultyTier
+        const recentCurve = persistedState.progressCurve   // last 10 accuracies
+
+        // Step 1: Compute session metrics
+        const metrics = buildMetrics(newResponses, speedMs, currentTier, durationMs)
+
+        // Step 2: Promotion check — multi-factor (accuracy trend + reaction + sessions)
+        const recentForPromotion = [...recentCurve.slice(-2), metrics.accuracyPercent]
+        const promotionResult = computePromotion({
+          currentTier,
+          recentAccuracies: recentForPromotion,
+          averageReactionMs: metrics.averageReactionTimeMs,
+          sessionsAtCurrentTier: persistedState.sessionCount,
+        })
+
+        // Step 3: Recovery check — only when not promoting (can't promote and recover)
+        const recentForRecovery = [...recentCurve.slice(-1), metrics.accuracyPercent]
+        const recoveryResult = promotionResult.shouldPromote
+          ? { shouldRecover: false, targetTier: currentTier, reason: '', severity: 'none' as const }
+          : computeRecovery({
+              currentTier,
+              recentAccuracies: recentForRecovery,
+              averageReactionMs: metrics.averageReactionTimeMs,
+              consecutiveCompletions: persistedState.sessionCount,
+            })
+
+        // Step 4: Determine next difficulty tier
+        const nextDifficultyTier = promotionResult.shouldPromote
+          ? promotionResult.targetTier
+          : recoveryResult.shouldRecover
+            ? recoveryResult.targetTier
+            : currentTier
+
+        // Step 5: Speed recommendation using the full Sprint 5D engine
+        const momentumScore = recentCurve.length > 0
+          ? Math.round(recentCurve.filter((a) => a >= 70).length / recentCurve.length * 100)
+          : 50
+        const speedRec = computeSpeedRecommendation({
+          currentSpeedMs: speedMs,
+          currentTier: nextDifficultyTier,
+          accuracyPercent: metrics.accuracyPercent,
+          averageReactionMs: metrics.averageReactionTimeMs,
+          recentAccuracies: [...recentCurve.slice(-4), metrics.accuracyPercent],
+          momentumScore,
+        })
+        // Use the richer recommendation, but fall back to simple computeNextSpeed as safety
+        const simpleNextSpeed = computeNextSpeed(speedMs, metrics.accuracyPercent, definition.adaptiveRules)
+        const nextSpeedMs: SpeedMs = speedRec.recommendedSpeed < simpleNextSpeed
+          ? speedRec.recommendedSpeed  // both agree to go faster
+          : simpleNextSpeed            // conservative: take the slower recommendation
+
         const isSpeedPB = nextSpeedMs < persistedState.fastestSpeedMs
 
+        // Step 6: Persist to difficulty history (Sprint 5D analytics)
+        appendDifficultyEntry(definition.id, {
+          tier: currentTier,
+          accuracyPercent: metrics.accuracyPercent,
+          averageReactionMs: metrics.averageReactionTimeMs,
+          speedMs,
+          eventType: promotionResult.shouldPromote ? 'promotion' : recoveryResult.shouldRecover ? 'recovery' : 'session',
+          promoted: promotionResult.shouldPromote,
+          recovered: recoveryResult.shouldRecover,
+        })
+
+        // Step 7: Persist updated session state (tier + speed)
         updateStateAfterSession(definition.id, {
           nextSpeedMs,
-          nextDifficultyTier: persistedState.currentDifficultyTier,
+          nextDifficultyTier,
           accuracyPercent: metrics.accuracyPercent,
           isSpeedPersonalBest: isSpeedPB,
         })
 
+        // Step 8: Build recommendation for result screen
         const recommendation = computeRecommendation({
           metrics,
           state: { ...persistedState, sessionCount: persistedState.sessionCount + 1 },
