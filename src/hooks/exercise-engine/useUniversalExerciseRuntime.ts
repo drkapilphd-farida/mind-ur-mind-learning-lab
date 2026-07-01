@@ -54,7 +54,8 @@ function buildMetrics(
   const speedScore = Math.max(0, Math.min(1, (1000 - speedMs) / 950))
   const rawScore = (accuracyPercent / 100) * 0.6 + speedScore * 0.3
   const mult: Record<string, number> = {
-    beginner: 0.5, easy: 0.7, medium: 1.0, advanced: 1.3, expert: 1.6, adaptive: 1.0,
+    beginner: 0.5, easy: 0.7, medium: 1.0, advanced: 1.3, expert: 1.6,
+    elite: 2.0, master: 2.5, adaptive: 1.0,
   }
   const performanceScore = Math.min(100, Math.round(rawScore * 100 * (mult[difficultyTier] ?? 1.0)))
   const mindScoreContribution = Math.round((performanceScore / 100) * 5)

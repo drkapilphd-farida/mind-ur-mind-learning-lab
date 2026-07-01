@@ -85,6 +85,8 @@ export type DifficultyTier =
   | 'medium'
   | 'advanced'
   | 'expert'
+  | 'elite'     // Sprint 5D — high-speed mastery tier
+  | 'master'    // Sprint 5D — maximum challenge tier
   | 'adaptive'  // engine controls difficulty automatically
 
 // ── Adaptive Rules™ ────────────────────────────────────────────────────────
@@ -120,6 +122,8 @@ export const DEFAULT_SCORING_RULES: ScoringRules = {
     medium: 1.0,
     advanced: 1.3,
     expert: 1.6,
+    elite: 2.0,
+    master: 2.5,
     adaptive: 1.0,
   },
 }

@@ -19,6 +19,8 @@ import type {
 } from '@/types/exercise-engine/builder'
 import { applyBuilderDefaults } from './builderDefaults'
 import { computeNextSpeed } from './performanceEngine'
+import { getAdaptiveDifficulty } from './difficultyHistory'
+import { getDifficultyProfile } from './difficultyProfiles'
 import { getDataset } from './contentEngine'
 import { getContentForExercise } from './datasetEngine'
 import { pickItems } from './randomizationEngine'
@@ -124,13 +126,17 @@ export function buildSession(
 ): SessionItem[] {
   // config may be ExerciseBuilderConfig or a custom shape — access safely
   const config = definition.config as Partial<ExerciseBuilderConfig>
-  const count = config.itemsPerSession ?? 20
   const strategy = config.distractorStrategy ?? 'pool-random'
+
+  // Adaptive difficulty: use the student's current tier from history
+  const adaptiveTier = getAdaptiveDifficulty(definition.id)
+  const profile = getDifficultyProfile(adaptiveTier)
+  const count = config.itemsPerSession ?? profile.itemsPerSession
 
   const raw = getContentForExercise({
     contentType: definition.contentType,
     locale: config.locale ?? 'en',
-    difficulty: 'medium',   // adaptive difficulty handled by the runtime
+    difficulty: adaptiveTier,   // now adaptive, not hardcoded 'medium'
     count: count + 15,
     excludeIds: options?.excludeIds ?? [],
     seed,

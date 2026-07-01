@@ -1,13 +1,12 @@
-// Difficulty Engine™ — manages the 5-level difficulty system.
-//
-// Difficulty affects content selection, scoring multipliers, and adaptive
-// speed thresholds. Every exercise declares its own difficulty ladder in
-// its AdaptiveRules; this engine provides the universal helpers.
+// Difficulty Engine™ — extended in Sprint 5D with elite and master tiers.
+// Pure functions only. Sprint 6 AI Mentor™ will replace the recommendation
+// layer without touching these helpers.
 
 import type { DifficultyTier, AdaptiveRules } from '@/types/exercise-engine'
 
+// Ordered from easiest to hardest — adaptive is handled separately.
 export const DIFFICULTY_TIERS: readonly DifficultyTier[] = [
-  'beginner', 'easy', 'medium', 'advanced', 'expert',
+  'beginner', 'easy', 'medium', 'advanced', 'expert', 'elite', 'master',
 ]
 
 export function getDifficultyLabel(tier: DifficultyTier): string {
@@ -17,6 +16,8 @@ export function getDifficultyLabel(tier: DifficultyTier): string {
     medium: 'Developing',
     advanced: 'Advanced',
     expert: 'Expert',
+    elite: 'Elite',
+    master: 'Master',
     adaptive: 'Adaptive',
   }
   return labels[tier]
@@ -28,7 +29,9 @@ export function getDifficultyDescription(tier: DifficultyTier): string {
     easy: 'Getting comfortable',
     medium: 'Steady progress',
     advanced: 'Pushing your limits',
-    expert: 'Elite performance',
+    expert: 'Elite-level performance',
+    elite: 'Exceptional cognitive speed',
+    master: 'Maximum challenge — peak human performance',
     adaptive: 'The engine decides — just show up',
   }
   return descriptions[tier]
@@ -60,8 +63,8 @@ export function computeDifficultyAdjustment(
   return currentTier
 }
 
-// Ordinal position for comparison (beginner=0, expert=4)
+// Ordinal position for comparison (beginner=0, master=6, adaptive=3)
 export function difficultyRank(tier: DifficultyTier): number {
-  if (tier === 'adaptive') return 2  // treat as medium for ranking purposes
+  if (tier === 'adaptive') return 3  // treat as between medium and advanced
   return DIFFICULTY_TIERS.indexOf(tier)
 }

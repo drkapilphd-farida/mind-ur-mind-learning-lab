@@ -120,6 +120,8 @@ export function getDatasetSummaries(): DatasetSummary[] {
       medium: ds.items.filter((i) => i.difficulty === 'medium').length,
       advanced: ds.items.filter((i) => i.difficulty === 'advanced').length,
       expert: ds.items.filter((i) => i.difficulty === 'expert').length,
+      elite: ds.items.filter((i) => i.difficulty === 'elite').length,
+      master: ds.items.filter((i) => i.difficulty === 'master').length,
       adaptive: ds.items.filter((i) => i.difficulty === 'adaptive').length,
     },
   }))
