@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { updateCourse } from '@/features/admin/actions/courseActions'
 import { CourseForm } from '@/features/admin/components/CourseForm'
@@ -45,6 +45,17 @@ export default async function EditCoursePage({
         <h1 className="text-2xl font-semibold tracking-tight">
           Edit: {course.title}
         </h1>
+        {course.is_published && (
+          <a
+            href={`/courses/${course.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground mt-1 inline-flex items-center gap-1 text-xs transition-colors"
+          >
+            <ExternalLink className="size-3" />
+            View on site
+          </a>
+        )}
       </div>
 
       <CourseForm

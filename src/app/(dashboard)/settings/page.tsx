@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { UpdateProfileForm } from '@/features/user/components/UpdateProfileForm'
+import { UpdatePasswordForm } from '@/features/user/components/UpdatePasswordForm'
 
 export const metadata: Metadata = {
   title: 'Settings',
@@ -13,7 +14,6 @@ export default async function SettingsPage(): Promise<React.JSX.Element> {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Dashboard layout redirects unauthenticated users
   if (!user) return <div />
 
   const { data: profile } = await supabase
@@ -35,25 +35,38 @@ export default async function SettingsPage(): Promise<React.JSX.Element> {
 
       <Separator />
 
-      <div className="max-w-md space-y-6">
-        <div>
-          <h2 className="text-base font-medium">Profile</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Update your public display name.
-          </p>
-        </div>
-
-        <UpdateProfileForm defaultFullName={fullName} />
+      <div className="max-w-md space-y-8">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-base font-medium">Profile</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Update your public display name.
+            </p>
+          </div>
+          <UpdateProfileForm defaultFullName={fullName} />
+        </section>
 
         <Separator />
 
-        <div>
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-base font-medium">Password</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Choose a new password for your account.
+            </p>
+          </div>
+          <UpdatePasswordForm />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-2">
           <h2 className="text-base font-medium">Account</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Email address:{' '}
+          <p className="text-muted-foreground text-sm">
+            Email:{' '}
             <span className="text-foreground font-medium">{user.email}</span>
           </p>
-        </div>
+        </section>
       </div>
     </div>
   )

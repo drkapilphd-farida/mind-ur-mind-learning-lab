@@ -43,7 +43,7 @@ export function EnrollButton({
 
   return (
     <Button size="lg" onClick={handleEnroll} disabled={isPending}>
-      {isPending ? 'Enrolling…' : 'Enroll now — it&apos;s free'}
+      {isPending ? 'Enrolling…' : "Enroll now — it's free"}
     </Button>
   )
 }

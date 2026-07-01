@@ -12,7 +12,7 @@ export async function resetPassword(input: unknown): Promise<AuthActionResult> {
   const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${appUrl}/auth/update-password`,
+    redirectTo: `${appUrl}/auth/callback?next=/auth/update-password`,
   })
 
   if (error) {

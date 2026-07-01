@@ -60,6 +60,7 @@ export async function createCourse(input: unknown): Promise<AuthActionResult> {
   }
 
   revalidatePath('/admin/courses')
+  revalidatePath('/courses', 'layout')
   return { success: true }
 }
 
@@ -95,6 +96,7 @@ export async function updateCourse(
 
   revalidatePath('/admin/courses')
   revalidatePath(`/admin/courses/${courseId}/edit`)
+  revalidatePath('/courses', 'layout')
   return { success: true }
 }
 
@@ -122,6 +124,7 @@ export async function toggleCoursePublished(
   if (error) return { success: false, error: 'Failed to update course.' }
 
   revalidatePath('/admin/courses')
+  revalidatePath('/courses', 'layout')
   return { success: true }
 }
 

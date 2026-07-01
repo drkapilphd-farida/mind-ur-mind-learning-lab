@@ -245,6 +245,7 @@ export type Database = {
           title: string
           slug: string
           content_url: string | null
+          content: string | null
           duration_seconds: number
           sort_order: number
           is_published: boolean
@@ -257,6 +258,7 @@ export type Database = {
           title: string
           slug: string
           content_url?: string | null
+          content?: string | null
           duration_seconds?: number
           sort_order?: number
           is_published?: boolean
@@ -269,6 +271,7 @@ export type Database = {
           title?: string
           slug?: string
           content_url?: string | null
+          content?: string | null
           duration_seconds?: number
           sort_order?: number
           is_published?: boolean

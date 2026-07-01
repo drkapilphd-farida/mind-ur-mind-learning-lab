@@ -1,57 +1,55 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 
-export default async function MarketingLayout({
+const NAV_LINKS = [
+  { href: '/#learning-system', label: 'Learning System' },
+  { href: '/#about', label: 'About' },
+  { href: '/pricing', label: 'Pricing' },
+] as const
+
+export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode
-}): Promise<React.JSX.Element> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+}): React.JSX.Element {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="bg-background sticky top-0 z-40 flex h-14 items-center border-b px-6">
-        <Link href="/" className="mr-6 text-sm font-semibold tracking-tight">
+      <header className="bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b border-border/60 px-6 backdrop-blur-md sm:px-8">
+        <Link href="/" className="mr-8 text-sm font-semibold tracking-tight text-foreground">
           Mind Ur Mind Learning Lab™
         </Link>
 
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/courses"
-            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-          >
-            Courses
-          </Link>
+        <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {user !== null ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-          ) : (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Get started</Link>
-              </Button>
-            </>
-          )}
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/login">Sign In</Link>
+          </Button>
+          <Button asChild size="sm" className="rounded-full">
+            <Link href="/assessments">Start Free Assessment</Link>
+          </Button>
         </div>
       </header>
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t py-8 text-center">
-        <p className="text-muted-foreground text-sm">
-          © 2026 Mind Ur Mind Learning Lab™. All rights reserved.
-        </p>
+      <footer className="border-t border-border/60 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 text-center">
+          <p className="text-sm font-medium text-foreground">Mind Ur Mind Learning Lab™</p>
+          <p className="text-sm text-muted-foreground">
+            © 2026 Mind Ur Mind Learning Lab™. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   )

@@ -30,6 +30,7 @@ const LessonSchema = z.object({
       'Slug must contain only lowercase letters, numbers, and hyphens',
     ),
   content_url: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
+  content: z.string().max(50_000).optional(),
   duration_seconds: z.number().int().min(0).max(86400).default(0),
   sort_order: z.number().int().min(0).default(0),
   is_published: z.boolean().default(false),
@@ -47,13 +48,14 @@ export async function createLesson(
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
   }
 
-  const { content_url, ...rest } = parsed.data
+  const { content_url, content, ...rest } = parsed.data
   const supabase = await createClient()
 
   const { error } = await supabase.from('lessons').insert({
     ...rest,
     course_id: courseId,
     content_url: content_url !== '' && content_url !== undefined ? content_url : null,
+    content: content !== undefined && content.trim() !== '' ? content : null,
   })
 
   if (error) {
@@ -78,7 +80,7 @@ export async function updateLesson(
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
   }
 
-  const { content_url, ...rest } = parsed.data
+  const { content_url, content, ...rest } = parsed.data
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -86,6 +88,7 @@ export async function updateLesson(
     .update({
       ...rest,
       content_url: content_url !== '' && content_url !== undefined ? content_url : null,
+      content: content !== undefined && content.trim() !== '' ? content : null,
     })
     .eq('id', lessonId)
 

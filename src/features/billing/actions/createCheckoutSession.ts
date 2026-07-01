@@ -56,29 +56,32 @@ export async function createCheckoutSession(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    mode: 'payment',
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: course.title,
-            ...(course.description !== null
-              ? { description: course.description }
-              : {}),
+  const session = await stripe.checkout.sessions.create(
+    {
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: course.title,
+              ...(course.description !== null
+                ? { description: course.description }
+                : {}),
+            },
+            unit_amount: course.price_cents,
           },
-          unit_amount: course.price_cents,
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ],
-    metadata: { user_id: user.id, course_id: courseId },
-    ...(user.email != null ? { customer_email: user.email } : {}),
-    success_url: `${appUrl}/courses/${course.slug}?payment=success`,
-    cancel_url: `${appUrl}/courses/${course.slug}`,
-  })
+      ],
+      metadata: { user_id: user.id, course_id: courseId },
+      ...(user.email != null ? { customer_email: user.email } : {}),
+      success_url: `${appUrl}/courses/${course.slug}?payment=success`,
+      cancel_url: `${appUrl}/courses/${course.slug}`,
+    },
+    { idempotencyKey: `checkout-${user.id}-${courseId}` },
+  )
 
   if (!session.url) {
     return { success: false, error: 'Failed to create checkout session.' }

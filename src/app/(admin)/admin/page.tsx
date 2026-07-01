@@ -1,48 +1,98 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Users } from 'lucide-react'
+import { Award, BookOpen, DollarSign, TrendingUp, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = { title: 'Admin Overview' }
 
+function formatRevenue(cents: number): string {
+  if (cents === 0) return '$0'
+  return `$${(cents / 100).toFixed(2)}`
+}
+
 export default async function AdminOverviewPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
 
-  const [courseRes, lessonRes, enrollmentRes] = await Promise.all([
-    supabase.from('courses').select('id, is_published', { count: 'exact' }),
-    supabase.from('lessons').select('id, is_published', { count: 'exact' }),
-    supabase.from('enrollments').select('id', { count: 'exact' }),
+  const [courseRes, lessonRes, enrollmentRes, certRes] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('id, title, price_cents, is_published', { count: 'exact' }),
+    supabase
+      .from('lessons')
+      .select('id, is_published', { count: 'exact' }),
+    supabase.from('enrollments').select('course_id'),
+    supabase.from('certificates').select('course_id'),
   ])
 
   const courses = courseRes.data ?? []
   const lessons = lessonRes.data ?? []
-  const enrollmentCount = enrollmentRes.count ?? 0
+  const enrollments = enrollmentRes.data ?? []
+  const certs = certRes.data ?? []
 
-  const publishedCourses = courses.filter((c) => c.is_published).length
-  const publishedLessons = lessons.filter((l) => l.is_published).length
+  // Per-course lookup maps
+  const enrollCountByCourse = new Map<string, number>()
+  for (const e of enrollments) {
+    enrollCountByCourse.set(e.course_id, (enrollCountByCourse.get(e.course_id) ?? 0) + 1)
+  }
+  const certCountByCourse = new Map<string, number>()
+  for (const c of certs) {
+    certCountByCourse.set(c.course_id, (certCountByCourse.get(c.course_id) ?? 0) + 1)
+  }
 
-  const stats = [
+  // Platform totals
+  const publishedCourseCount = courses.filter((c) => c.is_published).length
+  const publishedLessonCount = lessons.filter((l) => l.is_published).length
+  const totalEnrollments = enrollments.length
+  const totalCerts = certs.length
+
+  let totalRevenueCents = 0
+  for (const course of courses) {
+    totalRevenueCents += (enrollCountByCourse.get(course.id) ?? 0) * course.price_cents
+  }
+
+  // Per-course stats table (published only, sorted by enrollments desc)
+  const courseStats = courses
+    .filter((c) => c.is_published)
+    .map((course) => {
+      const enrollCount = enrollCountByCourse.get(course.id) ?? 0
+      const certCount = certCountByCourse.get(course.id) ?? 0
+      const rate = enrollCount > 0 ? Math.round((certCount / enrollCount) * 100) : null
+      const revenueCents = enrollCount * course.price_cents
+      return { course, enrollCount, certCount, rate, revenueCents }
+    })
+    .sort((a, b) => b.enrollCount - a.enrollCount)
+
+  const summaryStats = [
     {
-      label: 'Total courses',
-      value: courses.length,
-      sub: `${publishedCourses} published`,
+      label: 'Published courses',
+      value: publishedCourseCount,
+      sub: `${courseRes.count ?? 0} total`,
       icon: BookOpen,
-      href: '/admin/courses',
     },
     {
-      label: 'Total lessons',
-      value: lessons.length,
-      sub: `${publishedLessons} published`,
+      label: 'Published lessons',
+      value: publishedLessonCount,
+      sub: `${lessonRes.count ?? 0} total`,
       icon: BookOpen,
-      href: '/admin/courses',
     },
     {
-      label: 'Total enrollments',
-      value: enrollmentCount,
+      label: 'Enrollments',
+      value: totalEnrollments,
       sub: 'across all courses',
       icon: Users,
-      href: '/admin/courses',
+    },
+    {
+      label: 'Certificates',
+      value: totalCerts,
+      sub: 'issued to students',
+      icon: Award,
+    },
+    {
+      label: 'Est. revenue',
+      value: formatRevenue(totalRevenueCents),
+      sub: 'price × enrollments',
+      icon: DollarSign,
     },
   ]
 
@@ -52,7 +102,7 @@ export default async function AdminOverviewPage(): Promise<React.JSX.Element> {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Platform content at a glance.
+            Platform metrics at a glance.
           </p>
         </div>
         <Button asChild>
@@ -60,23 +110,90 @@ export default async function AdminOverviewPage(): Promise<React.JSX.Element> {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <Link
-            key={stat.label}
-            href={stat.href}
-            className="bg-card hover:bg-muted/50 rounded-xl border p-5 transition-colors"
-          >
-            <div className="flex items-start justify-between">
-              <stat.icon className="text-muted-foreground size-5" />
-              <ChevronRight className="text-muted-foreground size-4" />
-            </div>
+      {/* Summary stat cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {summaryStats.map((stat) => (
+          <div key={stat.label} className="bg-card rounded-xl border p-5">
+            <stat.icon className="text-muted-foreground size-4" />
             <p className="mt-3 text-3xl font-bold tabular-nums">{stat.value}</p>
             <p className="mt-1 text-sm font-medium">{stat.label}</p>
             <p className="text-muted-foreground mt-0.5 text-xs">{stat.sub}</p>
-          </Link>
+          </div>
         ))}
       </div>
+
+      {/* Per-course breakdown */}
+      {courseStats.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="text-muted-foreground size-4" />
+            <h2 className="text-base font-semibold">Course breakdown</h2>
+          </div>
+
+          <div className="rounded-xl border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/40 border-b">
+                  <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium uppercase tracking-wide">
+                    Course
+                  </th>
+                  <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wide">
+                    Enrollments
+                  </th>
+                  <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wide">
+                    Completions
+                  </th>
+                  <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wide">
+                    Rate
+                  </th>
+                  <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wide">
+                    Revenue
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {courseStats.map(({ course, enrollCount, certCount, rate, revenueCents }) => (
+                  <tr key={course.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/courses/${course.id}/edit`}
+                        className="font-medium hover:underline"
+                      >
+                        {course.title}
+                      </Link>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {course.price_cents === 0
+                          ? 'Free'
+                          : `$${(course.price_cents / 100).toFixed(2)}`}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">{enrollCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{certCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {rate !== null ? (
+                        <span
+                          className={
+                            rate >= 50
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-muted-foreground'
+                          }
+                        >
+                          {rate}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {formatRevenue(revenueCents)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

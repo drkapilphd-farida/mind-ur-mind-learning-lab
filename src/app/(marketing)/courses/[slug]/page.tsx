@@ -24,14 +24,30 @@ export async function generateMetadata({
   const supabase = await createClient()
   const { data: course } = await supabase
     .from('courses')
-    .select('title, description')
+    .select('title, description, thumbnail_url')
     .eq('slug', slug)
     .eq('is_published', true)
     .single()
 
+  const title = course?.title ?? 'Course'
+  const description = course?.description ?? undefined
+
   return {
-    title: course?.title ?? 'Course',
-    description: course?.description ?? null,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      ...(course?.thumbnail_url != null
+        ? { images: [{ url: course.thumbnail_url, alt: title }] }
+        : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   }
 }
 

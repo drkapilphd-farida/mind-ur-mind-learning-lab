@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { ChevronLeft, ExternalLink, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { PublishToggle } from '@/features/admin/components/PublishToggle'
@@ -24,7 +24,7 @@ export default async function CourseLessonsPage({
 
   const { data: course } = await supabase
     .from('courses')
-    .select('id, title, slug')
+    .select('id, title, slug, is_published')
     .eq('id', courseId)
     .single()
 
@@ -50,8 +50,22 @@ export default async function CourseLessonsPage({
             {course.title}
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Lessons</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {allLessons.length} lesson{allLessons.length !== 1 ? 's' : ''} · /courses/{course.slug}
+          <p className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+            <span>{allLessons.length} lesson{allLessons.length !== 1 ? 's' : ''}</span>
+            <span>·</span>
+            {course.is_published ? (
+              <a
+                href={`/courses/${course.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground inline-flex items-center gap-1 transition-colors"
+              >
+                /courses/{course.slug}
+                <ExternalLink className="size-3" />
+              </a>
+            ) : (
+              <span>/courses/{course.slug}</span>
+            )}
           </p>
         </div>
         <Button asChild>

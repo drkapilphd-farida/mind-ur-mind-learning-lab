@@ -57,10 +57,12 @@ export default async function NewLessonPage({
       </div>
 
       <LessonForm
+        courseTitle={course.title}
         defaultValues={{
           title: '',
           slug: '',
           content_url: '',
+          content: '',
           duration_seconds: 0,
           sort_order: nextSortOrder,
           is_published: false,

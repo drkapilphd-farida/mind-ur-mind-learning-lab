@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BookOpen, Plus } from 'lucide-react'
+import { BookOpen, ExternalLink, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { PublishToggle } from '@/features/admin/components/PublishToggle'
@@ -79,7 +79,21 @@ export default async function AdminCoursesPage(): Promise<React.JSX.Element> {
                   <td className="px-4 py-3">
                     <div>
                       <p className="font-medium">{course.title}</p>
-                      <p className="text-muted-foreground text-xs">/courses/{course.slug}</p>
+                      {course.is_published ? (
+                        <a
+                          href={`/courses/${course.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs transition-colors"
+                        >
+                          /courses/{course.slug}
+                          <ExternalLink className="size-3" />
+                        </a>
+                      ) : (
+                        <p className="text-muted-foreground text-xs">
+                          /courses/{course.slug}
+                        </p>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">

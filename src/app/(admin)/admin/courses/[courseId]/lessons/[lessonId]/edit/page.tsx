@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { updateLesson } from '@/features/admin/actions/lessonActions'
 import { LessonForm } from '@/features/admin/components/LessonForm'
@@ -23,13 +23,13 @@ export default async function EditLessonPage({
   const [courseRes, lessonRes] = await Promise.all([
     supabase
       .from('courses')
-      .select('id, title')
+      .select('id, title, slug, is_published')
       .eq('id', courseId)
       .single(),
     supabase
       .from('lessons')
       .select(
-        'id, title, slug, content_url, duration_seconds, sort_order, is_published',
+        'id, title, slug, content_url, content, duration_seconds, sort_order, is_published',
       )
       .eq('id', lessonId)
       .eq('course_id', courseId)
@@ -59,13 +59,26 @@ export default async function EditLessonPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           Edit: {lesson.title}
         </h1>
+        {course.is_published && lesson.is_published && (
+          <a
+            href={`/courses/${course.slug}/lessons/${lesson.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground mt-1 inline-flex items-center gap-1 text-xs transition-colors"
+          >
+            <ExternalLink className="size-3" />
+            View on site
+          </a>
+        )}
       </div>
 
       <LessonForm
+        courseTitle={course.title}
         defaultValues={{
           title: lesson.title,
           slug: lesson.slug,
           content_url: lesson.content_url ?? '',
+          content: lesson.content ?? '',
           duration_seconds: lesson.duration_seconds,
           sort_order: lesson.sort_order,
           is_published: lesson.is_published,

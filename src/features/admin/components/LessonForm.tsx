@@ -6,8 +6,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormControl,
@@ -16,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { generateLessonContent } from '../actions/generateLessonContent'
 import type { AuthActionResult } from '@/features/auth/types'
 
 // All fields required (no .optional()) — avoids exactOptionalPropertyTypes
@@ -31,6 +34,7 @@ const LessonSchema = z.object({
       'Only lowercase letters, numbers, and hyphens',
     ),
   content_url: z.string().url('Must be a valid URL').or(z.literal('')),
+  content: z.string().max(50_000),
   duration_seconds: z.number().int().min(0).max(86400),
   sort_order: z.number().int().min(0),
   is_published: z.boolean(),
@@ -39,6 +43,7 @@ const LessonSchema = z.object({
 type LessonFormValues = z.infer<typeof LessonSchema>
 
 type LessonFormProps = {
+  courseTitle: string
   defaultValues?: LessonFormValues | undefined
   action: (input: unknown) => Promise<AuthActionResult>
   submitLabel: string
@@ -53,12 +58,14 @@ function toSlug(title: string): string {
 }
 
 export function LessonForm({
+  courseTitle,
   defaultValues,
   action,
   submitLabel,
   cancelHref,
 }: LessonFormProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition()
+  const [isGenerating, startGenerating] = useTransition()
   const router = useRouter()
 
   const form = useForm<LessonFormValues>({
@@ -67,16 +74,34 @@ export function LessonForm({
       title: '',
       slug: '',
       content_url: '',
+      content: '',
       duration_seconds: 0,
       sort_order: 0,
       is_published: false,
     },
   })
 
+  const titleValue = form.watch('title')
+
   function handleTitleBlur(title: string): void {
     if (form.getValues('slug') === '') {
       form.setValue('slug', toSlug(title), { shouldValidate: true })
     }
+  }
+
+  function handleGenerate(): void {
+    const lessonTitle = form.getValues('title').trim()
+    if (!lessonTitle) return
+
+    startGenerating(async () => {
+      const result = await generateLessonContent({ lessonTitle, courseTitle })
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
+      form.setValue('content', result.content, { shouldDirty: true })
+      toast.success('Content generated!')
+    })
   }
 
   function onSubmit(values: LessonFormValues): void {
@@ -138,6 +163,37 @@ export function LessonForm({
                   {...field}
                   placeholder="https://youtube.com/watch?v=…"
                   type="url"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center justify-between">
+                <FormLabel>Lesson body (Markdown)</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending || isGenerating || titleValue.trim() === ''}
+                  onClick={handleGenerate}
+                  className="h-6 gap-1.5 text-xs"
+                >
+                  <Sparkles className="size-3" />
+                  {isGenerating ? 'Generating…' : 'Generate with AI'}
+                </Button>
+              </div>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Write the lesson content in Markdown, or click Generate with AI to draft it…"
+                  className="min-h-[320px] font-mono text-sm"
                 />
               </FormControl>
               <FormMessage />
@@ -210,14 +266,14 @@ export function LessonForm({
         </div>
 
         <div className="flex gap-3 pt-2">
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending || isGenerating}>
             {isPending ? 'Saving…' : submitLabel}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => router.push(cancelHref)}
-            disabled={isPending}
+            disabled={isPending || isGenerating}
           >
             Cancel
           </Button>

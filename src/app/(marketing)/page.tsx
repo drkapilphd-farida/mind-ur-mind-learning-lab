@@ -1,185 +1,153 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Bot, CreditCard, MonitorSmartphone, TrendingUp } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { BookOpen, Brain, Calendar, CheckCircle2, Eye, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CourseGrid } from '@/features/courses/components/CourseGrid'
 
 export const metadata: Metadata = {
-  title: 'Mind Ur Mind Learning Lab™ — AI-Powered Learning',
+  title: 'Mind Ur Mind Learning Lab™ — Train Your Mind',
   description:
-    'Master new skills with AI-powered courses and a personal AI tutor that answers every question.',
+    'An AI-powered learning system that helps students improve reading speed, memory, focus and learning efficiency through daily intelligent practice.',
 }
 
-type FeatureCardProps = {
+type LabCardProps = {
   icon: React.ReactNode
   title: string
   description: string
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: FeatureCardProps): React.JSX.Element {
+function LabCard({ icon, title, description }: LabCardProps): React.JSX.Element {
   return (
-    <div className="bg-card flex flex-col items-start gap-3 rounded-xl border p-6">
-      <div className="bg-primary/10 rounded-lg p-2">{icon}</div>
-      <h3 className="font-semibold">{title}</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed">
-        {description}
-      </p>
+    <div className="group flex flex-col items-start gap-4 rounded-3xl border border-border/60 bg-card p-7 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-muted/20">
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <p className="text-sm leading-6 text-muted-foreground">{description}</p>
     </div>
   )
 }
 
-export default async function HomePage(): Promise<React.JSX.Element> {
-  const supabase = await createClient()
+const journeySteps = ['Assessment', 'Practice', 'Improvement', 'Mastery'] as const
 
-  const [
-    { count: courseCount },
-    { count: lessonCount },
-    { data: featuredCourses },
-  ] = await Promise.all([
-    supabase
-      .from('courses')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_published', true),
-    supabase
-      .from('lessons')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_published', true),
-    supabase
-      .from('courses')
-      .select('*')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .limit(6),
-  ])
-
-  const courses = courseCount ?? 0
-  const lessons = lessonCount ?? 0
-
+export default function HomePage(): React.JSX.Element {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="from-background to-muted/40 relative overflow-hidden bg-gradient-to-b py-24 text-center">
-        <div className="mx-auto max-w-3xl px-6">
-          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Learn anything,
+      <section className="flex min-h-[88vh] items-center justify-center px-6 py-20">
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center animate-in fade-in duration-700">
+          <h1 className="text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl">
+            Train Your Mind.
             <br />
-            <span className="text-primary">powered by AI</span>
+            Transform The Way You Learn.
           </h1>
-          <p className="text-muted-foreground mx-auto mb-8 max-w-xl text-lg leading-relaxed">
-            Structured courses with a personal AI tutor that answers every
-            question — exactly when you need it.
+
+          <p className="mx-auto mt-8 max-w-xl text-lg leading-8 text-muted-foreground">
+            An AI-powered learning system that helps students improve reading speed, memory,
+            focus and learning efficiency through daily intelligent practice.
           </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/courses">Browse courses</Link>
+
+          <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" className="min-w-[220px] rounded-full shadow-sm">
+              <Link href="/assessments">Start Free Assessment</Link>
             </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/signup">Get started free</Link>
+            <Button asChild size="lg" variant="ghost" className="min-w-[200px] rounded-full">
+              <Link href="#learning-system">Explore Learning System</Link>
             </Button>
           </div>
-        </div>
-      </section>
 
-      {/* ── Stats bar ─────────────────────────────────────────── */}
-      <section className="bg-muted/40 border-y py-10">
-        <div className="mx-auto grid max-w-2xl grid-cols-3 gap-6 px-6 text-center">
-          <div>
-            <p className="text-3xl font-bold">{courses}</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {courses === 1 ? 'Course' : 'Courses'}
-            </p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">{lessons}</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {lessons === 1 ? 'Lesson' : 'Lessons'}
-            </p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">AI</p>
-            <p className="text-muted-foreground mt-1 text-sm">Powered tutor</p>
+          <div className="mt-8 inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle2 className="size-4" aria-hidden="true" />
+            <span>Built for curious minds, ages 5 through adulthood</span>
           </div>
         </div>
       </section>
 
-      {/* ── Featured courses ──────────────────────────────────── */}
-      {(featuredCourses ?? []).length > 0 && (
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <div className="mb-10 flex items-end justify-between">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">
-                Featured courses
-              </h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Start learning today — free and paid courses available.
-              </p>
-            </div>
-            <Link
-              href="/courses"
-              className="text-primary shrink-0 text-sm font-medium hover:underline"
-            >
-              Browse all →
-            </Link>
-          </div>
-
-          <CourseGrid courses={featuredCourses ?? []} />
-        </section>
-      )}
-
-      {/* ── Features strip ────────────────────────────────────── */}
-      <section className="bg-muted/30 border-t py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Everything you need to master a skill
-            </h2>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Built for focused, effective learning — not endless scrolling.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <FeatureCard
-              icon={<Bot className="text-primary size-5" />}
-              title="AI Tutor"
-              description="Ask questions about any lesson and get instant, context-aware answers from your personal tutor."
-            />
-            <FeatureCard
-              icon={<TrendingUp className="text-primary size-5" />}
-              title="Progress tracking"
-              description="Mark lessons complete and watch your progress build — across every course you're enrolled in."
-            />
-            <FeatureCard
-              icon={<CreditCard className="text-primary size-5" />}
-              title="Free & paid courses"
-              description="Start with free courses or unlock premium content with a one-time payment via Stripe."
-            />
-            <FeatureCard
-              icon={<MonitorSmartphone className="text-primary size-5" />}
-              title="Learn anywhere"
-              description="Fully responsive — pick up exactly where you left off on any device."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Bottom CTA ────────────────────────────────────────── */}
-      <section className="py-20 text-center">
-        <div className="mx-auto max-w-xl px-6">
-          <h2 className="mb-3 text-2xl font-bold tracking-tight">
-            Ready to start learning?
+      {/* ── Three Core Intelligence Labs ───────────────────────── */}
+      <section id="learning-system" aria-labelledby="learning-system-heading" className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 id="learning-system-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Three Core Intelligence Labs
           </h2>
-          <p className="text-muted-foreground mb-6 text-sm">
-            Create a free account and access your first course in minutes.
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
+            Each lab is a focused practice space — built to sharpen one part of how your mind
+            works.
           </p>
-          <Button asChild size="lg">
-            <Link href="/signup">Get started — it&apos;s free</Link>
-          </Button>
+        </div>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          <LabCard
+            icon={<BookOpen className="size-5" aria-hidden="true" />}
+            title="Quantum Speed Reading Lab™"
+            description="Read faster. Understand better."
+          />
+          <LabCard
+            icon={<Brain className="size-5" aria-hidden="true" />}
+            title="Memory Intelligence Lab™"
+            description="Remember more. Forget less."
+          />
+          <LabCard
+            icon={<Eye className="size-5" aria-hidden="true" />}
+            title="Focus Intelligence Lab™"
+            description="Build deep concentration."
+          />
+        </div>
+      </section>
+
+      {/* ── AI Learning Coach ──────────────────────────────────── */}
+      <section aria-labelledby="ai-coach-heading" className="border-t border-border/60 bg-muted/20 py-20 sm:py-24">
+        <div className="mx-auto flex max-w-3xl flex-col items-center px-6 text-center">
+          <div
+            aria-hidden="true"
+            className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+          >
+            <Sparkles className="size-6" />
+          </div>
+          <h2 id="ai-coach-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Your AI Learning Coach
+          </h2>
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+            Every student receives personalized guidance — calm, encouraging, and tailored to how
+            your mind learns. It notices your patterns and gently shapes your next practice
+            session around them.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Student Journey ────────────────────────────────────── */}
+      <section aria-labelledby="journey-heading" className="mx-auto max-w-4xl px-6 py-20 sm:py-24">
+        <h2 id="journey-heading" className="text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Your Journey
+        </h2>
+
+        <ol className="mt-12 grid grid-cols-2 gap-y-10 sm:grid-cols-4 sm:gap-y-0">
+          {journeySteps.map((step, index) => (
+            <li key={step} className="flex flex-col items-center gap-3 text-center">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                {index + 1}
+              </div>
+              <span className="text-sm font-medium text-foreground">{step}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ── Live Mentorship / About ─────────────────────────────── */}
+      <section id="about" aria-labelledby="mentorship-heading" className="border-t border-border/60 bg-muted/20 py-20 sm:py-24">
+        <div className="mx-auto flex max-w-3xl flex-col items-center px-6 text-center">
+          <div
+            aria-hidden="true"
+            className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+          >
+            <Calendar className="size-6" />
+          </div>
+          <h2 id="mentorship-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Live Mentorship
+          </h2>
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+            When deeper understanding is needed, students join live learning sessions with Dr.
+            Kapil Dev Sharma. No recorded courses. No video library — just real guidance, in real
+            time.
+          </p>
         </div>
       </section>
     </>
