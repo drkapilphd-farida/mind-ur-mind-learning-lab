@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { CHUNK_READING_DATASET } from '../chunkDataset'
+
+export const CHUNK_READING_DEFINITION: ExerciseDefinition = {
+  id: 'chunk-reading',
+  labId: 'quantum-speed-reading',
+  title: 'Chunk Reading™',
+  description: 'Groups of words appear briefly — identify the chunk before it disappears. Chunk size increases as your visual span expands.',
+  trainsAbility: 'Multi-word visual span',
+  exerciseType: 'flash',
+  contentType: 'sentence',
+  interactionType: 'multiple-choice',
+  dataset: CHUNK_READING_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 88,
+    decreaseSpeedBelow: 65,
+    minSpeedMs: 200,
+    maxSpeedMs: 1000,
+    defaultSpeedMs: 700,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/chunk-reading',
+  labHref: '/labs/quantum-speed-reading',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.chunk_reading.title',
+    description: 'exercise.chunk_reading.description',
+    instruction: 'exercise.chunk_reading.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.chunk_reading.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.chunk_reading.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}
