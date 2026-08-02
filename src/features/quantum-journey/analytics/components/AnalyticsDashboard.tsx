@@ -43,7 +43,7 @@ export function AnalyticsDashboard({
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Analytics Dashboard™</p>
         <h2 className="mt-2 font-heading text-xl font-bold tracking-tight text-foreground">Your Growth Story Starts With a Baseline</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          Complete the mandatory 30-Second Baseline Speed & Comprehension Diagnostic before Day 1 to unlock your analytics here.
+          Complete the mandatory Baseline Reading Speed Diagnostic before Day 1 to unlock your analytics here.
         </p>
       </div>
     )

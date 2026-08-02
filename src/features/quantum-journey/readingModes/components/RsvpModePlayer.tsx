@@ -18,6 +18,16 @@ type RsvpModePlayerProps = {
   lengthTier: JourneyLengthTier
   initialTargetWpm: number
   onComplete: (result: RsvpModeResult) => void
+  // When provided, skips the internal pickJourneyReadingSet(lengthTier)
+  // call below and reads this set instead — used by the Baseline Reading
+  // Speed Diagnostic™, which draws from its own separate, anti-repeat-safe
+  // content pool (diagnosticContent.ts) rather than the real 21-day
+  // rotation. `lengthTier` is still required in that case only for type
+  // consistency with the rest of this component; it has no effect once
+  // `selectedSetOverride` is supplied. The caller must still pick it
+  // client-side only, for the same hydration-mismatch reason as the
+  // internal pick below.
+  selectedSetOverride?: JourneyReadingSet
 }
 
 function splitIntoWords(text: string): string[] {
@@ -32,12 +42,13 @@ type Phase = 'reading' | 'question'
 // pacingMath.ts's own Spritz-style heuristic — highlighted within each
 // word so the eye can stay fixed on one screen position rather than
 // scanning, the mechanism this technique uses to reduce sub-vocalization.
-export function RsvpModePlayer({ lengthTier, initialTargetWpm, onComplete }: RsvpModePlayerProps): React.JSX.Element | null {
+export function RsvpModePlayer({ lengthTier, initialTargetWpm, onComplete, selectedSetOverride }: RsvpModePlayerProps): React.JSX.Element | null {
   // Client-only pick — picking during SSR would render one passage on the
   // server and a different random one on the client, a real hydration
   // mismatch (the same class of bug fixed in JourneyReadingModePlayer).
-  const [selectedSet, setSelectedSet] = useState<JourneyReadingSet | null>(null)
+  const [selectedSet, setSelectedSet] = useState<JourneyReadingSet | null>(selectedSetOverride ?? null)
   useEffect(() => {
+    if (selectedSetOverride !== undefined) return
     setSelectedSet(pickJourneyReadingSet(lengthTier))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

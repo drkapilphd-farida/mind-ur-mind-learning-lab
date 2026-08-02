@@ -34,7 +34,7 @@ export function WpmProgressChart({ points, growthPercent, latestWpm, latestAccur
       <div className="rounded-2xl border bg-card p-6 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">WPM Progress™</p>
         <p className="mt-4 text-sm text-muted-foreground">
-          Complete your 30-Second Baseline Diagnostic to start tracking your reading speed growth here.
+          Complete your Baseline Reading Speed Diagnostic to start tracking your reading speed growth here.
         </p>
       </div>
     )

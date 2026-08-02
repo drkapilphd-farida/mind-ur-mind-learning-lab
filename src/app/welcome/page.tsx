@@ -17,6 +17,6 @@ export const metadata: Metadata = {
 // /welcome/choose-method itself now renders for signed-out visitors too
 // and gates each card's action behind a modal, so this can redirect
 // unconditionally.
-export default function WelcomePage(): never {
+export default async function WelcomePage(): Promise<never> {
   redirect('/welcome/choose-method')
 }
