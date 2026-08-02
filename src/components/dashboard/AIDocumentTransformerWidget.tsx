@@ -28,6 +28,7 @@ import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-tr
 import { computeQuantumDocumentStreak } from '@/features/quantum-document-transformer/quantumDocumentSessionTracking'
 import { UpgradeToProBanner } from '@/features/quantum-document-transformer/components/UpgradeToProBanner'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
+import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type SupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import { DocumentHistorySidebar } from '@/features/quantum-document-transformer/components/DocumentHistorySidebar'
 import { SelectionTooltip } from '@/features/quantum-mentor/components/SelectionTooltip'
@@ -400,6 +401,19 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
     const validated = await universalUploadParser.parse(file)
     if (!validated.success) {
       setZoneError(validated.error.message)
+      return
+    }
+    // documents/index.ts's MAX_DOCUMENT_SIZE_BYTES (200 MB, checked just
+    // above by universalUploadParser) governs a different upload flow
+    // where the file itself never reaches a server function. This one
+    // does — a single synchronous request to a Vercel serverless function
+    // — which hard-caps request bodies well below what that check allows.
+    // Rejecting here, before ever calling fetch(), turns what was
+    // otherwise a silent platform-level crash (real user testing: uploads
+    // failing with a generic "Something went wrong" late in processing)
+    // into an honest, immediate, actionable message.
+    if (file.size > MAX_SYNCHRONOUS_UPLOAD_BYTES) {
+      setZoneError(`This file is too large for instant processing. Please choose a file up to ${formatFileSize(MAX_SYNCHRONOUS_UPLOAD_BYTES)}.`)
       return
     }
     setSelectedFile(file)

@@ -5,6 +5,8 @@ import { extractUniversalLearningDocument } from '@/core/universal-learning-engi
 import { generateQuantumDocumentIntelligence } from '@/features/quantum-document-transformer/generateQuantumDocumentIntelligence'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
+import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
+import { formatFileSize } from '@/lib/formatFileSize'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 import { DEFAULT_LANGUAGE, isSupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
@@ -87,6 +89,18 @@ export async function POST(request: Request): Promise<Response> {
   const file = formData.get('file')
   if (!(file instanceof File)) {
     return NextResponse.json({ success: false, error: 'No file was uploaded.' }, { status: 400 })
+  }
+
+  // Defense in depth — the real enforcement point is the client's own
+  // pre-flight check (AIDocumentTransformerWidget.tsx), since a request
+  // body over the platform's serverless function limit never reaches this
+  // handler at all. This exists for whatever does get through (a client
+  // bypassing the UI, a future caller of this route).
+  if (file.size > MAX_SYNCHRONOUS_UPLOAD_BYTES) {
+    return NextResponse.json(
+      { success: false, error: `This file is too large for instant processing. Please choose a file up to ${formatFileSize(MAX_SYNCHRONOUS_UPLOAD_BYTES)}.` },
+      { status: 413 },
+    )
   }
 
   // Multi-Language Support — an absent field defaults to English (the
