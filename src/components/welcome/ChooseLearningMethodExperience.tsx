@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils'
 import { ArrivalBackground } from './ArrivalBackground'
 import { AIPresenceLogo } from './AIPresenceLogo'
 import { HeroPromise } from './HeroPromise'
-import { OnboardingJourneyIndicator } from './OnboardingJourneyIndicator'
 
 // Immersive Onboarding Polish™ (Sprint LW-1C.3) — visually secondary
 // "Coming Soon" previews of future learning sources, per the brief's
@@ -30,23 +29,29 @@ const UPLOAD_MATERIALS = [
   { emoji: '📃', label: 'Text' },
 ] as const
 
-// Sprint LW-1C — Choose Learning Method™. The real screen the previous
-// sprint's `/welcome/preparing` placeholder was always meant to become.
+// One-Click Entry™ — this is now the app's real front door: `/welcome`
+// redirects straight here (see welcome/page.tsx) and signUp.ts sends
+// brand-new users here directly too. Arrival Experience™, Learning Goal™,
+// and Discover Your Learning Potential™ are all deliberately no longer in
+// the path — each remains fully intact at its own route (/welcome,
+// /welcome/learning-goal, /discover-learning-potential) but unlinked from
+// here, per the "hide from V1 UI, do not delete" precedent already used
+// for Record & Learn™ (/welcome/record). Exactly two direct-action paths
+// remain — Quantum Speed Reading™ and Upload & Learn™ — each one click
+// from a fresh signup to real content: QSR goes straight into the 21-Day
+// Journey's Day 1 (which itself gates a new user into the baseline
+// reading-speed check first, then Day 1 training — see
+// journey/[day]/page.tsx), and Upload & Learn goes straight to the
+// existing unified /dashboard view (QSR progress + upload widget already
+// coexist there). The OnboardingJourneyIndicator (welcome → goal →
+// method → thinking → blueprint) is intentionally not shown here anymore
+// — on a user's very first screen, a 5-step tracker with two steps
+// already marked "complete" that were never actually visited would be
+// misleading, not reassuring.
+//
 // Reuses PrimaryLearningMethodCard.tsx (no duplication), plus
 // ArrivalBackground and AIPresenceLogo (the Living AI Symbol™, continuing
 // its breathing animation here, unmodified).
-//
-// Discovery-First Onboarding — Discover Your Learning Potential™ now runs
-// as the mandatory first step right after signup (see signUp.ts and
-// LearningPotentialRevealExperience.tsx), before this screen is ever
-// reached, so the third "Discover Your Learning Potential™" card that
-// Sprint QSR-3.5 added here is redundant and was removed. This screen is
-// back to exactly two paths — Path A: Quantum Speed Reading™ / 21-Day
-// Blueprint, Path B: Upload & Learn™ — matching the locked entry
-// architecture (Home → Discover → Goal → Choose Your Path → AI Processing
-// → Learning Workspace). Record & Learn™ remains intentionally absent
-// from this hub (Sprint QSR-3.5); its own route (/welcome/record) and
-// code are still fully intact and reachable directly.
 export function ChooseLearningMethodExperience(): React.JSX.Element {
   const router = useRouter()
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -71,8 +76,6 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
       <ArrivalBackground />
 
       <div className={cn('mx-auto flex w-full max-w-3xl flex-col items-center gap-10 text-center transition-opacity duration-[250ms]', isExiting && 'opacity-0')}>
-        <OnboardingJourneyIndicator currentStepId="method" className="w-full max-w-sm" />
-
         <AIPresenceLogo size={84} />
 
         <div>
@@ -85,16 +88,16 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
             emoji="⚡"
             title="Quantum Speed Reading™"
             subtitle="Start your 21-Day Blueprint — train reading speed, focus, and recall, no upload required."
-            ctaLabel="Start Training →"
-            onSelect={() => handleSelect('/labs/quantum-speed-reading')}
+            ctaLabel="Start Quantum Speed Reading →"
+            onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
           />
           <PrimaryLearningMethodCard
             emoji="📄"
             title="Upload & Learn™"
             subtitle="Bring books, study notes, or handwritten pages."
             formats={UPLOAD_MATERIALS}
-            ctaLabel="Start Uploading →"
-            onSelect={() => handleSelect('/preview/learning-projects/new')}
+            ctaLabel="Upload Your Document →"
+            onSelect={() => handleSelect('/dashboard#upload-document')}
           />
         </div>
 

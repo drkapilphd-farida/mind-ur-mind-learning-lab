@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SignUpSchema } from '../types'
 
-const DISCOVERY_ENTRY_PATH = '/discover-learning-potential'
+const ONBOARDING_ENTRY_PATH = '/welcome/choose-method'
 
 export async function signUp(
   input: unknown,
@@ -22,7 +22,7 @@ export async function signUp(
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.fullName },
-      emailRedirectTo: `${appUrl}/auth/callback?next=${DISCOVERY_ENTRY_PATH}`,
+      emailRedirectTo: `${appUrl}/auth/callback?next=${ONBOARDING_ENTRY_PATH}`,
     },
   })
 
@@ -31,12 +31,12 @@ export async function signUp(
   }
 
   // Projects with email confirmation OFF get a session back immediately —
-  // send them straight into the Discover Your Learning Potential™ entry
-  // experience. Projects with it ON return no session here; the user must
-  // click the confirmation email first, which the emailRedirectTo above
-  // routes to the same destination via /auth/callback.
+  // send them straight into Choose Your Path™, the one-click onboarding
+  // entry screen. Projects with it ON return no session here; the user
+  // must click the confirmation email first, which the emailRedirectTo
+  // above routes to the same destination via /auth/callback.
   if (data.session !== null) {
-    redirect(DISCOVERY_ENTRY_PATH)
+    redirect(ONBOARDING_ENTRY_PATH)
   }
 
   redirect('/login?message=check-email')

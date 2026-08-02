@@ -219,8 +219,12 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         </Link>
       </div>
 
-      {/* AI Document Transformer™ */}
-      <AIDocumentTransformerWidget isPro={isPaidUser} initialDocumentCount={quantumDocumentCount} />
+      {/* AI Document Transformer™ — anchor target for Choose Your Path™'s
+          "Upload & Learn™" card (/dashboard#upload-document), the direct,
+          one-click destination for uploading a document from onboarding. */}
+      <div id="upload-document">
+        <AIDocumentTransformerWidget isPro={isPaidUser} initialDocumentCount={quantumDocumentCount} />
+      </div>
 
       {/* Today's Mission™ + Mind Score™ */}
       <div className="grid gap-5 lg:grid-cols-[1fr_280px]">

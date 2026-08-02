@@ -1,37 +1,28 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { listLearningProjects } from '@/api/learning'
-import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { createClient } from '@/lib/supabase/server'
-import { ArrivalExperience } from '@/components/welcome/ArrivalExperience'
 
 export const metadata: Metadata = {
   title: 'Welcome',
 }
 
-// Sprint LW-1A — Arrival Experience™ (Screen 1 of the new arrival flow,
-// renamed from "Welcome Experience™"). Deliberately outside `/preview`
-// entirely — `src/app/preview/layout.tsx` unconditionally wraps every
-// `/preview/*` route in AppShell's persistent sidebar/topbar, which
-// conflicts with this screen's "no complex navigation" requirement. Same
-// in-page auth-check pattern already used by `src/app/preview/layout.tsx`
-// and `src/app/preview/dashboard/page.tsx` — `middleware.ts`/
-// `PROTECTED_PATHS` are untouched; this route (and every other `/welcome/*`
-// route) secures itself the same way those two already do. Not yet the
-// post-login default — see docs/PRODUCTION_HANDOFF_LW_1A.md for why that's
-// an explicit LW-1B hook, not decided here.
+// One-Click Entry™ — every "Get Started" link across the app and
+// marketing site points here, so this is the real front door. Arrival
+// Experience™ (Sprint LW-1A) and the Learning Goal™ screen it led to are
+// deliberately no longer in the path: both remain fully intact at
+// /welcome (see ArrivalExperience.tsx, still reachable if a future flow
+// wants it) and /welcome/learning-goal, just unlinked from here — the
+// entry screen is now Choose Your Path™ directly, matching the locked
+// "primary entry screen, two direct action cards, one click" onboarding
+// spec. Same in-page auth-check pattern already used by every other
+// `/welcome/*` route; `middleware.ts`/`PROTECTED_PATHS` are untouched.
 export default async function WelcomePage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login?next=/welcome')
+  if (!user) redirect('/login?next=/welcome/choose-method')
 
-  const [profile, projects] = await Promise.all([getCurrentUserProfile(user.id), listLearningProjects(user.id)])
-
-  const firstName = profile?.fullName?.trim().split(' ')[0] ?? null
-  const isReturningUser = projects.length > 0
-
-  return <ArrivalExperience firstName={firstName !== null && firstName.length > 0 ? firstName : null} isReturningUser={isReturningUser} />
+  redirect('/welcome/choose-method')
 }
