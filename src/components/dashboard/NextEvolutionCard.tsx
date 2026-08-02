@@ -55,7 +55,7 @@ export function NextEvolutionCard({
   const scoreProgress = Math.min(100, Math.round((currentMindScore / nextMindScoreGoal) * 100))
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="dashboard-glass-card dashboard-glass-lift p-6">
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
         Next Evolution™
       </p>

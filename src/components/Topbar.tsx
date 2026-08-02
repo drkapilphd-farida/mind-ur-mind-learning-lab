@@ -12,6 +12,7 @@ import {
 import { NavLinks } from '@/components/NavLinks'
 import { UserMenu } from '@/components/UserMenu'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 type TopbarProps = {
   fullName: string | null
@@ -55,6 +56,7 @@ export function Topbar({
 
       <div className="flex-1" />
 
+      <ThemeToggle />
       <UserMenu fullName={fullName} avatarUrl={avatarUrl} email={email} />
     </header>
   )

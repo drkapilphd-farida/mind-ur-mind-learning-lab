@@ -178,7 +178,18 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     : null
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-glass relative -m-6 space-y-6 p-6 sm:-m-8 sm:p-8">
+      {/* Dashboard Glass™ ambient background — fixed so it stays full-
+          viewport regardless of this page's own scroll position or the
+          parent layout's max-w-4xl centering; -z-10 keeps it behind both
+          this content and the (opaque, unrelated) sidebar. Scoped to this
+          page only — no other route renders this. */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="dashboard-ambient-blob" style={{ width: 520, height: 520, top: -140, left: -100, background: 'var(--ambient-a)' }} />
+        <div className="dashboard-ambient-blob" style={{ width: 460, height: 460, top: 220, right: -140, background: 'var(--ambient-b)' }} />
+        <div className="dashboard-ambient-blob" style={{ width: 380, height: 380, bottom: -160, left: '35%', background: 'var(--ambient-a)' }} />
+      </div>
+
       {/* Daily Streak Reminders & Motivation System™ */}
       <StreakReminderBanner
         studentFirstName={studentFirstName}
@@ -189,7 +200,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
       />
 
       {/* Hero */}
-      <div className="rounded-2xl border bg-gradient-to-br from-foreground/[0.03] to-transparent p-6 sm:p-8">
+      <div className="dashboard-glass-card dashboard-glass-lift p-6 sm:p-8">
         <GreetingHeading studentName={studentFirstName} />
         <p className="mt-1 text-sm text-muted-foreground">
           {labSummary.isComplete
@@ -213,7 +224,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
         <Link
           href="/unified-quantum-session-preview"
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="dashboard-brand-gradient dashboard-glass-lift mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           🚀 Start Today&rsquo;s 4-Level Quantum Session
         </Link>

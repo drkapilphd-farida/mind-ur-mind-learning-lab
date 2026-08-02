@@ -23,10 +23,10 @@ function getMentorNote(firstName: string, mindScore: number): string {
 
 export function AIMentorCTA({ studentFirstName, mindScore }: AIMentorCTAProps): React.JSX.Element {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm">
+    <div className="dashboard-glass-card dashboard-glass-lift p-8 text-center">
       <div className="flex justify-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-foreground/[0.05]">
-          <Sparkles className="size-5 text-foreground" aria-hidden="true" />
+        <div className="dashboard-brand-gradient flex size-12 items-center justify-center rounded-full shadow-lg">
+          <Sparkles className="size-5 text-white" aria-hidden="true" />
         </div>
       </div>
 

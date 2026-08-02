@@ -31,7 +31,7 @@ function SmallRing({ value, size = 40 }: { value: number | null; size?: number }
         {value !== null && (
           <circle
             cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={5}
-            strokeLinecap="round" className="stroke-primary"
+            strokeLinecap="round" stroke="url(#mind-score-ring-gradient)"
             style={{ strokeDasharray: circ, strokeDashoffset: offset }}
           />
         )}
@@ -67,21 +67,40 @@ export function MindScoreCard({ mindScore, readingScore }: MindScoreCardProps): 
   const offset = circ * (1 - mindScore / 100)
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="dashboard-glass-card dashboard-glass-lift flex h-full flex-col p-6">
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Mind Score™</p>
 
       {/* Main ring */}
       <div className="mt-4 flex flex-col items-center">
         <div className="relative inline-flex items-center justify-center" style={{ width: SIZE, height: SIZE }}>
-          <svg width={SIZE} height={SIZE} className="-rotate-90" aria-hidden="true">
-            <circle cx={SIZE / 2} cy={SIZE / 2} r={r} fill="none" strokeWidth={STROKE} className="stroke-foreground/[0.07]" />
+          {/* Defines #mind-score-ring-gradient once — SVG url(#id)
+              references resolve document-wide, so the glow halo below and
+              every SmallRing sub-score instance can reuse this same
+              definition without redeclaring it. Painted first (behind, via
+              DOM order) and blurred, so the crisp ring painted after it
+              reads clearly on top. */}
+          <svg width={SIZE} height={SIZE} className="absolute -rotate-90" style={{ filter: 'blur(8px)', opacity: 'var(--ring-glow-opacity, 0)' }} aria-hidden="true">
+            <defs>
+              <linearGradient id="mind-score-ring-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" style={{ stopColor: 'var(--ambient-a, var(--primary))' }} />
+                <stop offset="100%" style={{ stopColor: 'var(--ambient-b, var(--primary))' }} />
+              </linearGradient>
+            </defs>
             <circle
               cx={SIZE / 2} cy={SIZE / 2} r={r} fill="none" strokeWidth={STROKE}
-              strokeLinecap="round" className={cn('stroke-primary', !prefersReducedMotion && 'transition-none')}
+              strokeLinecap="round" stroke="url(#mind-score-ring-gradient)"
               style={{ strokeDasharray: circ, strokeDashoffset: offset }}
             />
           </svg>
-          <div className="absolute flex flex-col items-center" aria-hidden="true">
+          <svg width={SIZE} height={SIZE} className="absolute -rotate-90" aria-hidden="true">
+            <circle cx={SIZE / 2} cy={SIZE / 2} r={r} fill="none" strokeWidth={STROKE} className="stroke-foreground/[0.07]" />
+            <circle
+              cx={SIZE / 2} cy={SIZE / 2} r={r} fill="none" strokeWidth={STROKE}
+              strokeLinecap="round" stroke="url(#mind-score-ring-gradient)" className={cn(!prefersReducedMotion && 'transition-none')}
+              style={{ strokeDasharray: circ, strokeDashoffset: offset }}
+            />
+          </svg>
+          <div className="relative flex flex-col items-center" aria-hidden="true">
             <span className="text-3xl font-bold tabular-nums tracking-tight text-foreground">
               {Math.round(animatedScore)}
             </span>

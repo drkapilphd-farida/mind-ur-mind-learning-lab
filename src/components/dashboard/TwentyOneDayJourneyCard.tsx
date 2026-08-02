@@ -30,7 +30,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked }: TwentyOne
   const isUnlocked = isPaidUser || isDevUnlocked
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="dashboard-glass-card dashboard-glass-lift p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">21-Day Transformation Journey™</p>
         {!isUnlocked && (

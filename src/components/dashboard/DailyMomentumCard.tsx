@@ -21,14 +21,14 @@ function MeterBar({ value, label, className }: { value: number; label: string; c
         <span className="text-xs text-muted-foreground">{label}</span>
         <span className="text-xs font-semibold tabular-nums text-foreground">{Math.round(animated)}%</span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/[0.06]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: 'var(--glass-inset)' }}>
         <div
           className={cn(
-            'h-1.5 rounded-full bg-primary',
+            'dashboard-brand-gradient h-1.5 rounded-full',
             !prefersReducedMotion && 'transition-[width] duration-700 ease-out',
             className,
           )}
-          style={{ width: `${Math.round(animated)}%` }}
+          style={{ width: `${Math.round(animated)}%`, boxShadow: '0 0 12px 1px var(--ambient-b)' }}
           role="progressbar"
           aria-valuenow={Math.round(animated)}
           aria-valuemin={0}
@@ -51,7 +51,7 @@ export function DailyMomentumCard({
   const momentumPercent = bestStreak > 0 ? Math.round((currentStreak / Math.max(bestStreak, 7)) * 100) : 0
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="dashboard-glass-card dashboard-glass-lift p-6">
       <div className="flex items-center gap-1.5">
         <Flame
           className={cn('size-3.5', currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')}
