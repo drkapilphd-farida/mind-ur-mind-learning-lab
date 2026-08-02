@@ -164,19 +164,23 @@
 }
 
 /*
- * Dashboard Glass™ — a deliberate, scoped exception to this file's own
+ * Glass Premium™ — a deliberate, scoped exception to this file's own
  * documented philosophy (§ Philosophy above: "no flashy gradients... color
- * is reserved, not default"), confirmed for the main /dashboard screen
- * only. Every token and utility class below is namespaced under
- * `.dashboard-glass` so it can never leak into any other screen — every
- * other page keeps using the tokens above completely unmodified.
- * `--background`/`--foreground` etc. are untouched here too: `.dark`'s own
- * text-color tokens (text-foreground/text-muted-foreground) already flip
- * correctly wherever `.dark` is present on `<html>` (see ThemeToggle),
- * regardless of `.dashboard-glass` — only the glass surface + ambient
- * tokens below are new.
+ * is reserved, not default"), confirmed screen-by-screen (currently
+ * /dashboard and /welcome/choose-method — not a blanket app-wide change).
+ * Originally named "Dashboard Glass" when it only had one screen; renamed
+ * once a second screen adopted it, so the class names never lie about
+ * where this is actually used. Every token and utility class below is
+ * namespaced under `.glass-premium` so it can never leak into any screen
+ * that doesn't explicitly opt in — every other page keeps using the
+ * tokens above completely unmodified. `--background`/`--foreground` etc.
+ * are untouched here too: `.dark`'s own text-color tokens
+ * (text-foreground/text-muted-foreground) already flip correctly wherever
+ * `.dark` is present on `<html>` (see ThemeToggle), regardless of
+ * `.glass-premium` — only the glass surface + ambient tokens below are
+ * new.
  */
-.dashboard-glass {
+.glass-premium {
   --glass-bg: oklch(1 0 0 / 55%);
   --glass-border: oklch(1 0 0 / 75%);
   --glass-inset: oklch(0.75 0.03 75 / 35%);
@@ -189,7 +193,7 @@
   background: oklch(0.97 0.006 80);
 }
 
-.dark .dashboard-glass {
+.dark .glass-premium {
   --glass-bg: oklch(1 0 0 / 4.5%);
   --glass-border: oklch(1 0 0 / 9%);
   --glass-inset: oklch(1 0 0 / 3%);
@@ -203,7 +207,7 @@
   background: #000000;
 }
 
-.dashboard-glass-card {
+.glass-premium-card {
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -212,16 +216,16 @@
   border-radius: var(--radius-3xl);
 }
 
-.dashboard-glass-lift {
+.glass-premium-lift {
   transition: transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1), box-shadow var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.dashboard-glass-lift:hover {
+.glass-premium-lift:hover {
   transform: scale(1.01) translateY(-2px);
   box-shadow: var(--glass-shadow-hover);
 }
 
-.dashboard-ambient-blob {
+.glass-ambient-blob {
   position: absolute;
   border-radius: 9999px;
   filter: blur(90px);
@@ -229,11 +233,11 @@
   pointer-events: none;
 }
 
-.dashboard-brand-gradient {
+.brand-gradient {
   background: linear-gradient(135deg, var(--ambient-a), var(--ambient-b));
 }
 
-.dashboard-brand-gradient-text {
+.brand-gradient-text {
   background: linear-gradient(135deg, var(--ambient-a), var(--ambient-b));
   -webkit-background-clip: text;
   background-clip: text;

@@ -49,7 +49,7 @@ export function StreakReminderBanner({ studentFirstName, status, currentStreak, 
   const ctaHref = status === 'journey-complete' ? ANALYTICS_HREF : journeyDayHref(nextDay)
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift relative overflow-hidden p-6 sm:p-8">
+    <div className="glass-premium-card glass-premium-lift relative overflow-hidden p-6 sm:p-8">
       {/* Orange streak-identity wash, kept as an overlay tint on top of the
           glass surface rather than replaced — orange still reads as
           "streak/fire" at a glance, it's just layered on the same frosted

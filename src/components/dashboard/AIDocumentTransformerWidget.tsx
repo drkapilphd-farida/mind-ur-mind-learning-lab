@@ -494,7 +494,7 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
   const sessionDialogOpen = result !== null && (sessionPhase === 'reading' || sessionPhase === 'quiz')
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift p-6">
+    <div className="glass-premium-card glass-premium-lift p-6">
       <div className="flex items-center gap-1.5">
         <Sparkles className="size-3.5 text-indigo-500" aria-hidden="true" />
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Document Transformer™</p>

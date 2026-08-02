@@ -24,7 +24,7 @@ function MeterBar({ value, label, className }: { value: number; label: string; c
       <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: 'var(--glass-inset)' }}>
         <div
           className={cn(
-            'dashboard-brand-gradient h-1.5 rounded-full',
+            'brand-gradient h-1.5 rounded-full',
             !prefersReducedMotion && 'transition-[width] duration-700 ease-out',
             className,
           )}
@@ -51,7 +51,7 @@ export function DailyMomentumCard({
   const momentumPercent = bestStreak > 0 ? Math.round((currentStreak / Math.max(bestStreak, 7)) * 100) : 0
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift p-6">
+    <div className="glass-premium-card glass-premium-lift p-6">
       <div className="flex items-center gap-1.5">
         <Flame
           className={cn('size-3.5', currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')}

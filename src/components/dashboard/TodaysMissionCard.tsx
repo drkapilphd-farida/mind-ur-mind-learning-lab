@@ -31,7 +31,7 @@ export function TodaysMissionCard({
   const estimatedMinutes = remaining * MINUTES_PER_EXERCISE
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift flex h-full flex-col p-6">
+    <div className="glass-premium-card glass-premium-lift flex h-full flex-col p-6">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Today&apos;s Mission™

@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PrimaryLearningMethodCard } from '@/components/learning/PrimaryLearningMethodCard'
 import { Badge } from '@/components/ui/badge'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { cn } from '@/lib/utils'
-import { ArrivalBackground } from './ArrivalBackground'
 import { AIPresenceLogo } from './AIPresenceLogo'
 import { HeroPromise } from './HeroPromise'
 import { GatewayAuthModal } from './GatewayAuthModal'
@@ -39,32 +37,69 @@ const UPLOAD_MATERIALS = [
 // here, per the "hide from V1 UI, do not delete" precedent already used
 // for Record & Learn™ (/welcome/record). Exactly two direct-action paths
 // remain — Quantum Speed Reading™ and Upload & Learn™ — each one click
-// from a fresh signup to real content: QSR goes straight into the 21-Day
-// Journey's Day 1 (which itself gates a new user into the baseline
-// reading-speed check first, then Day 1 training — see
-// journey/[day]/page.tsx), and Upload & Learn goes straight to the
-// existing unified /dashboard view (QSR progress + upload widget already
-// coexist there). The OnboardingJourneyIndicator (welcome → goal →
-// method → thinking → blueprint) is intentionally not shown here anymore
-// — on a user's very first screen, a 5-step tracker with two steps
-// already marked "complete" that were never actually visited would be
-// misleading, not reassuring.
+// from a fresh signup to real content.
 //
-// Reuses PrimaryLearningMethodCard.tsx (no duplication), plus
-// ArrivalBackground and AIPresenceLogo (the Living AI Symbol™, continuing
-// its breathing animation here, unmodified).
-//
-// Gateway Auth Modal™ — both cards are now visible to signed-out visitors
-// too (welcome/choose-method/page.tsx no longer redirects them away
-// before rendering this). `isAuthenticated` is computed once, server-side,
-// by that page's existing auth check — no new client-side auth hook/store
-// exists in this codebase, so this reuses that call rather than adding one.
-// An unauthenticated click opens the modal with `next` set to the exact
-// path that card would have navigated to, instead of navigating — so
-// "sign in, then land on Day 1 / the upload widget" costs zero extra
-// clicks beyond authenticating itself.
+// Glass Premium™ — this screen now shares the exact glass/gradient/glow
+// system built for /dashboard (globals.css's `.glass-premium*` classes,
+// renamed from "Dashboard Glass" once this became its second screen — see
+// that rename's own comment). Two things were deliberately NOT touched to
+// keep the exception scoped exactly where asked:
+//  - ArrivalBackground.tsx (still used by /welcome/learning-goal) is no
+//    longer imported here — its own monochrome-only background is
+//    replaced below by this screen's own ambient blob layer instead of
+//    being recolored, since recoloring it would leak color into that
+//    other screen too.
+//  - PrimaryLearningMethodCard.tsx is a shared component (also used by
+//    LearningGoalSelector.tsx) — rather than adding a glass variant to a
+//    component with other consumers, the two cards below are bespoke
+//    markup, matching the same glass-premium-card/-lift classes the
+//    dashboard widgets use.
 type ChooseLearningMethodExperienceProps = {
   isAuthenticated: boolean
+}
+
+type PathCardProps = {
+  emoji: string
+  title: string
+  description: string
+  formats?: readonly { emoji: string; label: string }[]
+  ctaLabel: string
+  onSelect: () => void
+}
+
+function PathCard({ emoji, title, description, formats, ctaLabel, onSelect }: PathCardProps): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="glass-premium-card glass-premium-lift group flex h-full flex-col items-center gap-5 px-10 py-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <span className="text-6xl" aria-hidden="true">
+        {emoji}
+      </span>
+
+      <div>
+        <p className={TYPOGRAPHY.h2}>{title}</p>
+        <p className={cn(TYPOGRAPHY.bodyLarge, 'mt-3 text-muted-foreground')}>{description}</p>
+      </div>
+
+      {formats !== undefined && (
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          {formats.map((format) => (
+            <span
+              key={format.label}
+              className={cn(TYPOGRAPHY.caption, 'flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-4 py-1.5')}
+            >
+              <span aria-hidden="true">{format.emoji}</span>
+              {format.label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <p className="brand-gradient-text mt-auto pt-3 text-sm font-semibold">{ctaLabel}</p>
+    </button>
+  )
 }
 
 export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearningMethodExperienceProps): React.JSX.Element {
@@ -92,11 +127,21 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
   }
 
   return (
-    <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16">
-      <ArrivalBackground />
+    <div className="glass-premium relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16">
+      {/* Ambient background — same technique as /dashboard: fixed so the
+          blobs stay put regardless of scroll, -z-10 to sit behind
+          everything. */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="glass-ambient-blob" style={{ width: 520, height: 520, top: '-15%', left: '-8%', background: 'var(--ambient-a)' }} />
+        <div className="glass-ambient-blob" style={{ width: 460, height: 460, top: '20%', right: '-10%', background: 'var(--ambient-b)' }} />
+        <div className="glass-ambient-blob" style={{ width: 380, height: 380, bottom: '-12%', left: '38%', background: 'var(--ambient-a)' }} />
+      </div>
 
       <div className={cn('mx-auto flex w-full max-w-3xl flex-col items-center gap-10 text-center transition-opacity duration-[250ms]', isExiting && 'opacity-0')}>
-        <AIPresenceLogo size={84} />
+        <div className="flex flex-col items-center gap-3">
+          <AIPresenceLogo size={84} />
+          <p className="brand-gradient-text text-xl font-bold tracking-tight">Mind Ur Mind</p>
+        </div>
 
         <div>
           <h1 className={TYPOGRAPHY.display}>Choose Your Path</h1>
@@ -104,19 +149,19 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
         </div>
 
         <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
-          <PrimaryLearningMethodCard
+          <PathCard
             emoji="⚡"
             title="Quantum Speed Reading™"
-            subtitle="Start your 21-Day Blueprint — train reading speed, focus, and recall, no upload required."
+            description="Unlock elite reading speed, razor-sharp focus, and permanent memory in just 10 mins a day for 21 days."
             ctaLabel="Start Quantum Speed Reading →"
             onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
           />
-          <PrimaryLearningMethodCard
+          <PathCard
             emoji="📄"
             title="Upload & Learn™"
-            subtitle="Bring books, study notes, or handwritten pages."
+            description="Stop reading blindly. Turn any book, note, or PDF into Quantum-accelerated insights, Spider Notes, and smart quizzes to read and remember 10x faster."
             formats={UPLOAD_MATERIALS}
-            ctaLabel="Upload Your Document →"
+            ctaLabel="Upload & Transform Instantly →"
             onSelect={() => handleSelect('/dashboard#upload-document')}
           />
         </div>

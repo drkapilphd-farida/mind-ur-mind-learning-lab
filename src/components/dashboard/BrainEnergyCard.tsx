@@ -56,7 +56,7 @@ export function BrainEnergyCard(): React.JSX.Element {
   const Icon = energy?.icon ?? Sun
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift flex items-start gap-4 p-5">
+    <div className="glass-premium-card glass-premium-lift flex items-start gap-4 p-5">
       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.05]">
         <Icon className="size-5 text-foreground" aria-hidden="true" />
       </div>

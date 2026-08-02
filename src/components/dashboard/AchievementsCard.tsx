@@ -79,7 +79,7 @@ export function AchievementsCard(props: AchievementsCardProps): React.JSX.Elemen
   const achievedCount = achievements.filter((a) => a.achieved).length
 
   return (
-    <div className="dashboard-glass-card dashboard-glass-lift p-6">
+    <div className="glass-premium-card glass-premium-lift p-6">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Achievements™
