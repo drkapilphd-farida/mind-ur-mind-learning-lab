@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 
 const NAV_LINKS = [
-  { href: '/#learning-system', label: 'Learning System' },
-  { href: '/#about', label: 'About' },
+  { href: '/#who-its-for', label: 'Who It’s For' },
+  { href: '/#how-it-works', label: 'How It Works' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/#faq', label: 'FAQ' },
 ] as const
 
 export default function MarketingLayout({

@@ -44,10 +44,13 @@ export function LearningPotentialRevealExperience(): React.JSX.Element {
 
   const advance = (): void => setSceneIndex((index) => Math.min(index + 1, LEARNING_POTENTIAL_SCENES.length - 1))
 
-  // Premium CTA™ hands off to the Discovery → Upload Bridge™ (ALS-14) —
-  // the real emotional bridge into applying the just-built Learning
-  // Profile, rather than jumping straight to the Studio hub.
-  const finish = (): void => router.push('/discover-learning-potential/upload-bridge')
+  // Premium CTA™ hands off into goal selection — discovery now runs as the
+  // mandatory first step of onboarding (right after signup), so its exit
+  // continues the same onboarding sequence rather than branching into the
+  // Discovery → Upload Bridge™ (ALS-14), which remains fully intact at
+  // /discover-learning-potential/upload-bridge but is no longer linked from
+  // here.
+  const finish = (): void => router.push('/welcome/learning-goal')
 
   return (
     <main className="bg-background">

@@ -30,27 +30,23 @@ const UPLOAD_MATERIALS = [
   { emoji: '📃', label: 'Text' },
 ] as const
 
-// Sprint QSR-3.5 — Unified Entry Experience™. The real, traced step order
-// of the Discover Your Learning Potential™ flow (reading → memory → focus
-// → ai-profile) — not invented, mirrors DiscoveryUploadBridgeScreen's own
-// "reuse the real flow" discipline.
-const DISCOVERY_FLOW = ['Reading', 'Memory', 'Focus', 'Your AI Profile'] as const
-
 // Sprint LW-1C — Choose Learning Method™. The real screen the previous
 // sprint's `/welcome/preparing` placeholder was always meant to become.
 // Reuses PrimaryLearningMethodCard.tsx (no duplication), plus
 // ArrivalBackground and AIPresenceLogo (the Living AI Symbol™, continuing
 // its breathing animation here, unmodified).
 //
-// Sprint QSR-3.5 — Unified Entry Experience & Workspace Integration™.
-// The second card is now Discover Your Learning Potential™ instead of
-// Record & Learn™, per the locked Version-1 entry architecture (Home →
-// Choose Your Path → Discover Your Learning Potential™ OR Upload & Learn
-// → AI Processing → Learning Workspace). Record & Learn™ is a real,
-// complete, working feature (Sprint LW-1C) — this removes it from THIS
-// hub only; its own route (/welcome/record) and code are fully intact
-// and still reachable directly, matching the brief's own "hide from V1
-// UI, do not delete" principle.
+// Discovery-First Onboarding — Discover Your Learning Potential™ now runs
+// as the mandatory first step right after signup (see signUp.ts and
+// LearningPotentialRevealExperience.tsx), before this screen is ever
+// reached, so the third "Discover Your Learning Potential™" card that
+// Sprint QSR-3.5 added here is redundant and was removed. This screen is
+// back to exactly two paths — Path A: Quantum Speed Reading™ / 21-Day
+// Blueprint, Path B: Upload & Learn™ — matching the locked entry
+// architecture (Home → Discover → Goal → Choose Your Path → AI Processing
+// → Learning Workspace). Record & Learn™ remains intentionally absent
+// from this hub (Sprint QSR-3.5); its own route (/welcome/record) and
+// code are still fully intact and reachable directly.
 export function ChooseLearningMethodExperience(): React.JSX.Element {
   const router = useRouter()
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -80,15 +76,15 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
         <AIPresenceLogo size={84} />
 
         <div>
-          <h1 className={TYPOGRAPHY.display}>Choose how you&rsquo;d like to begin.</h1>
+          <h1 className={TYPOGRAPHY.display}>Choose Your Path</h1>
           <HeroPromise className="mt-6" startDelayMs={200} />
         </div>
 
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
           <PrimaryLearningMethodCard
             emoji="⚡"
             title="Quantum Speed Reading™"
-            subtitle="Train your reading speed, focus, and recall — no upload required."
+            subtitle="Start your 21-Day Blueprint — train reading speed, focus, and recall, no upload required."
             ctaLabel="Start Training →"
             onSelect={() => handleSelect('/labs/quantum-speed-reading')}
           />
@@ -99,14 +95,6 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
             formats={UPLOAD_MATERIALS}
             ctaLabel="Start Uploading →"
             onSelect={() => handleSelect('/preview/learning-projects/new')}
-          />
-          <PrimaryLearningMethodCard
-            emoji="🧭"
-            title="Discover Your Learning Potential™"
-            subtitle="Discover your current Reading, Memory and Focus abilities."
-            flowSteps={DISCOVERY_FLOW}
-            ctaLabel="Start Assessment →"
-            onSelect={() => handleSelect('/discover-learning-potential')}
           />
         </div>
 
