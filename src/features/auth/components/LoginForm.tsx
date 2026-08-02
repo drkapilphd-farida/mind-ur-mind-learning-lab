@@ -20,9 +20,13 @@ import { Button } from '@/components/ui/button'
 
 type LoginFormProps = {
   next?: string | undefined
+  // Mirrors SignUpForm's onSwitchToLogin — provided only by the Gateway
+  // Auth Modal, so "Sign up" switches mode in place instead of navigating
+  // to /signup.
+  onSwitchToSignup?: (() => void) | undefined
 }
 
-export function LoginForm({ next }: LoginFormProps): React.JSX.Element {
+export function LoginForm({ next, onSwitchToSignup }: LoginFormProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<SignInInput>({
@@ -91,12 +95,22 @@ export function LoginForm({ next }: LoginFormProps): React.JSX.Element {
 
         <p className="text-muted-foreground text-center text-sm">
           Don&apos;t have an account?{' '}
-          <Link
-            href="/signup"
-            className="text-foreground font-medium hover:underline"
-          >
-            Sign up
-          </Link>
+          {onSwitchToSignup ? (
+            <button
+              type="button"
+              onClick={onSwitchToSignup}
+              className="text-foreground font-medium hover:underline"
+            >
+              Sign up
+            </button>
+          ) : (
+            <Link
+              href="/signup"
+              className="text-foreground font-medium hover:underline"
+            >
+              Sign up
+            </Link>
+          )}
         </p>
       </form>
     </Form>

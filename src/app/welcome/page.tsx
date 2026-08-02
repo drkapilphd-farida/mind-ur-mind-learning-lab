@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Welcome',
@@ -14,15 +13,10 @@ export const metadata: Metadata = {
 // wants it) and /welcome/learning-goal, just unlinked from here — the
 // entry screen is now Choose Your Path™ directly, matching the locked
 // "primary entry screen, two direct action cards, one click" onboarding
-// spec. Same in-page auth-check pattern already used by every other
-// `/welcome/*` route; `middleware.ts`/`PROTECTED_PATHS` are untouched.
-export default async function WelcomePage(): Promise<React.JSX.Element> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login?next=/welcome/choose-method')
-
+// spec. No auth check needed here (unlike before Gateway Auth Modal™) —
+// /welcome/choose-method itself now renders for signed-out visitors too
+// and gates each card's action behind a modal, so this can redirect
+// unconditionally.
+export default function WelcomePage(): never {
   redirect('/welcome/choose-method')
 }

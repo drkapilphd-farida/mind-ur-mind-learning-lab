@@ -18,7 +18,16 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-export function SignUpForm(): React.JSX.Element {
+type SignUpFormProps = {
+  next?: string | undefined
+  // When provided (the Gateway Auth Modal's usage), the "Already have an
+  // account? Sign in" line switches mode in place instead of navigating to
+  // /login — staying in the modal rather than leaving it. Omitted on the
+  // standalone /signup page, where a real navigation is correct.
+  onSwitchToLogin?: (() => void) | undefined
+}
+
+export function SignUpForm({ next, onSwitchToLogin }: SignUpFormProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<SignUpInput>({
@@ -28,7 +37,7 @@ export function SignUpForm(): React.JSX.Element {
 
   function handleSubmit(values: SignUpInput): void {
     startTransition(async () => {
-      const result = await signUp(values)
+      const result = await signUp(values, next)
       toast.error(result.error)
     })
   }
@@ -98,12 +107,22 @@ export function SignUpForm(): React.JSX.Element {
 
         <p className="text-muted-foreground text-center text-sm">
           Already have an account?{' '}
-          <Link
-            href="/login"
-            className="text-foreground font-medium hover:underline"
-          >
-            Sign in
-          </Link>
+          {onSwitchToLogin ? (
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="text-foreground font-medium hover:underline"
+            >
+              Sign in
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="text-foreground font-medium hover:underline"
+            >
+              Sign in
+            </Link>
+          )}
         </p>
       </form>
     </Form>

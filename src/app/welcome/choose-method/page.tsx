@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ChooseLearningMethodExperience } from '@/components/welcome/ChooseLearningMethodExperience'
 
@@ -10,16 +9,22 @@ export const metadata: Metadata = {
 // Sprint LW-1C — Choose Learning Method™. Replaces the previous
 // `/welcome/preparing` ModulePlaceholder stub (renamed to this route —
 // its only referrer, LearningGoalSelector.tsx, was updated in the same
-// sprint). Same in-page auth-check pattern as every other `/welcome/*`
-// route — load-bearing, not stylistic, since `/welcome/*` has no shared
-// layout.tsx and is outside `PROTECTED_PATHS` (src/middleware.ts).
+// sprint).
+//
+// Gateway Auth Modal™ — this page used to hard-redirect signed-out
+// visitors to /login before ever rendering, so they never saw the two
+// cards at all. It no longer does: both cards are now visible to everyone,
+// and ChooseLearningMethodExperience itself gates each card's action
+// behind a modal (not a page redirect) when `isAuthenticated` is false —
+// see that component for why. This is still the one real auth check for
+// this route (outside `PROTECTED_PATHS`, no shared `/welcome/*`
+// layout.tsx), just no longer load-bearing for *access* — only for which
+// UI state renders.
 export default async function ChooseLearningMethodPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login?next=/welcome/choose-method')
-
-  return <ChooseLearningMethodExperience />
+  return <ChooseLearningMethodExperience isAuthenticated={user !== null} />
 }

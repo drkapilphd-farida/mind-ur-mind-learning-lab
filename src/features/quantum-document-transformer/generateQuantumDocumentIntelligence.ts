@@ -103,7 +103,13 @@ export async function generateQuantumDocumentIntelligence(
   const promptText = documentText.length > maxPromptChars ? `${documentText.slice(0, maxPromptChars)}\n\n[Content truncated for length.]` : documentText
 
   try {
-    const client = new Anthropic({ apiKey })
+    // Explicit, not the SDK's 10-minute default — comfortably under the
+    // route handler's own `maxDuration = 60`, so a stuck/overloaded model
+    // call fails here with a clean JSON error instead of the platform
+    // killing the whole function first. `maxRetries` is the SDK's own
+    // default (2) made explicit — it already retries transient 429/5xx
+    // errors with backoff before this ever reaches the catch block below.
+    const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 2 })
     const tool = buildQuantumDocumentIntelligenceTool(targetLanguage)
 
     const response = await client.messages.create({
@@ -158,6 +164,17 @@ export async function generateQuantumDocumentIntelligence(
 
     return { success: true, payload: parsed.data, modelId: MODEL }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error.'
+    // Previously this real cause only reached `ai_cost_log.error_message`
+    // — invisible in server logs, so an Anthropic-side failure (rate
+    // limit, overload, timeout, invalid request) looked identical to
+    // every other failure from the outside. This is the only place that
+    // error is otherwise lost.
+    logger.error('quantum document transformer: Anthropic call failed', {
+      requestId,
+      error: errorMessage,
+      status: error instanceof Anthropic.APIError ? error.status : undefined,
+    })
     void logTransformerCost({
       requestId,
       quantumDocumentId: null,
@@ -166,7 +183,7 @@ export async function generateQuantumDocumentIntelligence(
       outputTokens: 0,
       processingTimeMs: Date.now() - startedAt,
       success: false,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error.',
+      errorMessage,
     })
     return { success: false, error: 'We could not process this document. Please try again.' }
   }

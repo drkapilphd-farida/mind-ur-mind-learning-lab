@@ -24,6 +24,18 @@ import { logger } from '@/lib/logger'
 // honest allow-list rather than "everything except a deny-list."
 const EXTRACTABLE_SOURCE_TYPES = new Set(['pdf', 'docx', 'txt', 'image'])
 
+// Sequential PDF-page extraction + one synchronous Claude call + a DB
+// insert, all in this one request, had no explicit timeout budget — on
+// the platform's default (far shorter for serverless functions), a real
+// multi-page PDF could get killed mid-flight with a non-JSON response,
+// which is exactly what surfaces client-side as the generic "Something
+// went wrong" catch (see AIDocumentTransformerWidget.tsx). This gives the
+// handler real room; generateQuantumDocumentIntelligence's own Anthropic
+// client timeout is set comfortably under this so a slow model call fails
+// with a clean JSON error from our own code before the platform kills the
+// function outright.
+export const maxDuration = 60
+
 // Of the image formats the upload pipeline recognizes (jpeg/png/webp/heic/
 // heif), only png/jpeg are what this feature was scoped to support — both
 // because that's the literal requirement and because they're the two

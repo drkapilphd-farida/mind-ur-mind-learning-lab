@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { ArrivalBackground } from './ArrivalBackground'
 import { AIPresenceLogo } from './AIPresenceLogo'
 import { HeroPromise } from './HeroPromise'
+import { GatewayAuthModal } from './GatewayAuthModal'
 
 // Immersive Onboarding Polish™ (Sprint LW-1C.3) — visually secondary
 // "Coming Soon" previews of future learning sources, per the brief's
@@ -52,10 +53,25 @@ const UPLOAD_MATERIALS = [
 // Reuses PrimaryLearningMethodCard.tsx (no duplication), plus
 // ArrivalBackground and AIPresenceLogo (the Living AI Symbol™, continuing
 // its breathing animation here, unmodified).
-export function ChooseLearningMethodExperience(): React.JSX.Element {
+//
+// Gateway Auth Modal™ — both cards are now visible to signed-out visitors
+// too (welcome/choose-method/page.tsx no longer redirects them away
+// before rendering this). `isAuthenticated` is computed once, server-side,
+// by that page's existing auth check — no new client-side auth hook/store
+// exists in this codebase, so this reuses that call rather than adding one.
+// An unauthenticated click opens the modal with `next` set to the exact
+// path that card would have navigated to, instead of navigating — so
+// "sign in, then land on Day 1 / the upload widget" costs zero extra
+// clicks beyond authenticating itself.
+type ChooseLearningMethodExperienceProps = {
+  isAuthenticated: boolean
+}
+
+export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearningMethodExperienceProps): React.JSX.Element {
   const router = useRouter()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [isExiting, setIsExiting] = useState(false)
+  const [pendingDestination, setPendingDestination] = useState<string | null>(null)
 
   // Every screen transition should feel connected — the card itself already
   // holds a brief selection glow (PrimaryLearningMethodCard's own 280ms
@@ -63,6 +79,10 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
   // avoids a hard cut to the next route, matching the pattern already used
   // by Arrival Experience™ and the AI Thinking screen.
   function handleSelect(path: string): void {
+    if (!isAuthenticated) {
+      setPendingDestination(path)
+      return
+    }
     if (prefersReducedMotion) {
       router.push(path)
       return
@@ -114,6 +134,14 @@ export function ChooseLearningMethodExperience(): React.JSX.Element {
           ))}
         </div>
       </div>
+
+      <GatewayAuthModal
+        open={pendingDestination !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDestination(null)
+        }}
+        next={pendingDestination ?? '/welcome/choose-method'}
+      />
     </div>
   )
 }
