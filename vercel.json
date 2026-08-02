@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/processing/advance-all",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
