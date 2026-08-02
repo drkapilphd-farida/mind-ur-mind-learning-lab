@@ -1,0 +1,1 @@
+export { generateResponseDiagnostics } from './generateResponseDiagnostics'

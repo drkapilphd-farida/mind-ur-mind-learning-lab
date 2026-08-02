@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="An abstract geometric face motif in cool sky-blue tones, with four halo rings">
+    <rect width="800" height="800" fill="#f8fafc" />
+    <circle cx="400" cy="400" r="270" fill="#bae6fd" />
+    <circle cx="400" cy="400" r="225" fill="#7dd3fc" />
+    <circle cx="400" cy="400" r="180" fill="#38bdf8" />
+    <circle cx="400" cy="400" r="135" fill="#0284c7" />
+    <ellipse cx="400" cy="420" rx="140" ry="170" fill="#475569" />
+    <ellipse cx="350" cy="400" rx="22" ry="12" fill="#0f172a" />
+    <ellipse cx="450" cy="400" rx="22" ry="12" fill="#0f172a" />
+    <rect x="328" y="366" width="24" height="8" fill="#0f172a" />
+    <rect x="448" y="366" width="24" height="8" fill="#0f172a" />
+    <polygon points="390,440 410,440 400,465" fill="#334155" />
+    <rect x="368" y="490" width="64" height="10" rx="5" fill="#0f172a" />
+  </svg>

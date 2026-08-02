@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
@@ -21,14 +23,27 @@ import { AIMentorSection, AIMentorSkeleton } from '@/components/dashboard/AIMent
 import { TodaysMissionCard } from '@/components/dashboard/TodaysMissionCard'
 import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { DailyMomentumCard } from '@/components/dashboard/DailyMomentumCard'
-import { QuickPracticeGrid } from '@/components/dashboard/QuickPracticeGrid'
-import { TransformationJourneyCard } from '@/components/dashboard/TransformationJourneyCard'
-import { TransformationJourneySection } from '@/components/dashboard/TransformationJourneySection'
+import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
+import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
+import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
+import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { NextEvolutionCard } from '@/components/dashboard/NextEvolutionCard'
 import { AchievementsCard } from '@/components/dashboard/AchievementsCard'
 import { BrainEnergyCard } from '@/components/dashboard/BrainEnergyCard'
 import { AIMentorCTA } from '@/components/dashboard/AIMentorCTA'
+import { DailyQuantumSessionCard } from '@/components/dashboard/DailyQuantumSessionCard'
 import { formatRelativeDate } from '@/lib/formatRelativeDate'
+import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
+import {
+  computeDailyQuantumStreak,
+  computeLifetimeXp,
+  computePersonalBestWpm,
+  computeLongestStreakEver,
+  hasCompletedSessionToday,
+} from '@/app/unified-quantum-session-preview/components/dailyQuantumSessionTracking'
+import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagnostic/queries/getBaselineDiagnostic'
+import { getStreakBannerStatus, getNextJourneyDay, getMilestoneHitExactly } from '@/features/quantum-journey/streakMotivation'
+import { StreakReminderBanner } from '@/components/dashboard/StreakReminderBanner'
 
 export const metadata: Metadata = {
   title: 'Transformation Dashboard',
@@ -85,11 +100,43 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
   if (!user) return <div />
 
-  const [labProgress, labSessions, profile] = await Promise.all([
-    getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
-    getPracticeSessions('quantum-speed-reading'),
-    getCurrentUserProfile(user.id),
-  ])
+  const [labProgress, labSessions, profile, dailyQuantumSessionHistory, isPaidUser, quantumDocumentCount, baselineDiagnostic] =
+    await Promise.all([
+      getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
+      getPracticeSessions('quantum-speed-reading'),
+      getCurrentUserProfile(user.id),
+      getDailyQuantumSessionHistory(),
+      getIsPaidUser(user.id),
+      getQuantumDocumentCount(user.id),
+      getBaselineDiagnostic(),
+    ])
+
+  // ── Daily Quantum Session™ — a separate progress source from the Eye
+  // Foundation Module data above (its own table, its own streak/XP
+  // concept — never blended into labStreak/mindScore, which mean
+  // something narrower).
+  const dailyQuantumStreak = computeDailyQuantumStreak(dailyQuantumSessionHistory)
+  const dailyQuantumLifetimeXp = computeLifetimeXp(dailyQuantumSessionHistory)
+  const dailyQuantumPersonalBestWpm = computePersonalBestWpm(dailyQuantumSessionHistory)
+  const dailyQuantumLongestStreakEver = computeLongestStreakEver(dailyQuantumSessionHistory)
+
+  // Dashboard Integration™ — whether the full Analytics Dashboard™ (WPM
+  // chart, streak/consistency, Mind Score breakdown) has anything to show
+  // yet gates the "View Full Analytics" link below; the numbers
+  // themselves live only on that dedicated page now, not duplicated here.
+  const hasBaseline = baselineDiagnostic !== null
+
+  // Daily Streak Reminders & Motivation System™ — the banner's status is
+  // derived fresh from real session dates every request (no caching, no
+  // separately mutable flag), so it's always instantly accurate the
+  // moment a new daily_quantum_sessions row exists.
+  const streakBannerStatus = getStreakBannerStatus({
+    sessionCount: dailyQuantumSessionHistory.length,
+    hasCompletedToday: hasCompletedSessionToday(dailyQuantumSessionHistory),
+    currentStreak: dailyQuantumStreak,
+  })
+  const nextJourneyDay = getNextJourneyDay(dailyQuantumSessionHistory.length)
+  const milestoneReachedToday = hasCompletedSessionToday(dailyQuantumSessionHistory) ? getMilestoneHitExactly(dailyQuantumStreak) : null
 
   // ── Derived data from Learning Journey Engine ────────────────────────────
   const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
@@ -107,17 +154,14 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
   const weeklyActiveDays = labWeek.filter((d) => d.sessionCount > 0).length
   const consistencyPercent = Math.round((weeklyActiveDays / 7) * 100)
 
-  // 0–1000 scale Mind Score — used for Sprint 3E sections (TransformationJourneySection,
-  // NextEvolutionCard, AIMentorCTA). The local mindScore above remains 0–100 for MindScoreCard.
+  // 0–1000 scale Mind Score — used by NextEvolutionCard and AIMentorCTA.
+  // The local mindScore above remains 0–100 for MindScoreCard.
   const readingScore = computeReadingScore(completionPercent, labStreak.currentStreak)
   const mindScore1000 = computeMindScore1000([readingScore])
 
   // Next Mind Score milestone (0–1000 scale)
   const SCORE_THRESHOLDS = [100, 200, 400, 600, 800, 900, 1000] as const
   const nextMindScoreGoal = SCORE_THRESHOLDS.find((t) => t > mindScore1000) ?? 1000
-
-  // Yesterday is the second-to-last element in the 7-day array
-  const yesterday = labWeek[labWeek.length - 2]
 
   const missionExercises = buildMissionExercises(
     labProgress.completedCount,
@@ -135,28 +179,48 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
+      {/* Daily Streak Reminders & Motivation System™ */}
+      <StreakReminderBanner
+        studentFirstName={studentFirstName}
+        status={streakBannerStatus}
+        currentStreak={dailyQuantumStreak}
+        nextDay={nextJourneyDay}
+        milestoneReachedToday={milestoneReachedToday}
+      />
+
+      {/* Hero */}
+      <div className="rounded-2xl border bg-gradient-to-br from-foreground/[0.03] to-transparent p-6 sm:p-8">
         <GreetingHeading studentName={studentFirstName} />
         <p className="mt-1 text-sm text-muted-foreground">
           {labSummary.isComplete
             ? 'Eye Foundation Module complete — keep the momentum going.'
             : `${completionPercent}% through the Eye Foundation Module.`}
         </p>
+
+        <div className="mt-5">
+          <Suspense fallback={<AIMentorSkeleton />}>
+            <AIMentorSection
+              studentName={studentName}
+              currentStreak={labStreak.currentStreak}
+              bestStreak={labStreak.bestStreak}
+              completedCount={labProgress.completedCount}
+              totalCount={labProgress.totalCount}
+              todaySessionCount={labToday.exercisesCompletedToday}
+              totalCompletedSessions={labTotals.totalCompletedSessions}
+            />
+          </Suspense>
+        </div>
+
+        <Link
+          href="/unified-quantum-session-preview"
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          🚀 Start Today&rsquo;s 4-Level Quantum Session
+        </Link>
       </div>
 
-      {/* AI Mentor™ — Suspense-streamed so the rest of the page is instant */}
-      <Suspense fallback={<AIMentorSkeleton />}>
-        <AIMentorSection
-          studentName={studentName}
-          currentStreak={labStreak.currentStreak}
-          bestStreak={labStreak.bestStreak}
-          completedCount={labProgress.completedCount}
-          totalCount={labProgress.totalCount}
-          todaySessionCount={labToday.exercisesCompletedToday}
-          totalCompletedSessions={labTotals.totalCompletedSessions}
-        />
-      </Suspense>
+      {/* AI Document Transformer™ */}
+      <AIDocumentTransformerWidget isPro={isPaidUser} initialDocumentCount={quantumDocumentCount} />
 
       {/* Today's Mission™ + Mind Score™ */}
       <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
@@ -181,6 +245,16 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         lastPracticedLabel={lastPracticedLabel}
       />
 
+      {/* Daily Quantum Session™ */}
+      <DailyQuantumSessionCard
+        hasAnySession={dailyQuantumSessionHistory.length > 0}
+        currentStreak={dailyQuantumStreak}
+        lifetimeXp={dailyQuantumLifetimeXp}
+        personalBestWpm={dailyQuantumPersonalBestWpm}
+        hasBaseline={hasBaseline}
+        longestStreakEver={dailyQuantumLongestStreakEver}
+      />
+
       {/* Next Evolution™ — Sprint 3E */}
       <NextEvolutionCard
         currentMindScore={mindScore1000}
@@ -191,26 +265,8 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         nextExerciseTitle={labSummary.currentExercise?.title ?? null}
       />
 
-      {/* Quick Practice™ */}
-      <QuickPracticeGrid />
-
-      {/* Transformation Journey™ — Sprint 3E stage path */}
-      <TransformationJourneySection
-        completedCount={labProgress.completedCount}
-        mindScore={mindScore1000}
-      />
-
-      {/* Yesterday / Today / Tomorrow card — Sprint 3C */}
-      <TransformationJourneyCard
-        yesterdaySessionCount={yesterday?.sessionCount ?? 0}
-        yesterdayDurationMs={yesterday?.durationMs ?? 0}
-        todaySessionCount={labToday.exercisesCompletedToday}
-        todayDurationMs={labToday.totalDurationMsToday}
-        nextExerciseTitle={labSummary.currentExercise?.title ?? null}
-        nextExerciseHref={labSummary.currentExercise?.href ?? null}
-        weeklyActiveDays={weeklyActiveDays}
-        currentStreak={labStreak.currentStreak}
-      />
+      {/* 21-Day Transformation Journey™ */}
+      <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} />
 
       {/* Achievements™ */}
       <AchievementsCard

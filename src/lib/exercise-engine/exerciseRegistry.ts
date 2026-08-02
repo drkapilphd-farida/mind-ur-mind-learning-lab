@@ -83,10 +83,7 @@ function toRegistryEntry(d: AnyDefinition): ExerciseRegistryEntry {
 // Call once at app startup or from Admin CMS to populate the registry.
 // Each definition file must call registerExercise() to be discoverable.
 export function registerAllExercises(): void {
-  void import('@/features/rapid-visual-intelligence/definitions/flashWordsDefinition')
-  void import('@/features/rapid-visual-intelligence/definitions/flashNumbersDefinition')
-  void import('@/features/rapid-visual-intelligence/definitions/flashSymbolsDefinition')
-  void import('@/features/rapid-visual-intelligence/definitions/flashImagesDefinition')
-  void import('@/features/rapid-visual-intelligence/definitions/flashPhrasesDefinition')
+  // Rapid Visual Intelligence™'s 5 flash definitions were removed along
+  // with that hub (legacy/orphaned — see library/page.tsx's own comment).
   // Future exercises: add one line here
 }

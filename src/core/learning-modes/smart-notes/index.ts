@@ -1,0 +1,1 @@
+export { smartNotesMode } from './smartNotesMode'

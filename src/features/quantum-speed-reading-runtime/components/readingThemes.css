@@ -1,0 +1,41 @@
+/*
+ * Quantum Speed Reading™ Production Sprint-3 — Reading Themes.
+ *
+ * "Light" and "Dark" need no new CSS at all: the existing design system
+ * already defines a full `.dark` token set in globals.css (§10, "any
+ * future toggle only needs to add/remove the `.dark` class... zero
+ * component changes required"). This file only adds what genuinely
+ * doesn't exist yet — Sepia — and scopes it to `.reading-theme-sepia`
+ * rather than adding it to globals.css's own `:root`/`.dark` blocks,
+ * since Sepia is a reading-specific theme, not a general app theme.
+ * Every component in this feature already renders with `bg-background`/
+ * `text-foreground`/`bg-card`/`text-muted-foreground`/`border` — the
+ * same Tailwind utility classes used everywhere else — so toggling this
+ * class on the Reading Workspace's own root element re-themes the whole
+ * subtree with zero per-component conditional styling.
+ *
+ * Values are warm-cream-on-dark-brown, authored in the same OKLCH format
+ * as every token in globals.css for consistency.
+ *
+ * AI Learning Studio™ Sprint ALS-14 — the contrast gap flagged as an
+ * unmeasured follow-up in Sprint-3 has now been measured (OKLCH → linear
+ * sRGB → WCAG relative luminance, the same method the design system's own
+ * success/warning tokens use). Every real pairing this theme renders
+ * passes WCAG AA for normal text with margin to spare: foreground/
+ * background 10.75:1, card-foreground/card 11.42:1, muted-foreground/
+ * background 5.53:1, primary-foreground/primary 8.33:1, primary/
+ * background 7.84:1 (AA normal text requires 4.5:1). No values changed —
+ * confirmed passing, not silently assumed.
+ */
+
+.reading-theme-sepia {
+  --background: oklch(0.94 0.02 85);
+  --foreground: oklch(0.32 0.04 55);
+  --card: oklch(0.96 0.015 85);
+  --card-foreground: oklch(0.32 0.04 55);
+  --muted: oklch(0.88 0.025 82);
+  --muted-foreground: oklch(0.48 0.035 60);
+  --border: oklch(0.82 0.025 78);
+  --primary: oklch(0.4 0.05 55);
+  --primary-foreground: oklch(0.96 0.015 85);
+}

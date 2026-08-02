@@ -1,0 +1,1 @@
+export { memoryLearningMode } from './memoryLearningMode'

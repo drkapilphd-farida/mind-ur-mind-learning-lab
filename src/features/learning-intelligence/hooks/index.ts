@@ -1,0 +1,1 @@
+export { useLearningIntelligence } from './useLearningIntelligence'

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="living-brain-gradient-icon" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="0">
+      <stop offset="0%" stop-color="#2B4CE8" />
+      <stop offset="100%" stop-color="#0FD9A0" />
+    </linearGradient>
+    <filter id="living-brain-core-glow-icon" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+    </filter>
+  </defs>
+
+  <g fill="url(#living-brain-gradient-icon)" stroke="url(#living-brain-gradient-icon)" stroke-width="0.75" stroke-linejoin="round">
+    <path d="M100,14 C84,-4 52,-6 38,14 C28,28 32,40 46,46 C28,42 6,54 6,76 C6,94 20,102 36,98 C18,102 2,118 8,138 C13,156 30,164 48,158 C62,154 82,148 100,132 Z" />
+    <path d="M100,14 C116,-4 148,-6 162,14 C172,28 168,40 154,46 C172,42 194,54 194,76 C194,94 180,102 164,98 C182,102 198,118 192,138 C187,156 170,164 152,158 C138,154 118,148 100,132 Z" />
+  </g>
+
+  <g stroke="white" stroke-opacity="0.85" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M80,20 C68,28 60,36 58,44" />
+    <path d="M52,64 C42,70 34,78 30,88" />
+    <path d="M120,20 C132,28 140,36 142,44" />
+    <path d="M148,64 C158,70 166,78 170,88" />
+  </g>
+
+  <g stroke="white" stroke-opacity="0.9" stroke-width="1.4">
+    <g>
+      <line x1="100" y1="126" x2="78" y2="55" />
+      <line x1="78" y1="55" x2="58" y2="40" />
+      <line x1="100" y1="126" x2="122" y2="55" />
+      <line x1="122" y1="55" x2="142" y2="40" />
+    </g>
+    <g>
+      <line x1="100" y1="126" x2="60" y2="82" />
+      <line x1="60" y1="82" x2="36" y2="96" />
+      <line x1="100" y1="126" x2="140" y2="82" />
+      <line x1="140" y1="82" x2="164" y2="96" />
+    </g>
+  </g>
+  <g fill="white">
+    <circle cx="78" cy="55" r="3.2" />
+    <circle cx="58" cy="40" r="3.6" />
+    <circle cx="60" cy="82" r="3.2" />
+    <circle cx="36" cy="96" r="3.6" />
+    <circle cx="122" cy="55" r="3.2" />
+    <circle cx="142" cy="40" r="3.6" />
+    <circle cx="140" cy="82" r="3.2" />
+    <circle cx="164" cy="96" r="3.6" />
+  </g>
+
+  <g fill="url(#living-brain-gradient-icon)">
+    <path d="M100,130 C70,148 35,156 4,168 C34,186 72,192 100,166 Z" />
+    <path d="M100,130 C130,148 165,156 196,168 C166,186 128,192 100,166 Z" />
+  </g>
+  <g stroke="white" stroke-opacity="0.85" stroke-width="1.6" stroke-linecap="round" fill="none">
+    <path d="M96,140 C72,156 40,164 14,172" />
+    <path d="M98,152 C78,168 50,178 24,184" />
+    <path d="M104,140 C128,156 160,164 186,172" />
+    <path d="M102,152 C122,168 150,178 176,184" />
+  </g>
+
+  <line x1="100" y1="118" x2="100" y2="168" stroke="url(#living-brain-gradient-icon)" stroke-width="3" />
+
+  <circle cx="100" cy="126" r="18" fill="#4FE0FF" filter="url(#living-brain-core-glow-icon)" opacity="0.55" />
+  <circle cx="100" cy="126" r="11" fill="none" stroke="#FFFFFF" stroke-width="3" />
+  <circle cx="100" cy="126" r="4.5" fill="#132A6B" />
+</svg>

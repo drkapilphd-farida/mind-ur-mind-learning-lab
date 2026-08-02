@@ -2,6 +2,12 @@ import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
+// AI Learning Studio™ Sprint ALS-21 — Complete Functional Completion. A
+// production audit found this screen's own "Finish" button had no real
+// `onClick`/`href` — a genuinely dead click target next to "Return Home,"
+// which already does real navigation. Removed rather than wired to
+// duplicate its neighbor's own behavior — one real, working exit, not two
+// buttons doing the same thing.
 export default function Complete(): React.JSX.Element {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16 text-center">
@@ -19,7 +25,6 @@ export default function Complete(): React.JSX.Element {
         <Link href="/">
           <Button variant="outline">Return Home</Button>
         </Link>
-        <Button>Finish</Button>
       </div>
     </main>
   )

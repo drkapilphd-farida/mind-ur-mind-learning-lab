@@ -29,7 +29,6 @@ test('login with valid credentials navigates to dashboard', async ({ page, brows
   let password = process.env.E2E_TEST_PASSWORD
   if (!email || !password) {
     try {
-      // eslint-disable-next-line node/global-require
       const fs = await import('fs')
       const raw = fs.readFileSync('tests/.auth/credentials.json', 'utf8')
       const creds = JSON.parse(raw)
@@ -52,8 +51,7 @@ test('login with valid credentials navigates to dashboard', async ({ page, brows
       // Programmatic sign-in fallback: call Supabase auth to get a session and
       // inject it into the current context so server-side middleware recognizes
       // the user (mirrors global-setup behavior).
-      try {
-        // eslint-disable-next-line node/global-require
+        try {
         const fs = await import('fs')
         const credsRaw = fs.readFileSync('tests/.auth/credentials.json', 'utf8')
         const creds = JSON.parse(credsRaw)
@@ -88,7 +86,7 @@ test('login with valid credentials navigates to dashboard', async ({ page, brows
         await page.goto('/dashboard')
         await expect(page.getByRole('heading', { name: /my (courses|learning)/i })).toBeVisible({ timeout: 10_000 })
         return
-      } catch (innerErr) {
+      } catch {
         // If programmatic sign-in fails, fall back to loading storageState file
         const ctx = await browser.newContext({ storageState: 'tests/.auth/user.json' })
         const p2 = await ctx.newPage()

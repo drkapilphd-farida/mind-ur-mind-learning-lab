@@ -1,0 +1,6 @@
+export type { RecommendationCategory } from './RecommendationCategory'
+export type { RecommendationPriority } from './RecommendationPriority'
+export type { RecommendationItem } from './RecommendationItem'
+export type { RecommendationGroup } from './RecommendationGroup'
+export type { RecommendationMetadata } from './RecommendationMetadata'
+export type { PersonalizationRecommendationSet } from './PersonalizationRecommendationSet'

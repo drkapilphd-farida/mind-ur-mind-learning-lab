@@ -56,9 +56,8 @@ export function MindScoreCard({ mindScore, readingScore }: MindScoreCardProps): 
 
   const subScores: SubScore[] = [
     { label: 'Reading', value: readingScore },
-    { label: 'Focus', value: null },
     { label: 'Memory', value: null },
-    { label: 'Meditation', value: null },
+    { label: 'Focus', value: null },
   ]
 
   const STROKE = 10
@@ -92,7 +91,7 @@ export function MindScoreCard({ mindScore, readingScore }: MindScoreCardProps): 
 
         {/* Sub-scores */}
         <div
-          className="mt-5 grid grid-cols-4 gap-4 w-full"
+          className="mt-5 grid grid-cols-3 gap-4 w-full"
           role="list"
           aria-label="Mind score breakdown"
         >

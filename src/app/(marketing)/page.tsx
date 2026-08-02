@@ -29,6 +29,14 @@ function LabCard({ icon, title, description }: LabCardProps): React.JSX.Element 
 
 const journeySteps = ['Assessment', 'Practice', 'Improvement', 'Mastery'] as const
 
+// Sprint QSR-4 — real fix, not a redesign: this page's primary CTA
+// previously pointed at /assessments (the older, separate "Mind
+// Assessment Center™"), which has no path into the locked Version-1
+// entry flow (Home → Choose Your Learning Path → Upload & Learn / Discover
+// Your Learning Potential™ → AI Processing → Learning Workspace → Quantum
+// Speed Reading™). /welcome is the real, working entry point for that
+// flow — auth-gated, redirects to /login?next=/welcome first when signed
+// out, then continues through Learning Goal → Choose Method automatically.
 export default function HomePage(): React.JSX.Element {
   return (
     <>
@@ -48,7 +56,7 @@ export default function HomePage(): React.JSX.Element {
 
           <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button asChild size="lg" className="min-w-[220px] rounded-full shadow-sm">
-              <Link href="/assessments">Start Free Assessment</Link>
+              <Link href="/welcome">Get Started</Link>
             </Button>
             <Button asChild size="lg" variant="ghost" className="min-w-[200px] rounded-full">
               <Link href="#learning-system">Explore Learning System</Link>

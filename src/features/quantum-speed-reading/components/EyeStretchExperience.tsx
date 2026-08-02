@@ -11,7 +11,7 @@ const EYE_STRETCH_DEFINITION: ExerciseDefinition = {
   exerciseId: 'eye-stretch',
   intro: {
     title: 'Eye Stretch',
-    description: "Let's gently extend how far your eyes can comfortably move.",
+    description: "Let's gently extend how far your eyes can comfortably move — a wider range means fewer stops and starts as you read.",
     durationLabel: 'About 45 seconds',
     postureNote: 'Sit comfortably. Keep your head still — glance gently, then return to center.',
   },

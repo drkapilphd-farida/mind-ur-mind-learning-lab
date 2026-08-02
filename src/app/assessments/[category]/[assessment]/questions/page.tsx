@@ -4,11 +4,14 @@ import React from 'react'
 import { QuestionCard } from '@/components/assessment/QuestionCard'
 import { useRouter } from 'next/navigation'
 
+// AI Learning Studio™ Sprint ALS-21 — Complete Functional Completion. The
+// literal text "Progress indicator placeholder" was previously shown to
+// real users as if it were real UI copy — removed. `handleFinish` was
+// already real (navigates to the real completion screen); unchanged.
 export default function QuestionsPage(): React.JSX.Element {
   const router = useRouter()
 
   function handleFinish(): void {
-    // Placeholder for completion flow — navigate to completion screen
     router.push('./complete')
   }
 
@@ -16,7 +19,6 @@ export default function QuestionsPage(): React.JSX.Element {
     <main className="mx-auto max-w-2xl px-6 py-12">
       <div className="space-y-4">
         <h1 className="text-xl font-semibold">Question 1 of 50</h1>
-        <div className="mt-2 text-sm text-muted-foreground">Progress indicator placeholder</div>
       </div>
 
       <div className="mt-6">

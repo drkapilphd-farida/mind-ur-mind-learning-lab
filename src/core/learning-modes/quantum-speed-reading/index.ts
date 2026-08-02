@@ -1,0 +1,1 @@
+export { quantumSpeedReadingMode } from './qsrLearningMode'

@@ -20,7 +20,19 @@ export type ExerciseType =
 
 export type ContentType =
   | 'word'
+  | 'chunk'      // curated 2–6 word meaningful units (Chunk Reading™) — kept
+                 // separate from 'phrase'/'reading-phrase' so a chunk
+                 // session never merges with complete-sentence pools.
   | 'phrase'
+  | 'reading-phrase' // curated, complete, grammatically whole 3–6 word
+                 // sentences (Phrase Reading™). Deliberately not 'phrase' —
+                 // that pool (Flash Phrases) is short lowercase affirmation
+                 // fragments with no terminal punctuation, a different
+                 // style that would visibly clash mid-session — and
+                 // deliberately not 'sentence' — that pool (generic
+                 // SENTENCES_DATASET) is much longer free-form sentences
+                 // that would reintroduce the exact length mismatch this
+                 // dataset exists to remove.
   | 'sentence'
   | 'number'
   | 'symbol'
@@ -30,6 +42,30 @@ export type ContentType =
   | 'letter'
   | 'paragraph'
   | 'memory-card'
+  | 'everyday-object'   // concrete nouns (Apple, Book, Key...) for Memory
+                 // Discovery's Visual Memory™ — deliberately not 'word':
+                 // the existing 'word' pools skew abstract/academic
+                 // (calm, focus, cognitive), which would break "everyday,
+                 // instantly recognizable object" as a category.
+  | 'six-digit-number'  // always exactly 6 digits, for Memory Discovery's
+                 // Number Memory™ — deliberately not 'number': the
+                 // existing pool spans 2–6 digit numbers for flash-card
+                 // exercises, and merging would risk a 2-digit number
+                 // surfacing where the experience promises "six-digit".
+  | 'scene'      // a small, named cluster of everyday objects (Study Table,
+                 // Kitchen, Library...) for Memory Discovery's Image
+                 // Recall™ — an item's `content` is an internal label; the
+                 // scene title and its object list live in `metadata`.
+                 // Replaces the removed Pattern Memory™'s 'geometric-
+                 // pattern' type, which had no other consumer.
+  | 'visual-icon' // an item's `content` IS the real glyph itself (an emoji
+                 // or symbol), never a word — Memory Discovery Sprint-1.5
+                 // FIX-01's true Visual Memory™ content. Deliberately not
+                 // 'icon' (that pool needs a Lucide icon-name renderer,
+                 // `content` is a text label like "Sun") or 'symbol'/
+                 // 'shape' (different existing pools with their own
+                 // established callers) — this is the one lane whose
+                 // `content` string is directly flash-renderable as-is.
 
 // ── Dataset category ────────────────────────────────────────────────────────
 
@@ -209,6 +245,11 @@ export type ExerciseDefinition<TConfig = Record<string, unknown>> = {
   labId: string
   title: string
   description: string
+  // Optional idle-screen caption shown below `description` (e.g. current
+  // level/pace/mission count). Kept separate from `description` so a
+  // per-session override of this field never overwrites the exercise's
+  // static "why this matters" copy.
+  metaLine?: string
   trainsAbility: string
 
   // Classification — drives which player mode the Engine uses

@@ -2,13 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, BookOpen, Eye, LayoutDashboard, Settings } from 'lucide-react'
+import { BarChart3, Eye, Library, LayoutDashboard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// "My Library" doesn't navigate to its own page — it opens the Document
+// History drawer on the dashboard (see AIDocumentTransformerWidget.tsx's
+// `library` search-param effect). The `?library=open` query string is the
+// real signal that survives a full navigation from any other dashboard
+// page (e.g. from /labs/quantum-speed-reading), not just a same-page
+// state toggle.
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/labs/quantum-speed-reading', label: 'Quantum Speed Reading', icon: Eye },
+  { href: '/dashboard?library=open', label: 'My Library', icon: Library },
   { href: '/progress', label: 'Mind Score™', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const

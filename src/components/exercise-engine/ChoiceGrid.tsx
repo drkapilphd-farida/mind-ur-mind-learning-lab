@@ -7,6 +7,7 @@
 
 import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { FitText } from '@/components/typography/FitText'
 
 type ChoiceGridProps = {
   options: string[]               // exactly 4 options
@@ -18,6 +19,9 @@ type ChoiceGridProps = {
   // Optional custom renderer for icon-based exercises
   renderOption?: (option: string, index: number) => React.ReactNode
   disabled?: boolean
+  // Optional copy override — additive, defaults to the existing text for
+  // every exercise that doesn't pass it.
+  promptLabel?: string
 }
 
 export function ChoiceGrid({
@@ -28,6 +32,7 @@ export function ChoiceGrid({
   isFeedback,
   renderOption,
   disabled = false,
+  promptLabel = 'What did you see?',
 }: ChoiceGridProps): React.JSX.Element {
   // Keyboard shortcuts 1–4
   useEffect(() => {
@@ -43,7 +48,7 @@ export function ChoiceGrid({
   return (
     <div className="w-full space-y-3">
       <p className="text-center text-sm text-muted-foreground" aria-hidden="true">
-        What did you see?
+        {promptLabel}
       </p>
       <div className="grid grid-cols-2 gap-3" role="group" aria-label="Choose your answer">
         {options.map((option, idx) => {
@@ -72,7 +77,7 @@ export function ChoiceGrid({
               )}
             >
               <span className="mr-2 text-[10px] text-muted-foreground" aria-hidden="true">{idx + 1}</span>
-              {renderOption ? renderOption(option, idx) : option}
+              {renderOption ? renderOption(option, idx) : <FitText text={option} role="option" />}
             </button>
           )
         })}

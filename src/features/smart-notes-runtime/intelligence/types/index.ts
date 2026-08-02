@@ -1,0 +1,5 @@
+export type { SmartNotesSessionTracking } from './SmartNotesSessionTracking'
+export type { SmartNotesLearningProfile, SmartNotesLearningProfileTrend } from './SmartNotesLearningProfile'
+export type { NoteTakingPaceLevel, NoteTakingPaceRecommendation } from './NoteTakingPaceRecommendation'
+export type { SmartNotesContinueAction, SmartNotesContinueRecommendation } from './SmartNotesContinueRecommendation'
+export type { SmartNotesSessionCompletionIntelligence } from './SmartNotesSessionCompletionIntelligence'

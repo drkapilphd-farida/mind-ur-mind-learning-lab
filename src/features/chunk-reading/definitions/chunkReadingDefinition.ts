@@ -6,10 +6,10 @@ export const CHUNK_READING_DEFINITION: ExerciseDefinition = {
   id: 'chunk-reading',
   labId: 'quantum-speed-reading',
   title: 'Chunk Reading™',
-  description: 'Groups of words appear briefly — identify the chunk before it disappears. Chunk size increases as your visual span expands.',
+  description: 'A meaningful word group flashes briefly — identify it before it disappears. Chunk length increases as your visual span expands.',
   trainsAbility: 'Multi-word visual span',
   exerciseType: 'flash',
-  contentType: 'sentence',
+  contentType: 'chunk',
   interactionType: 'multiple-choice',
   dataset: CHUNK_READING_DATASET,
   adaptiveRules: {

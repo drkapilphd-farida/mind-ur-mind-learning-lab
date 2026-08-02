@@ -19,6 +19,7 @@ import type {
 } from '@/types/exercise-engine'
 import { listDatasets } from './contentEngine'
 import { shuffleArray, pickItems } from './randomizationEngine'
+import { DIFFICULTY_TIERS } from './difficultyEngine'
 
 // ── Cross-dataset query helpers ───────────────────────────────────────────
 
@@ -99,31 +100,50 @@ export function avoidRecentRepeats(
 
 // Pick items at a requested difficulty tier. If there aren't enough items
 // at that tier, backfill from adjacent tiers (nearest first).
-function pickWithDifficultyFallback(
+//
+// "Nearest first" must hold even when `count` asks for more than any one
+// tier realistically supplies — a caller requesting a generous buffer
+// (e.g. count: 200 against a 24-item curated tier) must never see that
+// buffer silently pull in and shuffle together every other tier's content
+// too. Each radius "ring" is picked (and only shuffled within itself)
+// before the next ring is ever touched — found and fixed via a real bug:
+// Progressive Chunk Reading's Level 1 (2-word chunks) rendered a 4-word
+// medium-tier chunk mid-session, because the old implementation collected
+// every tier into one flat array once the exact tier ran out, then
+// shuffled that whole merged pool uniformly, destroying tier preference
+// entirely rather than only backfilling the shortfall.
+export function pickWithDifficultyFallback(
   items: ContentItem[],
   difficulty: DifficultyTier,
   count: number,
   seed: number,
 ): ContentItem[] {
-  const tierOrder: DifficultyTier[] = ['beginner', 'easy', 'medium', 'advanced', 'expert']
-  const targetIdx = difficulty === 'adaptive' ? 2 : tierOrder.indexOf(difficulty)
+  // Reuse the canonical tier order (includes elite/master) instead of a
+  // local copy — a local 5-tier copy previously silently fell back to
+  // 'beginner' content for elite/master requests (indexOf returned -1).
+  const targetIdx = difficulty === 'adaptive' ? 2 : DIFFICULTY_TIERS.indexOf(difficulty)
 
-  const candidates: ContentItem[] = []
-  for (let radius = 0; candidates.length < count; radius++) {
-    if (radius > tierOrder.length) break
+  const picked: ContentItem[] = []
+  const usedIds = new Set<string>()
+
+  for (let radius = 0; picked.length < count; radius++) {
+    if (radius > DIFFICULTY_TIERS.length) break
     const radii = radius === 0 ? [0] : [-radius, radius]
+    const ringCandidates: ContentItem[] = []
     for (const delta of radii) {
-      const t = tierOrder[targetIdx + delta]
+      const t = DIFFICULTY_TIERS[targetIdx + delta]
       if (t !== undefined) {
-        const matching = items.filter(
-          (item) => item.difficulty === t && !candidates.includes(item),
-        )
-        candidates.push(...matching)
+        const matching = items.filter((item) => item.difficulty === t && !usedIds.has(item.id))
+        ringCandidates.push(...matching)
       }
     }
+    const stillNeeded = count - picked.length
+    const ringPicked = pickItems(ringCandidates, stillNeeded, seed + radius)
+    for (const item of ringPicked) usedIds.add(item.id)
+    picked.push(...ringPicked)
   }
 
-  return pickItems(candidates, count, seed)
+  return picked
 }
 
 // ── Master query function ─────────────────────────────────────────────────
@@ -166,6 +186,27 @@ export function getNextExerciseContent(query: DatasetQuery): ContentItem[] {
     : pickItems(prioritised, count, seed)
 }
 
+// ── Pool-scoped query (Sprint QSR-2.6 — Quantum Experience Parity™) ───────
+
+// The same real selection pipeline getContentForExercise runs (recent-repeat
+// avoidance, then tier-fallback picking) but over a caller-supplied pool
+// instead of the global dataset registry — the one seam a mission needs to
+// draw from real, non-registry content (e.g. a document's own generated
+// chunks) while reusing every other piece of the mission unmodified.
+export function getContentFromPool(
+  pool: readonly ContentItem[],
+  params: {
+    difficulty: DifficultyTier
+    count: number
+    excludeIds?: string[]
+    seed: number
+  },
+): ContentItem[] {
+  const { difficulty, count, excludeIds = [], seed } = params
+  const prioritised = avoidRecentRepeats([...pool], excludeIds, seed)
+  return pickWithDifficultyFallback(prioritised, difficulty, count, seed)
+}
+
 // ── Optimised content-type query ──────────────────────────────────────────
 
 // Faster path when the caller knows exactly which content type they need.
@@ -184,8 +225,7 @@ export function getContentForExercise(params: {
     (d) => d.contentType === contentType && d.locale === locale,
   )
   const pool = matchingDatasets.flatMap((d) => d.items)
-  const prioritised = avoidRecentRepeats(pool, excludeIds, seed)
-  return pickWithDifficultyFallback(prioritised, difficulty, count, seed)
+  return getContentFromPool(pool, { difficulty, count, excludeIds, seed })
 }
 
 // Re-export types needed by consumers so they only need one import

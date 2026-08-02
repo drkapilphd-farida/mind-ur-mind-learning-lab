@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -77,6 +77,14 @@
   --duration-slow: 500ms;
   --duration-slower: 700ms;
 }
+
+/*
+ * Motion Language™ easing (Sprint-12D) — no new tokens needed here.
+ * Tailwind's built-in ease-out/ease-in/ease-in-out (theme.css --ease-*)
+ * already are exactly "decelerate" (arrive softly), "accelerate" (leave
+ * quickly), and "standard" (calm default) — use those utility classes
+ * directly instead of duplicating the same curves under new names.
+ */
 
 :root {
   --background: oklch(1 0 0);
@@ -176,5 +184,408 @@
   50% {
     transform: scale(1.18);
     opacity: 1;
+  }
+}
+
+/*
+ * Pre-Reading Preparation's™ calm breathing circle (Quantum Speed
+ * Reading™ Sprint 1) — a slow, gentle scale/opacity cycle, deliberately
+ * much slower than exercise-reduced-motion-pulse above (4s vs typically
+ * sub-second), matching a calm "breathe in, breathe out" rhythm rather
+ * than an attention-grabbing pulse. Always gated behind
+ * usePrefersReducedMotion at the call site, same as every other animation
+ * in this pack.
+ */
+@keyframes breathing-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/*
+ * Image Persistence Challenge's™ Visual Fixation Anchor™ (Sprint 10F) —
+ * a very gentle glow-only pulse (opacity shift on the shadow, the dot itself
+ * never moves or resizes) every 3.5s. Deliberately subtler than
+ * breathing-pulse above (no scale change) so it can never distract from
+ * fixation. Gated behind usePrefersReducedMotion at the call site.
+ */
+@keyframes anchor-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 18px 4px rgba(252, 211, 77, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 26px 8px rgba(252, 211, 77, 0.85);
+  }
+}
+
+/*
+ * Breath Awareness™ 2.1 (UX Sprint, Visual Intelligence Lab™ preparation
+ * sequence) — ONE continuous, self-looping animation per layer (established
+ * last sprint to eliminate a JS-timer/CSS-transition handoff stall at every
+ * phase boundary). This revision only widens amplitude and synchronizes
+ * more layers onto the identical timeline — the mechanism, percentages
+ * (0%-33.333% inhale, 33.333%-50% hold flat, 50%-100% exhale, computed from
+ * BreathAwarenessScreen.tsx's unchanged PHASE_DURATION_MS: 4000/2000/6000ms
+ * = 12000ms/cycle), and per-keyframe easing (ease-out arriving into hold;
+ * cubic-bezier(0.86,0,0.07,1) slow-start/slow-end for exhale) are unchanged
+ * from last sprint. Every layer below shares these exact same percentages
+ * and easing curves by construction — "everything breathes together" is a
+ * property of the shared timeline, not a coincidence. Always gated behind
+ * usePrefersReducedMotion at the call site, on top of the blanket
+ * reduced-motion safety net below.
+ */
+@keyframes breath-awareness-orb-cycle {
+  0% {
+    transform: scale(0.62);
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    transform: scale(1.4);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: scale(1.4);
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    transform: scale(0.62);
+  }
+}
+
+/* Glow's blur radius is keyframe-animated (not a static Tailwind class) so
+   it can genuinely soften on inhale and tighten on exhale — filter: blur()
+   is compositor-friendly, same performance class as transform/opacity. */
+@keyframes breath-awareness-glow-cycle {
+  0% {
+    transform: scale(0.62);
+    opacity: 0.35;
+    filter: blur(20px);
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    transform: scale(1.45);
+    opacity: 1;
+    filter: blur(40px);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: scale(1.45);
+    opacity: 1;
+    filter: blur(40px);
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    transform: scale(0.62);
+    opacity: 0.35;
+    filter: blur(20px);
+  }
+}
+
+@keyframes breath-awareness-aura-cycle {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.15;
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    transform: scale(1.25);
+    opacity: 0.4;
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.4;
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    transform: scale(0.75);
+    opacity: 0.15;
+  }
+}
+
+/* Ambient lighting — a wide, very soft background wash that brightens on
+   inhale, dims on exhale. Deliberately the lowest-amplitude layer of the
+   set so it reads as atmosphere, never a distraction. */
+@keyframes breath-awareness-ambient-cycle {
+  0% {
+    opacity: 0.1;
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    opacity: 0.3;
+    animation-timing-function: ease-out;
+  }
+  50% {
+    opacity: 0.3;
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* Light/warmth (2.1) — a small, warm-white overlay on the orb whose opacity
+   rises on inhale and falls on exhale, reading as "slightly brighter,
+   slightly warmer" without animating gradient color stops directly (opacity
+   interpolation is simpler and more predictable cross-browser). */
+@keyframes breath-awareness-warmth-cycle {
+  0% {
+    opacity: 0.15;
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    opacity: 0.55;
+    animation-timing-function: ease-out;
+  }
+  50% {
+    opacity: 0.55;
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* Floating motion (2.1) — now synchronized to the same breath-cycle
+   timeline (previously an independent, decoupled drift): the orb rises
+   while inhaling, settles while exhaling. Still extremely subtle (6px). */
+@keyframes breath-awareness-float {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  33.333% {
+    transform: translateY(-6px);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(-6px);
+    animation-timing-function: cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/*
+ * Arrival Experience™ (Sprint LW-1A, renamed from "Welcome Experience™") —
+ * a very slow, continuous, self-looping wash for the /welcome/* background,
+ * following the same "one continuous @keyframes loop" convention as
+ * breathing-pulse/breath-awareness-* above. Only opacity and a gentle
+ * translate move — no scale, no color change — so it reads as calm ambient
+ * atmosphere, never a distraction. Neutral-toned only (this app's
+ * --primary/--accent tokens are grayscale, matching the brief's own "avoid
+ * bright colours"). Gated by usePrefersReducedMotion at the call site, on
+ * top of the blanket safety net below.
+ */
+@keyframes arrival-ambient-drift {
+  0% {
+    transform: translate(-2%, -1%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(2%, 1%) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-2%, -1%) scale(1);
+    opacity: 0.5;
+  }
+}
+
+/*
+ * Arrival Experience™ "minimal floating particles" — a slow, tiny vertical
+ * drift + opacity pulse for a handful of small ambient dots, distinct from
+ * arrival-ambient-drift's larger single wash. Deliberately understated
+ * (small amplitude, long duration) so it reads as "gentle depth," never a
+ * distraction. Gated the same way as every other animation on this page.
+ */
+@keyframes arrival-particle-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-14px);
+    opacity: 0.6;
+  }
+}
+
+/*
+ * Motion Language™ reduced-motion safety net (Sprint-12D) — a blanket
+ * fallback for any CSS animation/transition in the app, in case a call
+ * site's own usePrefersReducedMotion check is ever missed. JS-driven
+ * motion (useCountUp/RAF loops) already gates itself at the hook level
+ * and is unaffected by this rule.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Typography Engine — fluid, container-aware text fitting for stimulus and
+ * answer-card text across the Reading Intelligence Lab. See FitText.tsx.
+ *
+ * font-size is the SMALLER of two independent caps (never the larger),
+ * clamped to a role's floor/ceiling:
+ *   - a content-length term (--fit-shrink, 0..1, set per-instance by
+ *     FitText.tsx from word length/count) — long words shrink, short ones
+ *     stay near the role's max
+ *   - a cqi (container query inline-size) term (--fit-cqi-cap) — the exact
+ *     same text auto-adapts to whatever card it renders inside (a wide
+ *     flash stage vs. a narrow 2-column answer button) with zero JS and no
+ *     breakpoint-specific code, because every FitText instance establishes
+ *     its own containerType: 'size' context sized to its parent.
+ *
+ * overflow-wrap/word-break/hyphens is the hard guarantee underneath both:
+ * even content the formula didn't anticipate wraps instead of ever
+ * escaping its card.
+ */
+.fit-text {
+  display: block;
+  width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.25;
+  font-size: clamp(
+    var(--fit-min),
+    min(var(--fit-cqi-cap), calc(var(--fit-max) * (1 - var(--fit-shrink, 0)))),
+    var(--fit-max)
+  );
+}
+
+.fit-text-display {
+  --fit-min: 1.125rem;
+  --fit-max: 3rem;
+  --fit-cqi-cap: 14cqi;
+}
+
+.fit-text-symbol {
+  --fit-min: 2.5rem;
+  --fit-max: 5rem;
+  --fit-cqi-cap: 22cqi;
+}
+
+.fit-text-option {
+  --fit-min: 0.75rem;
+  --fit-max: 1.125rem;
+  --fit-cqi-cap: 13cqi;
+}
+
+.fit-text-line {
+  --fit-min: 1rem;
+  --fit-max: 1.75rem;
+  --fit-cqi-cap: 9cqi;
+}
+
+/*
+ * 'reading' role — Sentence Reading™'s Mini Learning Chapter sentences
+ * (the "Progressive Chunk Reading" attribution below is stale; PCR
+ * actually uses its own reading-1..5 roles — this base role is exclusive
+ * to Sentence Reading today, confirmed via grep before editing). Every
+ * other role above is tuned for instantaneous recognition (a stimulus
+ * caught in a single glance); this one is tuned for sustained, calm,
+ * book-like reading of a full sentence. Line-height 1.6 (up from 1.4) and
+ * a gentler --fit-cqi-cap (15cqi, down from 16) are this polish pass's
+ * only two changes — both purely typographic breathing room, not a
+ * min/max size change — favoring the looser leading and slightly calmer
+ * auto-scale that reading-comfort research (and the Apple Books/Kindle
+ * register this mission is styled after) consistently prefers over a
+ * flashcard's tighter, punchier proportions.
+ */
+.fit-text-reading {
+  --fit-min: 2rem;
+  --fit-max: 5rem;
+  --fit-cqi-cap: 15cqi;
+  line-height: 1.6;
+}
+
+/*
+ * Per-level reading roles — Progressive Chunk Reading™'s "typography
+ * should evolve" polish pass. All five stay within the same comfortable,
+ * premium range .fit-text-reading already established (never smaller or
+ * harder to read than Level 5's floor here) — only the size/line-height
+ * balance shifts: large and generous at Level 1 (short 2-word chunks,
+ * nothing else demanding attention), settling toward a calmer, more
+ * book-like rhythm by Level 4-5 (longer natural phrases, where a taller
+ * line-height and a slightly smaller ceiling reads more like a real page
+ * and less like a single oversized flashcard).
+ */
+.fit-text-reading-1 {
+  --fit-min: 2.25rem;
+  --fit-max: 5.5rem;
+  --fit-cqi-cap: 17cqi;
+  line-height: 1.4;
+}
+
+.fit-text-reading-2 {
+  --fit-min: 2rem;
+  --fit-max: 5rem;
+  --fit-cqi-cap: 16cqi;
+  line-height: 1.42;
+}
+
+.fit-text-reading-3 {
+  --fit-min: 2rem;
+  --fit-max: 4.75rem;
+  --fit-cqi-cap: 15cqi;
+  line-height: 1.45;
+}
+
+.fit-text-reading-4 {
+  --fit-min: 1.875rem;
+  --fit-max: 4.5rem;
+  --fit-cqi-cap: 14cqi;
+  line-height: 1.5;
+}
+
+.fit-text-reading-5 {
+  --fit-min: 1.75rem;
+  --fit-max: 4.25rem;
+  --fit-cqi-cap: 13cqi;
+  line-height: 1.55;
+}
+
+/*
+ * Sprint-6, Part 4 — Reading Reports print layout. Every browser's print
+ * dialog can already "Save as PDF," so this is the entire PDF-export
+ * story: no new dependency, no server-side renderer. Hides the persistent
+ * LabNavHeader nav and any .print:hidden controls (e.g. PrintButton),
+ * removes card shadows/backgrounds that don't reproduce well on paper,
+ * and keeps each report section from splitting awkwardly across pages.
+ */
+@media print {
+  nav[aria-label='Reading Intelligence Lab'] {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  [data-report-section] {
+    break-inside: avoid;
+    box-shadow: none !important;
   }
 }

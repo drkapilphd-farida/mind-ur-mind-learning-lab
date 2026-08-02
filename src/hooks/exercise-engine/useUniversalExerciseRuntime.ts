@@ -34,6 +34,35 @@ export type RuntimeResult = {
   metrics: PerformanceMetrics
   recommendation: ExerciseRecommendation
   accuracyMessage: string
+  // Longest run of consecutive correct answers within this completed
+  // session. Additive field — every existing consumer (Chunk/Phrase/
+  // Multi-Line Reading, RVI, Word Flash) simply doesn't read it, nothing
+  // about their behavior changes. Added for Number Flash's "Best Streak"
+  // result-screen figure, which has no honest way to be computed outside
+  // this hook: per-item ItemResponse data lives only in this hook's local
+  // state and was never previously exposed past session completion.
+  longestComboThisSession: number
+  // The full per-item response log for this completed session. Additive,
+  // same reasoning as longestComboThisSession — added for Mixed Flash's
+  // per-stimulus-type accuracy breakdown, which needs to know which
+  // specific items were answered correctly, not just an aggregate. The
+  // runtime doesn't need to know what "stimulus type" means — it just
+  // exposes the responses it already collects; Mixed Flash cross-
+  // references them against its own itemId→type map.
+  responses: ItemResponse[]
+}
+
+// Exported (not just used internally) so it has direct unit test coverage
+// without needing a React-hook-testing harness this project doesn't have
+// installed — it's a small pure function, testable in isolation.
+export function computeLongestCombo(responses: ItemResponse[]): number {
+  let longest = 0
+  let current = 0
+  for (const response of responses) {
+    current = response.isCorrect ? current + 1 : 0
+    longest = Math.max(longest, current)
+  }
+  return longest
 }
 
 // ── Metric computation (inline — avoids circular import) ──────────────────
@@ -254,6 +283,8 @@ export function useUniversalExerciseRuntime<TConfig = Record<string, unknown>>({
           metrics,
           recommendation,
           accuracyMessage: getCoachMessage(metrics.accuracyPercent, metrics.averageReactionTimeMs),
+          longestComboThisSession: computeLongestCombo(newResponses),
+          responses: newResponses,
         }
 
         setResult(sessionResult)

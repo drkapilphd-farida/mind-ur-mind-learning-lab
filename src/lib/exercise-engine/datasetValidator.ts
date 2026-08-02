@@ -61,7 +61,9 @@ export function getEmptyStateMessage(
 ): string {
   const typeLabel: Record<ContentType, string> = {
     word: 'words',
+    chunk: 'chunks',
     phrase: 'phrases',
+    'reading-phrase': 'phrases',
     sentence: 'sentences',
     number: 'numbers',
     symbol: 'symbols',
@@ -71,6 +73,10 @@ export function getEmptyStateMessage(
     letter: 'letters',
     paragraph: 'paragraphs',
     'memory-card': 'memory cards',
+    'everyday-object': 'objects',
+    'six-digit-number': 'numbers',
+    scene: 'scenes',
+    'visual-icon': 'icons',
   }
 
   const type = typeLabel[contentType] ?? contentType

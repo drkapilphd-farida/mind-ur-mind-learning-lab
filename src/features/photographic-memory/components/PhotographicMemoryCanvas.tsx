@@ -1,0 +1,336 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
+import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
+import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
+import { ReadingProgressBar } from '@/features/reading-engine/components/ReadingProgressBar'
+import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
+import {
+  ROUNDS_PER_SESSION,
+  PERFECT_SESSION_BONUS,
+  buildSessionRounds,
+  computeStreakMultiplier,
+  computePointsForCorrectGuess,
+  type PhotographicMemoryCategory,
+  type PhotographicMemoryCategoryFilter,
+  type PhotographicMemoryOptionContent,
+  type PhotographicMemoryRound,
+} from '../photographicMemoryDataset'
+import { MandalaSvg } from './MandalaSvg'
+import { IconClusterDisplay } from './IconClusterDisplay'
+import { ColorShapeGridDisplay } from './ColorShapeGridDisplay'
+
+const TICK_MS = 100
+// Hard Mode — flash duration stays within the required 0.7-1.0s window
+// for every category; Flash Word & Number Matrix specifically targets
+// the task's own "~0.7 seconds" callout since text reads faster than a
+// complex image.
+const FLASH_DURATION_MS_BY_CATEGORY: Record<PhotographicMemoryCategory, number> = {
+  mandala: 900,
+  'icon-cluster': 900,
+  'flash-matrix': 700,
+  'color-shape': 900,
+}
+const REVEAL_DURATION_MS = 900
+const RECALL_TIME_LIMIT_MS = 5000
+
+type RoundPhase = 'flashing' | 'recall' | 'revealing'
+
+type GuessOutcome = {
+  isCorrect: boolean
+  pointsEarned: number
+}
+
+type PhotographicMemoryCanvasProps = {
+  categoryFilter: PhotographicMemoryCategoryFilter
+  onComplete: (elapsedMs: number, correctCount: number, totalScore: number, bestStreak: number) => void
+  onExitRequested: (elapsedMs: number) => void
+}
+
+function getMultiplierBadgeClassName(multiplier: number): string {
+  if (multiplier >= 4) return 'border-fuchsia-500/60 bg-fuchsia-500/10 text-fuchsia-700'
+  if (multiplier === 3) return 'border-violet-500/60 bg-violet-500/10 text-violet-700'
+  if (multiplier === 2) return 'border-indigo-500/60 bg-indigo-500/10 text-indigo-700'
+  return 'border-border text-muted-foreground'
+}
+
+function renderFlashContent(target: PhotographicMemoryOptionContent): React.JSX.Element {
+  switch (target.kind) {
+    case 'mandala':
+      return <MandalaSvg pattern={target.pattern} className="h-48 w-48 text-foreground sm:h-56 sm:w-56" />
+    case 'icon-cluster':
+      return <IconClusterDisplay cluster={target.cluster} className="h-48 w-48 sm:h-56 sm:w-56" />
+    case 'color-shape':
+      return <ColorShapeGridDisplay pattern={target.pattern} className="w-full max-w-[220px]" />
+    case 'text':
+      return (
+        <p
+          className={`text-center font-bold text-foreground ${target.monospace ? 'font-mono text-4xl tracking-widest sm:text-5xl' : 'text-2xl sm:text-3xl'}`}
+        >
+          {target.displayText}
+        </p>
+      )
+  }
+}
+
+function renderOptionContent(option: PhotographicMemoryOptionContent): React.JSX.Element {
+  switch (option.kind) {
+    case 'mandala':
+      return <MandalaSvg pattern={option.pattern} rotationOffsetDeg={option.rotationOffsetDeg} className="h-full w-full text-foreground" />
+    case 'icon-cluster':
+      return <IconClusterDisplay cluster={option.cluster} className="h-full w-full" />
+    case 'color-shape':
+      return <ColorShapeGridDisplay pattern={option.pattern} className="w-full" />
+    case 'text':
+      return (
+        <p
+          className={`text-center font-semibold text-foreground ${option.monospace ? 'font-mono text-lg tracking-wide sm:text-xl' : 'text-sm sm:text-base'}`}
+        >
+          {option.displayText}
+        </p>
+      )
+  }
+}
+
+// Photographic Memory™ — deliberately NOT built on
+// useReadingRuntime/ReadingHeader: flashed content here has no word count
+// to honestly dose a WPM-paced dwell time against (an SVG mandala, an
+// icon cluster, or a color-shape grid isn't text), and there's no
+// target-pace concept for a pure visual-recall game. Instead this reuses
+// the two genuinely generic shell atoms directly (ReadingLayout,
+// ReadingProgressBar, ReadingStatTile) and owns its own minimal 100ms
+// tick for three independent timers: the overall session stopwatch, the
+// flash countdown, and the recall time limit.
+export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitRequested }: PhotographicMemoryCanvasProps): React.JSX.Element {
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const [rounds] = useState<readonly PhotographicMemoryRound[]>(() => buildSessionRounds(categoryFilter))
+  const [roundIndex, setRoundIndex] = useState(0)
+  const [phase, setPhase] = useState<RoundPhase>('flashing')
+  const currentRound: PhotographicMemoryRound | undefined = rounds[roundIndex]
+  const [flashRemainingMs, setFlashRemainingMs] = useState(() =>
+    currentRound ? FLASH_DURATION_MS_BY_CATEGORY[currentRound.category] : FLASH_DURATION_MS_BY_CATEGORY.mandala,
+  )
+  const [recallRemainingMs, setRecallRemainingMs] = useState(RECALL_TIME_LIMIT_MS)
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
+  const [lastOutcome, setLastOutcome] = useState<GuessOutcome | null>(null)
+  const [streak, setStreak] = useState(0)
+  const [bestStreakThisSession, setBestStreakThisSession] = useState(0)
+  const [correctCount, setCorrectCount] = useState(0)
+  const [totalScore, setTotalScore] = useState(0)
+  const [elapsedMs, setElapsedMs] = useState(0)
+  const [isComplete, setIsComplete] = useState(false)
+  const hasCalledCompleteRef = useRef(false)
+  const elapsedMsRef = useRef(0)
+
+  useEffect(() => {
+    elapsedMsRef.current = elapsedMs
+  }, [elapsedMs])
+
+  useEffect(() => {
+    if (isComplete) return
+    const interval = setInterval(() => setElapsedMs((ms) => ms + TICK_MS), TICK_MS)
+    return () => clearInterval(interval)
+  }, [isComplete])
+
+  // The literal flash countdown the task calls for — ticks down only
+  // while `phase === 'flashing'`, then hands off to the time-limited
+  // recall phase.
+  useEffect(() => {
+    if (phase !== 'flashing') return
+    if (flashRemainingMs <= 0) {
+      setRecallRemainingMs(RECALL_TIME_LIMIT_MS)
+      setPhase('recall')
+      return
+    }
+    const timeout = setTimeout(() => setFlashRemainingMs((ms) => Math.max(0, ms - TICK_MS)), TICK_MS)
+    return () => clearTimeout(timeout)
+  }, [phase, flashRemainingMs])
+
+  // A second timer element — the learner has a limited window to pick an
+  // answer, not just to memorize the flash. Running out counts as a miss
+  // (same as picking wrong): streak resets, the real match is revealed,
+  // no points awarded.
+  useEffect(() => {
+    if (phase !== 'recall') return
+    if (recallRemainingMs <= 0) {
+      handleTimeout()
+      return
+    }
+    const timeout = setTimeout(() => setRecallRemainingMs((ms) => Math.max(0, ms - TICK_MS)), TICK_MS)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, recallRemainingMs])
+
+  // Auto-advances to the next round (or finishes the sprint) once a guess
+  // has been revealed. Depends only on `phase`, matching the same
+  // established pattern every sibling gamified exercise's own
+  // reveal-advance effect uses — correctCount/totalScore/
+  // bestStreakThisSession/roundIndex are all stable for the whole reveal
+  // window, so reading them directly here is accurate, not stale; only
+  // elapsedMs keeps ticking independently during the reveal, which is why
+  // it's read via a ref instead.
+  useEffect(() => {
+    if (phase !== 'revealing') return
+    const timeout = setTimeout(() => {
+      const nextRound = roundIndex + 1
+      if (nextRound >= ROUNDS_PER_SESSION) {
+        setIsComplete(true)
+        if (!hasCalledCompleteRef.current) {
+          hasCalledCompleteRef.current = true
+          const perfectBonus = correctCount === ROUNDS_PER_SESSION ? PERFECT_SESSION_BONUS : 0
+          onComplete(elapsedMsRef.current, correctCount, totalScore + perfectBonus, bestStreakThisSession)
+        }
+      } else {
+        const nextCategory = rounds[nextRound]?.category
+        setRoundIndex(nextRound)
+        setSelectedOptionId(null)
+        setLastOutcome(null)
+        setFlashRemainingMs(nextCategory ? FLASH_DURATION_MS_BY_CATEGORY[nextCategory] : FLASH_DURATION_MS_BY_CATEGORY.mandala)
+        setPhase('flashing')
+      }
+    }, REVEAL_DURATION_MS)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
+
+  function handleGuess(optionId: string): void {
+    if (phase !== 'recall' || currentRound === undefined) return
+    const isCorrect = optionId === currentRound.correctOptionId
+    setSelectedOptionId(optionId)
+    setPhase('revealing')
+
+    if (isCorrect) {
+      const newStreak = streak + 1
+      const pointsEarned = computePointsForCorrectGuess(newStreak)
+      setStreak(newStreak)
+      setBestStreakThisSession((best) => Math.max(best, newStreak))
+      setCorrectCount((count) => count + 1)
+      setTotalScore((score) => score + pointsEarned)
+      setLastOutcome({ isCorrect: true, pointsEarned })
+    } else {
+      setStreak(0)
+      setLastOutcome({ isCorrect: false, pointsEarned: 0 })
+    }
+  }
+
+  function handleTimeout(): void {
+    if (phase !== 'recall') return
+    setSelectedOptionId(null)
+    setPhase('revealing')
+    setStreak(0)
+    setLastOutcome({ isCorrect: false, pointsEarned: 0 })
+  }
+
+  if (currentRound === undefined) {
+    return (
+      <ReadingLayout maxWidthClassName="max-w-2xl" onExit={() => onExitRequested(elapsedMs)}>
+        {null}
+      </ReadingLayout>
+    )
+  }
+
+  const attemptsSoFar = roundIndex + (phase === 'revealing' ? 1 : 0)
+  const accuracySoFar = attemptsSoFar > 0 ? Math.round((correctCount / attemptsSoFar) * 100) : 0
+  const progressPercent = Math.round((attemptsSoFar / ROUNDS_PER_SESSION) * 100)
+  const multiplier = computeStreakMultiplier(streak)
+  const flashDurationForRound = FLASH_DURATION_MS_BY_CATEGORY[currentRound.category]
+  const flashRemainingSeconds = (flashRemainingMs / 1000).toFixed(1)
+  const recallRemainingSeconds = (recallRemainingMs / 1000).toFixed(1)
+
+  return (
+    <ReadingLayout maxWidthClassName="max-w-2xl" onExit={() => onExitRequested(elapsedMs)}>
+      <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Photographic Memory™</p>
+
+      <div className="mt-4 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
+        <ReadingStatTile label="Round" value={`${roundIndex + 1} / ${ROUNDS_PER_SESSION}`} />
+        <ReadingStatTile label="Score" value={String(totalScore)} />
+        <ReadingStatTile label="Streak" value={String(streak)} />
+        <ReadingStatTile label="Accuracy" value={`${accuracySoFar}%`} />
+      </div>
+
+      <div className="mt-4 w-full">
+        <ReadingProgressBar progressPercent={progressPercent} />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <span
+          className={`rounded-full border px-3 py-1 text-xs font-semibold tracking-wide uppercase ${getMultiplierBadgeClassName(multiplier)}`}
+        >
+          Streak Multiplier ×{multiplier}
+        </span>
+      </div>
+
+      {phase === 'flashing' ? (
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <div className="flex min-h-48 items-center justify-center sm:min-h-56">{renderFlashContent(currentRound.target)}</div>
+          <div className="w-40">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+              <div
+                className={`h-full rounded-full bg-foreground ${prefersReducedMotion ? '' : 'transition-[width] duration-100 ease-linear'}`}
+                style={{ width: `${(flashRemainingMs / flashDurationForRound) * 100}%` }}
+              />
+            </div>
+            <p className="mt-2 text-center text-xs text-muted-foreground tabular-nums">{flashRemainingSeconds}s</p>
+          </div>
+          <p className="text-sm text-muted-foreground">Memorize this...</p>
+        </div>
+      ) : (
+        <>
+          {phase === 'revealing' && lastOutcome !== null ? (
+            <p className={`mt-6 text-center text-sm font-medium ${lastOutcome.isCorrect ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+              {lastOutcome.isCorrect ? `Perfect recall! +${lastOutcome.pointsEarned} points` : 'Not quite — the real match is glowing.'}
+            </p>
+          ) : (
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <p className="text-center text-sm text-muted-foreground">Which one matches what you just saw?</p>
+              <div className="w-32">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-border">
+                  <div
+                    className={`h-full rounded-full ${recallRemainingMs <= 1500 ? 'bg-red-500' : 'bg-foreground'} ${prefersReducedMotion ? '' : 'transition-[width] duration-100 ease-linear'}`}
+                    style={{ width: `${(recallRemainingMs / RECALL_TIME_LIMIT_MS) * 100}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-center text-[10px] text-muted-foreground tabular-nums">{recallRemainingSeconds}s to answer</p>
+              </div>
+            </div>
+          )}
+
+          <div className="mx-auto mt-6 grid w-full max-w-sm grid-cols-2 gap-4">
+            {currentRound.options.map((option) => {
+              const isCorrectOption = phase === 'revealing' && option.optionId === currentRound.correctOptionId
+              const isPickedWrong =
+                phase === 'revealing' && selectedOptionId === option.optionId && lastOutcome !== null && !lastOutcome.isCorrect
+
+              let stateClassName = 'border-border hover:border-primary/40 hover:bg-accent/20'
+              if (phase === 'revealing') {
+                if (isCorrectOption) {
+                  stateClassName = `border-emerald-500/70 bg-emerald-500/5 shadow-[0_0_24px_rgba(16,185,129,0.45)] ${prefersReducedMotion ? '' : 'scale-105'}`
+                } else if (isPickedWrong) {
+                  stateClassName = `border-red-500/60 bg-red-500/10 ${prefersReducedMotion ? '' : 'animate-pulse'}`
+                } else {
+                  stateClassName = 'border-border opacity-30'
+                }
+              }
+
+              return (
+                <button
+                  key={option.optionId}
+                  type="button"
+                  disabled={phase !== 'recall'}
+                  onClick={() => handleGuess(option.optionId)}
+                  aria-label="Photographic memory option"
+                  className={`flex aspect-square items-center justify-center rounded-2xl border p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 ${stateClassName}`}
+                >
+                  {renderOptionContent(option)}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+
+      <p className="mt-8 text-xs text-muted-foreground">{formatElapsedTime(elapsedMs)} elapsed</p>
+    </ReadingLayout>
+  )
+}

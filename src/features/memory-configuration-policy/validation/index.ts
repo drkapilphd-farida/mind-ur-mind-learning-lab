@@ -1,0 +1,6 @@
+export type { ConfigurationValueType, ConfigurationKeySchema } from './ConfigurationKeySchema'
+export type { ConfigurationValidationIssueType, ConfigurationValidationIssue } from './ConfigurationValidationIssue'
+export type { ConfigurationValidationResult } from './ConfigurationValidationResult'
+export { findDuplicateKeys } from './findDuplicateKeys'
+export { validateConfiguration } from './validateConfiguration'
+export { validateConfigurationProfile } from './validateConfigurationProfile'

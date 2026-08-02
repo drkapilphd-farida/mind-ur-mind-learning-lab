@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const LabIdSchema = z.enum(['quantum-speed-reading', 'memory-intelligence', 'focus-intelligence'])
+export const LabIdSchema = z.enum(['quantum-speed-reading', 'memory-intelligence', 'focus-intelligence', 'visual-intelligence'])
 
 export type LabId = z.infer<typeof LabIdSchema>
 

@@ -1,0 +1,6 @@
+export type { GraphNodeType, ChunkGraphNode, ConceptGraphNode, GraphNode } from './GraphNode'
+export type { GraphEdgeType, GraphEdgeDirection, GraphEdgeOrigin, GraphEdge } from './GraphEdge'
+export type { GraphVersion, LearningKnowledgeGraph } from './LearningKnowledgeGraph'
+export type { ConceptRole, GraphLearningMetadata } from './GraphLearningMetadata'
+export type { GraphAssessmentSignals } from './GraphAssessmentSignals'
+export type { GraphBuildOptions } from './GraphBuildOptions'

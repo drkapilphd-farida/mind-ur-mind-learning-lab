@@ -1,0 +1,1 @@
+export { resolveProviderAdapterCapabilities } from './resolveProviderAdapterCapabilities'

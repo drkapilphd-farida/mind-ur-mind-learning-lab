@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sheet'
 import { NavLinks } from '@/components/NavLinks'
 import { UserMenu } from '@/components/UserMenu'
+import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 
 type TopbarProps = {
   fullName: string | null
@@ -40,9 +41,10 @@ export function Topbar({
         </Button>
 
         <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
-          <SheetHeader className="flex h-14 shrink-0 flex-row items-center border-b px-4 py-0 space-y-0">
+          <SheetHeader className="flex h-14 shrink-0 flex-row items-center gap-2 border-b px-4 py-0 space-y-0">
+            <LivingBrainLogo size={22} decorative={false} animated={false} />
             <SheetTitle className="text-sm font-semibold tracking-tight">
-              Mind Ur Mind Learning Lab™
+              Mind Ur Mind
             </SheetTitle>
           </SheetHeader>
           <div className="py-4">

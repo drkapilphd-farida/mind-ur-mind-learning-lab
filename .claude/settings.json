@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(rm -f /Users/drkapildevsharma/Documents/Projects/MindUrMind/mind-ur-mind-learning-lab/.qa-focus-mobile.mjs /tmp/focus-mobile-discovery1.png)",
+      "Bash(npx vitest *)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(echo \"started PID $!\")"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
+    ]
+  }
+}

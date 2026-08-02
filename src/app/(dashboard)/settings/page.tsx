@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { UpdateProfileForm } from '@/features/user/components/UpdateProfileForm'
 import { UpdatePasswordForm } from '@/features/user/components/UpdatePasswordForm'
+import { listRetakeableAssessments } from '@/features/quantum-speed-reading-runtime/assessment/actions/listRetakeableAssessments'
+import { RetakeAssessmentButton } from '@/features/quantum-speed-reading-runtime/assessment/components/RetakeAssessmentButton'
 
 export const metadata: Metadata = {
   title: 'Settings',
@@ -23,6 +25,7 @@ export default async function SettingsPage(): Promise<React.JSX.Element> {
     .single()
 
   const fullName = profile?.full_name ?? ''
+  const retakeableAssessments = await listRetakeableAssessments(user.id)
 
   return (
     <div className="space-y-6">
@@ -57,6 +60,29 @@ export default async function SettingsPage(): Promise<React.JSX.Element> {
           </div>
           <UpdatePasswordForm />
         </section>
+
+        {retakeableAssessments.length > 0 && (
+          <>
+            <Separator />
+
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-base font-medium">Reading Assessment</h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Retake your Quantum Speed Reading assessment for a document to re-measure how you read it.
+                </p>
+              </div>
+              <ul className="space-y-3">
+                {retakeableAssessments.map((assessment) => (
+                  <li key={assessment.documentId} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-foreground">{assessment.projectTitle}</span>
+                    <RetakeAssessmentButton documentId={assessment.documentId} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
 
         <Separator />
 

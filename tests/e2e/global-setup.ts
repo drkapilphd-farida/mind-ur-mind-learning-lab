@@ -133,9 +133,10 @@ export default async function globalSetup(): Promise<void> {
     if (enrollErr && enrollErr.code !== '23505') {
       throw new Error(`E2E setup: failed to ensure enrollment — ${enrollErr.message}`)
     }
-  } catch (e: any) {
-    // If something unexpected happened, rethrow
-    if (e && e.message) throw e
+  } catch (e: unknown) {
+    if (typeof e === 'object' && e !== null && 'message' in e && typeof (e as { message: unknown }).message === 'string') {
+      throw e as Error
+    }
   }
 
   // Optionally ensure the lesson is marked complete for the test user so
@@ -158,8 +159,10 @@ export default async function globalSetup(): Promise<void> {
         throw new Error(`E2E setup: failed to ensure lesson completion — ${compErr.message}`)
       }
     }
-  } catch (e: any) {
-    if (e && e.message) throw e
+  } catch (e: unknown) {
+    if (typeof e === 'object' && e !== null && 'message' in e && typeof (e as { message: unknown }).message === 'string') {
+      throw e as Error
+    }
   }
 
   const projectRef = new URL(url).hostname.split('.')[0]

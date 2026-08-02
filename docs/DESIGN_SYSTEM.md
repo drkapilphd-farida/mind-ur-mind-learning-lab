@@ -82,6 +82,22 @@ consistently. Conventions to follow:
 - Disabled/locked opacity: `opacity-50` (form controls) or `opacity-60` (locked cards, e.g. `ModuleProgressCard`'s coming-soon state).
 - Decorative/muted icon opacity: `text-muted-foreground/30` (large empty-state icons).
 
+### Shadow / elevation — new in Sprint 0
+
+Same principle as spacing: no parallel shadow-token system — Tailwind's
+default `shadow-*` scale is already used consistently (48 call sites at
+`shadow-sm`, 10 at `shadow-md`, 5 at `shadow-lg` as of this sprint) and is
+now the documented convention rather than an ad hoc choice per component:
+
+| Elevation | Utility | Use |
+|---|---|---|
+| Resting | `shadow-sm` | Default card/surface elevation — the vast majority of surfaces. |
+| Raised | `shadow-md` | Hover states on interactive cards, dropdown menus (pair with `z-(--z-dropdown)`). |
+| Floating | `shadow-lg` | Dialogs/modals (pair with `z-(--z-modal)`), popovers, the most prominent transient surface on screen. |
+
+Pair the shadow with the matching z-index token from §1 above — elevation
+and stacking order should always move together.
+
 ## 2. Typography
 
 `src/lib/designSystem/typography.ts` exports `TYPOGRAPHY`, a named constant
@@ -144,6 +160,40 @@ not a separate component each:
   page layout); compose several `LoadingCard`s for any future one.
 - **Error Card** → no dedicated primitive needed; every route already has an
   `error.tsx` boundary using standard `Card`/`EmptyStateCard`-shaped markup.
+- **Skeleton Loader** → `LoadingCard` above *is* the skeleton primitive;
+  no separate `Skeleton` component was added — a bare pulsing block is
+  exactly what a skeleton is, and giving the same shape two names would
+  be the "parallel system" §1 already warns against.
+- **Progress Component — new in Sprint 0 (documented, not rebuilt).**
+  `src/components/exercises/ProgressRing.tsx` is already a fully generic,
+  accessible (`role="img"`, `aria-label`), reduced-motion-safe animated
+  ring — "No lab-specific logic here — any future Lab's progress drives
+  the same component" per its own header comment. This is the canonical
+  progress primitive for every future module; it was left in place rather
+  than moved into `ui/` to avoid touching its existing call sites this
+  sprint, but it is not feature-specific and should be imported directly
+  by new work rather than re-implemented.
+- **Status Badge — new in Sprint 0.** `src/components/ui/status-badge.tsx`.
+  A semantic wrapper over `Badge` with a controlled status vocabulary
+  (`active` / `pending` / `completed` / `locked` / `draft` / `expiring` /
+  `error`) that enforces §9's color rule at the type level: every routine
+  lifecycle status resolves to a neutral `Badge` variant (`outline` /
+  `secondary`), and only `expiring` (`warning`) and `error`
+  (`destructive`) — genuine cautionary/error states — get color. Prefer
+  this over reaching for `<Badge variant="...">` directly whenever the
+  badge represents an object's status, so that color-usage discipline is
+  structural, not a convention someone has to remember.
+
+## 4A. Dialog — new in Sprint 0
+
+`src/components/ui/dialog.tsx`, added via the shadcn CLI (Radix
+`Dialog` primitive, zero custom CSS, matches every existing token
+automatically — same approach as the Sprint 3A form primitives below).
+Elevation/z-index: `DialogContent` uses `shadow-lg` + `z-50` internally
+(shadcn default); if a call site needs to coordinate with the app's own
+`--z-modal` token, apply it via the `className` prop. No existing
+component was changed to adopt this — every current "are you sure?" or
+inline confirmation flow is untouched; `Dialog` is available for new work.
 
 ## 5. Form components
 
@@ -177,6 +227,32 @@ continuous or glide motion must check it and substitute the
 of motion-heavy animation. No new animation primitives were added; the
 duration tokens in §1 are the only 3A motion addition — pair them with the
 existing utilities (`duration-(--duration-base)` instead of `duration-300`).
+
+### Motion Language™ — new in Sprint-12D
+
+One unified motion language across the Quantum Speed Reading™ experience,
+built entirely from tokens already documented above — no new library, no
+new duration values:
+- **Easing**: no new tokens — Tailwind's built-in `ease-out` / `ease-in` /
+  `ease-in-out` (`theme.css` `--ease-*`) already are exactly "decelerate"
+  (entrances), "accelerate" (exits), and "standard" (calm default). Use
+  these utility classes directly instead of duplicating the same curves
+  under new names.
+- **Reduced-motion safety net**: a blanket `@media (prefers-reduced-motion:
+  reduce)` rule in `globals.css` collapses any CSS animation/transition
+  app-wide as a fallback, in case a call site's own
+  `usePrefersReducedMotion` check is ever missed. JS-driven motion
+  (`useCountUp`/RAF loops) is unaffected — it already gates itself at the
+  hook level.
+- **Page transitions**: `src/components/motion/PageTransition.tsx`, used by
+  `template.tsx` in the `quantum-speed-reading` and `visual-intelligence`
+  route segments — a fade + subtle rise on every navigation
+  (`template.tsx` remounts per-navigation, unlike `layout.tsx`).
+- **Phase-fade transitions**: `usePhaseFadeClass` (`src/hooks/exercises/`)
+  — the one shared `animate-in fade-in slide-in-from-bottom-2` idiom for
+  Mandala Persistence™ and Image Persistence Challenge™'s phase changes,
+  extracted so both stay byte-identical by construction instead of two
+  independently duplicated strings.
 
 ## 8. Layout system
 

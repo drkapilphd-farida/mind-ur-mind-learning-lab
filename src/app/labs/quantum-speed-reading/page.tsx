@@ -1,195 +1,167 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Check, Lock } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { ContinueLearningCard } from '@/components/exercises/ContinueLearningCard'
-import { ReadingIntelligenceActivatedCard } from '@/components/labs/ReadingIntelligenceActivatedCard'
-import { getModuleProgress, type ExerciseAvailability } from '@/lib/exercises/queries/getModuleProgress'
-import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
+import { createReadingIntelligenceExperience } from '@/features/reading-intelligence'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
-import { getLastIncompleteAttemptDuration, formatDurationLabel } from '@/lib/exercises/practiceHistory'
-import { computeReadingScore, computeMindScore } from '@/lib/exercises/mindScore'
+import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
+import { VISUAL_ACTIVATION_SEQUENCE } from '@/features/visual-intelligence/visualActivationSequence'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
+import { READING_EXPANSION_MODULE } from '@/features/quantum-speed-reading/readingExpansionModule'
+import { STAGE_COPY } from '@/features/quantum-speed-reading/stageCopy'
+import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
+import { JourneyHero } from '@/features/quantum-speed-reading/components/dashboard/JourneyHero'
+import { JourneyStatsRow } from '@/features/quantum-speed-reading/components/dashboard/JourneyStatsRow'
+import { JourneyTimeline, type JourneyTimelineStage } from '@/features/quantum-speed-reading/components/dashboard/JourneyTimeline'
+import { TodaysProgress } from '@/features/quantum-speed-reading/components/dashboard/TodaysProgress'
+import { LabPillarsGrid } from '@/features/quantum-speed-reading/components/dashboard/LabPillarsGrid'
+import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
+
+const ALL_SEQUENCES: readonly ExerciseSequenceItem[] = [...VISUAL_ACTIVATION_SEQUENCE, ...EYE_FOUNDATION_MODULE, ...READING_EXPANSION_MODULE]
+
+// SPRINT-2A — Quantum Speed Reading Library Cleanup™. Core Reading
+// Journey™'s own first exercise is always the "skip Reading Preparation™"
+// destination — reading it from the real, unmodified module array rather
+// than hardcoding the route string.
+const SKIP_TO_READING_PRACTICE_HREF = READING_EXPANSION_MODULE[0]?.href ?? '/labs/quantum-speed-reading/phrase-reading'
+
+function formatLastSessionLabel(occurredAt: string, exerciseTitle: string): string {
+  const dayMs = 86_400_000
+  const occurredDateKey = occurredAt.slice(0, 10)
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const daysAgo = Math.round((new Date(todayKey).getTime() - new Date(occurredDateKey).getTime()) / dayMs)
+  const when = daysAgo <= 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo} days ago`
+  return `${exerciseTitle} · ${when}`
+}
 
 export const metadata: Metadata = {
   title: 'Quantum Speed Reading Lab™',
-  description: 'The Eye Foundation Intelligence Stage — six activations that build the visual foundation real reading speed is built on.',
+  description:
+    'Your Brain Transformation Experience™ — Visual Activation™, Reading Preparation™ (optional), Core Reading Journey™, and Reading Intelligence™.',
 }
 
-const EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((exercise) => exercise.exerciseId)
-
-// Display labels using transformation language — no LMS terminology.
-const AVAILABILITY_LABEL: Record<ExerciseAvailability, string> = {
-  completed: 'Activated',
-  current: 'You are here',
-  locked: 'Locked',
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good Morning'
+  if (hour < 18) return 'Good Afternoon'
+  return 'Good Evening'
 }
 
-const AVAILABILITY_BADGE_VARIANT: Record<ExerciseAvailability, 'outline' | 'secondary' | 'default'> = {
-  completed: 'default',
-  current: 'secondary',
-  locked: 'outline',
+function findExercisePosition(
+  sequence: readonly ExerciseSequenceItem[],
+  exerciseId: string | undefined,
+): { index: number; total: number } | null {
+  if (exerciseId === undefined) return null
+  const index = sequence.findIndex((item) => item.exerciseId === exerciseId)
+  if (index === -1) return null
+  return { index: index + 1, total: sequence.length }
 }
 
-// Short activation description shown beneath each completed exercise — describes
-// what ability was developed, not what content was consumed.
-const ACTIVATION_DESCRIPTIONS: Record<string, string> = {
-  'eye-warm-up': 'Visual flexibility activated.',
-  'eye-stretch': 'Eye range and comfort activated.',
-  'eye-span': 'Peripheral awareness activated.',
-  'regression-control': 'Forward reading momentum activated.',
-  'reading-speed': 'Reading rhythm and pace activated.',
-  'rsvp': 'Rapid word recognition activated.',
-}
-
+// Sprint 49 — Reading Intelligence Lab™ Production Integration. Journey,
+// progress, streak, and Mind Score are no longer computed inline here — they
+// come from src/features/reading-intelligence/'s
+// createReadingIntelligenceExperience(), which performs the exact same
+// getModuleProgress/getPracticeSessions/computeJourneyProgress/
+// computeDailyStreak/computeReadingScore/computeMindScore/getMindScoreLabel
+// sequence this page used to run by hand (Sprint 46 was built by mirroring
+// this page precisely, so the rendered output is unchanged). Only the
+// current stage's exercise-level detail (title/position, for JourneyHero)
+// still needs a local getContinueLearningSummary call, since Sprint 46's
+// result doesn't expose per-exercise detail — everything else is a direct
+// read of the orchestrator's already-computed values. No journey, progress,
+// streak, or scoring logic is duplicated anywhere in this file.
 export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.Element> {
-  const [progress, sessions] = await Promise.all([
-    getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
-    getPracticeSessions('quantum-speed-reading'),
-  ])
-  const summary = getContinueLearningSummary(progress, EYE_FOUNDATION_MODULE)
+  const experience = await createReadingIntelligenceExperience().load()
+  const { journey, mindScore, mindScoreLabel, streak } = experience.journeyState
 
-  const completionPercent = progress.totalCount > 0
-    ? Math.round((progress.completedCount / progress.totalCount) * 100)
-    : 0
-  const readingScore = computeReadingScore(completionPercent, 0) // streak not needed here
-  const mindScore = computeMindScore([readingScore])
+  const recentSessions = await getPracticeSessions('quantum-speed-reading', 1)
+  const lastSession = recentSessions[0] ?? null
+  const lastSessionExerciseTitle = lastSession !== null ? (ALL_SEQUENCES.find((item) => item.exerciseId === lastSession.exerciseId)?.title ?? null) : null
+  const lastSessionLabel =
+    lastSession !== null && lastSessionExerciseTitle !== null ? formatLastSessionLabel(lastSession.occurredAt, lastSessionExerciseTitle) : null
 
-  const lastAttemptDurationMs =
-    summary.isResuming && summary.currentExercise !== null
-      ? getLastIncompleteAttemptDuration(sessions, summary.currentExercise.exerciseId)
+  const stageSequences: Record<string, readonly ExerciseSequenceItem[]> = {
+    'visual-activation': VISUAL_ACTIVATION_SEQUENCE,
+    'reading-preparation': EYE_FOUNDATION_MODULE,
+    'core-reading-journey': READING_EXPANSION_MODULE,
+  }
+
+  // SPRINT-2A — Reading Preparation™ is optional: Core Reading Journey™ only
+  // requires Visual Activation™, the same requirement Reading Preparation™
+  // itself already has (see preparation/page.tsx and phrase-reading/page.tsx's
+  // matching gate). Real data, not a duplicated check — reads the same
+  // progress snapshot the timeline/hero already receive.
+  const visualActivationStage = experience.progressSnapshot.stages.find((stage) => stage.stageId === 'visual-activation')?.progress ?? null
+  const isVisualActivationComplete = visualActivationStage !== null && visualActivationStage.totalCount > 0 && visualActivationStage.completedCount === visualActivationStage.totalCount
+
+  const currentStage = journey.stages.find((stage) => stage.status === 'current') ?? null
+  const currentStageCopy = currentStage !== null ? (STAGE_COPY[currentStage.id] ?? null) : null
+  const currentStageProgress =
+    currentStage !== null
+      ? (experience.progressSnapshot.stages.find((stage) => stage.stageId === currentStage.id)?.progress ?? null)
       : null
-
-  const resumeExercise =
-    progress.resumeExerciseId !== null && progress.resumeExerciseId !== progress.nextRecommendedExerciseId
-      ? EYE_FOUNDATION_MODULE.find((exercise) => exercise.exerciseId === progress.resumeExerciseId)
+  const currentStageSequence = currentStage !== null ? stageSequences[currentStage.id] : undefined
+  const currentStageSummary =
+    currentStageProgress !== null && currentStageSequence !== undefined
+      ? getContinueLearningSummary(currentStageProgress, currentStageSequence)
       : undefined
+  const currentExerciseTitle = currentStageSummary?.currentExercise?.title ?? null
+  const currentExercisePosition =
+    currentStageSequence !== undefined ? findExercisePosition(currentStageSequence, currentStageSummary?.currentExercise?.exerciseId) : null
+
+  const timelineStages: JourneyTimelineStage[] = journey.stages.map((stage) => ({
+    id: stage.id,
+    icon: STAGE_COPY[stage.id]?.icon ?? '',
+    title: stage.title,
+    status: stage.status,
+    href: stage.href,
+  }))
+
+  const nextStageTeaser = currentStage !== null ? (currentStageCopy?.nextStageTeaser ?? null) : null
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="text-center">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Intelligence Journey
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Eye Foundation Stage™
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground">
-          Six activations that build the visual habits real reading speed is built on. Practice them
-          in order, at your own pace — your mind evolves with every session.
-        </p>
-      </div>
+    <div>
+      <LabNavHeader currentSection="Lab Home" />
+      <div className="mx-auto max-w-2xl space-y-10 px-6 py-16 sm:py-20">
+        <JourneyHero
+          greeting={getGreeting()}
+          currentStageTitle={currentStage?.title ?? null}
+          currentStageIcon={currentStageCopy?.icon ?? null}
+          currentStageNumber={currentStage !== null ? Math.min(journey.completedStageCount + 1, journey.totalStageCount) : null}
+          totalStageCount={journey.totalStageCount}
+          missionSupportingLine={currentStageCopy?.missionSupportingLine ?? null}
+          estimatedTime={currentStageCopy?.estimatedTime ?? null}
+          currentExerciseTitle={currentExerciseTitle}
+          exercisePosition={currentExercisePosition}
+          continueHref={journey.continueHref}
+          isJourneyComplete={journey.isJourneyComplete}
+          secondaryHref={isVisualActivationComplete && currentStage?.id === 'reading-preparation' ? SKIP_TO_READING_PRACTICE_HREF : null}
+          secondaryLabel="Skip to Reading Practice →"
+        />
 
-      <div className="mt-8">
-        {/* When all exercises are activated, show the celebration card instead */}
-        {summary.isComplete ? (
-          <ReadingIntelligenceActivatedCard
-            completedCount={progress.completedCount}
-            totalCount={progress.totalCount}
+        <JourneyStatsRow
+          currentStreak={streak.currentStreak}
+          bestStreak={streak.bestStreak}
+          totalXp={experience.xp.totalXp}
+          readingLevelLabel={mindScoreLabel}
+          lastSessionLabel={lastSessionLabel}
+        />
+
+        <div>
+          <p className="mb-6 text-xs font-medium uppercase tracking-widest text-muted-foreground">Your Brain Evolution™</p>
+          {nextStageTeaser !== null && <p className="mb-4 text-sm text-muted-foreground">{nextStageTeaser}</p>}
+          <JourneyTimeline stages={timelineStages} currentStageId={currentStage?.id ?? null} />
+        </div>
+
+        <div>
+          <p className="mb-6 text-xs font-medium uppercase tracking-widest text-muted-foreground">Your Progress</p>
+          <TodaysProgress
+            completedStageCount={journey.completedStageCount}
+            totalStageCount={journey.totalStageCount}
             mindScore={mindScore}
+            mindScoreLabel={mindScoreLabel}
           />
-        ) : (
-          <>
-            <ContinueLearningCard
-              variant="hero"
-              eyebrow="Quantum Speed Reading Lab™"
-              title={summary.currentExercise?.title ?? 'Eye Foundation Stage™'}
-              actionLabel={summary.actionLabel}
-              actionHref={summary.currentExercise?.href ?? null}
-              completedCount={summary.completedCount}
-              totalCount={summary.totalCount}
-              lastCompletedTitle={summary.lastCompletedTitle}
-              isComplete={summary.isComplete}
-              {...(lastAttemptDurationMs !== null
-                ? { resumeContextLabel: `You stopped ${formatDurationLabel(lastAttemptDurationMs)} in last time` }
-                : {})}
-            />
+        </div>
 
-            {resumeExercise && (
-              <div className="mt-3 text-center">
-                <Button asChild variant="ghost" size="sm">
-                  <Link href={resumeExercise.href}>Resume {resumeExercise.title}</Link>
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+        <LabPillarsGrid />
       </div>
-
-      <ol className="mt-12 space-y-3">
-        {EYE_FOUNDATION_MODULE.map((exercise, index) => {
-          const availability = progress.availabilityByExerciseId[exercise.exerciseId] ?? 'locked'
-          const isLocked = availability === 'locked'
-          const isActivated = availability === 'completed'
-          const isCurrent = availability === 'current'
-          const activationDesc = ACTIVATION_DESCRIPTIONS[exercise.exerciseId]
-
-          return (
-            <li key={exercise.exerciseId}>
-              <Card
-                role="group"
-                aria-label={`${exercise.title}, ${AVAILABILITY_LABEL[availability]}`}
-                {...(isCurrent ? { 'aria-current': 'step' } : {})}
-                {...(isLocked ? { 'aria-disabled': true } : {})}
-                className={cn(
-                  'transition-shadow duration-200',
-                  isCurrent ? 'ring-2 ring-primary/40' : isLocked ? 'cursor-not-allowed' : 'hover:shadow-md',
-                )}
-              >
-                <CardContent className="flex items-center gap-4">
-                  {/* Step indicator */}
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
-                      isActivated ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
-                    )}
-                  >
-                    {isLocked ? <Lock className="size-3.5" /> : isActivated ? <Check className="size-4" /> : index + 1}
-                  </div>
-
-                  {/* Exercise info */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h2
-                        className={cn(
-                          'truncate text-sm font-medium',
-                          isLocked ? 'text-muted-foreground' : 'text-foreground',
-                        )}
-                      >
-                        {exercise.title}
-                      </h2>
-                      <Badge variant={AVAILABILITY_BADGE_VARIANT[availability]}>
-                        {AVAILABILITY_LABEL[availability]}
-                      </Badge>
-                    </div>
-                    {/* Show activation description for activated exercises; summary for others */}
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
-                      {isActivated && activationDesc ? activationDesc : exercise.summary}
-                    </p>
-                  </div>
-
-                  {/* Action button */}
-                  {isLocked ? (
-                    <Button variant="outline" size="sm" className="shrink-0" disabled aria-disabled="true">
-                      Locked
-                    </Button>
-                  ) : (
-                    <Button asChild variant="outline" size="sm" className="shrink-0">
-                      <Link href={exercise.href}>
-                        {isActivated ? 'Practice Again' : 'Begin Activation'}
-                      </Link>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </li>
-          )
-        })}
-      </ol>
     </div>
   )
 }

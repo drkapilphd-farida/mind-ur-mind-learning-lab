@@ -1,0 +1,6 @@
+export type { AdaptationRuleType } from './AdaptationRuleType'
+export type { AdaptationPriority } from './AdaptationPriority'
+export type { AdaptationRule } from './AdaptationRule'
+export type { AdaptationResult } from './AdaptationResult'
+export type { AdaptationMetadata } from './AdaptationMetadata'
+export type { PersonalizationAdaptation } from './PersonalizationAdaptation'

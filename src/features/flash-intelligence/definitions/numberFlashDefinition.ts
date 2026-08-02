@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { NUMBER_FLASH_DATASET } from '../numberFlashDataset'
+
+export const NUMBER_FLASH_DEFINITION: ExerciseDefinition = {
+  id: 'number-flash',
+  labId: 'quantum-speed-reading',
+  title: 'Number Flash™',
+  description: 'Train your brain to recognize numbers instantly.',
+  trainsAbility: 'Instant numerical recognition',
+  exerciseType: 'flash',
+  contentType: 'number',
+  interactionType: 'multiple-choice',
+  dataset: NUMBER_FLASH_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 90,
+    decreaseSpeedBelow: 70,
+    minSpeedMs: 50,
+    maxSpeedMs: 500,
+    defaultSpeedMs: 500,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/number-flash',
+  labHref: '/labs/quantum-speed-reading',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.number_flash.title',
+    description: 'exercise.number_flash.description',
+    instruction: 'exercise.number_flash.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.number_flash.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.number_flash.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}

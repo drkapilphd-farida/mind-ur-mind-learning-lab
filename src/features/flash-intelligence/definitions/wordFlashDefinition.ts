@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { WORD_FLASH_DATASET } from '../wordFlashDataset'
+
+export const WORD_FLASH_DEFINITION: ExerciseDefinition = {
+  id: 'word-flash',
+  labId: 'quantum-speed-reading',
+  title: 'Word Flash™',
+  description: 'A word flashes briefly — identify it before it disappears. Speed increases as your recognition sharpens.',
+  trainsAbility: 'Instant word recognition',
+  exerciseType: 'flash',
+  contentType: 'word',
+  interactionType: 'multiple-choice',
+  dataset: WORD_FLASH_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 90,
+    decreaseSpeedBelow: 70,
+    minSpeedMs: 50,
+    maxSpeedMs: 500,
+    defaultSpeedMs: 500,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/word-flash',
+  labHref: '/labs/quantum-speed-reading',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.word_flash.title',
+    description: 'exercise.word_flash.description',
+    instruction: 'exercise.word_flash.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.word_flash.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.word_flash.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}

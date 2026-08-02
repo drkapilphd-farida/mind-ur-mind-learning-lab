@@ -1,12 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
+import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import type { LabId } from '../types'
 
 export type ExerciseStatus = 'not-started' | 'in-progress' | 'completed'
 
 // Three states a student actually needs to recognize — "Learning Path":
-// completed exercises stay completed regardless of position; the first
-// not-yet-completed exercise in order is 'current' (always unlocked); every
-// not-yet-completed exercise after that is 'locked'.
+// an exercise is only 'completed' if every exercise before it in the
+// sequence is ALSO completed (monotonic — see deriveAvailability below);
+// the first not-yet-satisfied exercise in order is 'current' (always
+// unlocked); every exercise after that is 'locked', even one with its own
+// completed row further down the sequence.
 export type ExerciseAvailability = 'completed' | 'current' | 'locked'
 
 export type ModuleProgress = {
@@ -19,21 +22,41 @@ export type ModuleProgress = {
   totalCount: number
 }
 
-function deriveAvailability(
+// Monotonic by construction: once an earlier exercise in the sequence is
+// found incomplete, every exercise after it is 'locked' — even one with
+// its own 'completed' row. Under normal (guarded) usage this branch never
+// matters, since every route but the first calls getExerciseAccess before
+// rendering, so a later exercise can only ever be completed after every
+// earlier one already is. It only matters for a row that was written
+// out-of-order through some other path (a historical dev bypass, a direct
+// action call, a future regression) — in that case the row itself is left
+// untouched (still genuinely 'completed' in statusByExerciseId, still
+// shown as the true lastCompletedExerciseId), but it can no longer make a
+// still-incomplete earlier exercise look skippable.
+export function deriveAvailability(
   orderedExerciseIds: readonly string[],
   statusByExerciseId: Record<string, ExerciseStatus>,
 ): Record<string, ExerciseAvailability> {
+  // Dev/Test Mode™ — the single point every real lock (getExerciseAccess's
+  // read-time check, verifyExerciseIsUnlocked's write-time guard, and any
+  // hub listing page that reads availabilityByExerciseId to render a lock
+  // badge) ultimately derives from. Bypassing here, rather than at each of
+  // those call sites separately, keeps enforcement and display provably in
+  // sync — nothing can show "unlocked" while still rejecting the write, or
+  // vice versa. Completed status is left honest (still real progress info,
+  // not a lock concern); only 'locked' is ever suppressed.
+  const bypassLocks = isDevUnlockEnabled()
   const availabilityByExerciseId: Record<string, ExerciseAvailability> = {}
-  let reachedCurrent = false
+  let reachedIncomplete = false
 
   for (const exerciseId of orderedExerciseIds) {
     if (statusByExerciseId[exerciseId] === 'completed') {
       availabilityByExerciseId[exerciseId] = 'completed'
-    } else if (!reachedCurrent) {
-      availabilityByExerciseId[exerciseId] = 'current'
-      reachedCurrent = true
-    } else {
+    } else if (reachedIncomplete && !bypassLocks) {
       availabilityByExerciseId[exerciseId] = 'locked'
+    } else {
+      availabilityByExerciseId[exerciseId] = 'current'
+      reachedIncomplete = true
     }
   }
 

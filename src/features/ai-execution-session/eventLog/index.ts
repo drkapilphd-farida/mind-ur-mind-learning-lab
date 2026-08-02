@@ -1,0 +1,1 @@
+export { appendSessionEvent } from './appendSessionEvent'

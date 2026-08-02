@@ -1,0 +1,5 @@
+export type { MemorySnapshot, MemorySnapshotRecord } from './MemorySnapshot'
+export type { RollbackEngine } from './RollbackEngine'
+export { memoriesEqual } from './memoriesEqual'
+export { createRollbackEngine, DefaultRollbackEngine, type RollbackEngineDependencies } from './DefaultRollbackEngine'
+export { RollbackIntegrityError } from './RollbackIntegrityError'

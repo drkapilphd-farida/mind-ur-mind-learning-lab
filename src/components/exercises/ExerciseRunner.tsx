@@ -19,6 +19,15 @@ type ExerciseRunnerProps = {
   labHref?: string
   previousExercise?: AdjacentExerciseLink | null
   nextExercise?: AdjacentExerciseLink | null
+  // 21-Day Transformation Journey™ — additive, optional. When a caller
+  // (QuantumJourneySession) supplies this, the completion screen's primary
+  // action calls it instead of navigating anywhere on its own, so the
+  // wizard — not this runner — decides what "continue" means. Standalone
+  // usage (both omitted) is byte-for-byte unchanged. Exiting mid-exercise
+  // still always navigates away (handleExit, below) regardless — only
+  // natural completion is ever handed back to a wizard caller.
+  onComplete?: () => void
+  completionActionLabel?: string
 }
 
 // The shared intro → active → completion lifecycle every exercise runs.
@@ -32,6 +41,8 @@ export function ExerciseRunner({
   labHref,
   previousExercise,
   nextExercise,
+  onComplete,
+  completionActionLabel,
 }: ExerciseRunnerProps): React.JSX.Element {
   const router = useRouter()
   const { stage, start, recordCompletion, recordExit, awaitPendingSave } = useExerciseSession({
@@ -55,6 +66,10 @@ export function ExerciseRunner({
     // wait for that same save to land before navigating, rather than
     // re-triggering it.
     await awaitPendingSave()
+    if (onComplete) {
+      onComplete()
+      return
+    }
     if (nextExercise) {
       router.push(nextExercise.href)
       return
@@ -88,9 +103,9 @@ export function ExerciseRunner({
     <ExerciseCompletionScreen
       title={definition.completion.title}
       mentorLine={definition.completion.mentorLine}
-      primaryActionLabel={nextExercise ? `Continue Evolution: ${nextExercise.title}` : 'Back to Lab'}
+      primaryActionLabel={completionActionLabel ?? (nextExercise ? `Continue Evolution: ${nextExercise.title}` : 'Back to Lab')}
       onPrimaryAction={handleDone}
-      {...(nextExercise && labHref !== undefined
+      {...(nextExercise && labHref !== undefined && onComplete === undefined
         ? { secondaryActionLabel: 'Back to Lab', secondaryActionHref: labHref }
         : {})}
     />

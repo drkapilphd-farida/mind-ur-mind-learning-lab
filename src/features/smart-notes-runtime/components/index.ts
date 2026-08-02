@@ -1,0 +1,1 @@
+export { SmartNotesWorkspace } from './SmartNotesWorkspace'

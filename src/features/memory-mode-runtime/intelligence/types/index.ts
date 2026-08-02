@@ -1,0 +1,5 @@
+export type { MemorySessionTracking } from './MemorySessionTracking'
+export type { MemoryLearningProfile, MemoryLearningProfileTrend } from './MemoryLearningProfile'
+export type { AdaptiveDifficultyLevel, AdaptiveDifficultyRecommendation } from './AdaptiveDifficultyRecommendation'
+export type { SmartContinueAction, SmartContinueRecommendation } from './SmartContinueRecommendation'
+export type { SessionCompletionIntelligence } from './SessionCompletionIntelligence'

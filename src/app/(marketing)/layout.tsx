@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 
 const NAV_LINKS = [
   { href: '/#learning-system', label: 'Learning System' },
@@ -15,7 +16,8 @@ export default function MarketingLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b border-border/60 px-6 backdrop-blur-md sm:px-8">
-        <Link href="/" className="mr-8 text-sm font-semibold tracking-tight text-foreground">
+        <Link href="/" className="mr-8 flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
+          <LivingBrainLogo size={26} decorative={false} animated={false} />
           Mind Ur Mind Learning Lab™
         </Link>
 
@@ -35,8 +37,9 @@ export default function MarketingLayout({
           <Button asChild variant="ghost" size="sm">
             <Link href="/login">Sign In</Link>
           </Button>
+          {/* Sprint QSR-4 — same real-entry-point fix as page.tsx's hero CTA */}
           <Button asChild size="sm" className="rounded-full">
-            <Link href="/assessments">Start Free Assessment</Link>
+            <Link href="/welcome">Get Started</Link>
           </Button>
         </div>
       </header>

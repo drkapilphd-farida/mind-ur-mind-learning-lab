@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, ListOrdered, Menu } from 'lucide-react'
+import { BookOpen, LayoutDashboard, ListOrdered, Menu, FlaskConical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +15,12 @@ import {
 const NAV_ITEMS = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/courses', label: 'Courses', icon: BookOpen, exact: false },
+  // Dev/Test Mode™ — the route itself 404s in production (see
+  // (admin)/admin/dev-tools/page.tsx), but this nav entry is additionally
+  // hidden client-side there too, so it never even appears as a dead link.
+  ...(process.env.NODE_ENV !== 'production'
+    ? [{ href: '/admin/dev-tools', label: 'Dev Tools', icon: FlaskConical, exact: false }] as const
+    : []),
 ] as const
 
 function AdminNavLinks({

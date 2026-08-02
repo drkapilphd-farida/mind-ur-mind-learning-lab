@@ -1,0 +1,46 @@
+import type { ExerciseDefinition } from '@/types/exercise-engine'
+import { DEFAULT_SCORING_RULES } from '@/types/exercise-engine'
+import { SYMBOL_FLASH_DATASET } from '../symbolFlashDataset'
+
+export const SYMBOL_FLASH_DEFINITION: ExerciseDefinition = {
+  id: 'symbol-flash',
+  labId: 'quantum-speed-reading',
+  title: 'Symbol Flash™',
+  description: 'A symbol or small symbol group flashes briefly — identify it before it disappears.',
+  trainsAbility: 'Instant visual symbol recognition',
+  exerciseType: 'flash',
+  contentType: 'symbol',
+  interactionType: 'multiple-choice',
+  dataset: SYMBOL_FLASH_DATASET,
+  adaptiveRules: {
+    increaseSpeedAbove: 90,
+    decreaseSpeedBelow: 70,
+    minSpeedMs: 50,
+    maxSpeedMs: 500,
+    defaultSpeedMs: 500,
+    itemsPerSession: 20,
+    minAccuracyToComplete: 60,
+  },
+  speedMode: 'adaptive',
+  scoringRules: DEFAULT_SCORING_RULES,
+  intelligenceDimension: 'reading',
+  href: '/labs/quantum-speed-reading/symbol-flash',
+  labHref: '/labs/quantum-speed-reading',
+  locale: 'en',
+  i18nKeys: {
+    title: 'exercise.symbol_flash.title',
+    description: 'exercise.symbol_flash.description',
+    instruction: 'exercise.symbol_flash.instruction',
+    startLabel: 'exercise.common.start',
+    pauseLabel: 'exercise.common.pause',
+    resumeLabel: 'exercise.common.resume',
+    exitLabel: 'exercise.common.exit',
+    correctLabel: 'exercise.common.correct',
+    incorrectLabel: 'exercise.common.incorrect',
+    completedLabel: 'exercise.symbol_flash.completed',
+    practiceAgainLabel: 'exercise.common.practiceAgain',
+    questionPrompt: 'exercise.symbol_flash.questionPrompt',
+    keyboardHint: 'exercise.common.keyboardHint',
+  },
+  config: {},
+}

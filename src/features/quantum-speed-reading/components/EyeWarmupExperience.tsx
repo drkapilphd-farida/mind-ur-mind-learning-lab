@@ -11,7 +11,7 @@ const EYE_WARM_UP_DEFINITION: ExerciseDefinition = {
   exerciseId: 'eye-warm-up',
   intro: {
     title: 'Eye Warm-up',
-    description: "Let's loosen up your eyes before we begin.",
+    description: "Let's loosen up your eyes before we begin — relaxed eye muscles move faster and tire less during reading.",
     durationLabel: 'About 45 seconds',
     postureNote: 'Sit comfortably. Keep your head still — let your eyes do the moving.',
   },
@@ -23,7 +23,15 @@ const EYE_WARM_UP_DEFINITION: ExerciseDefinition = {
 
 const { previous, next } = getAdjacentExercises(EYE_FOUNDATION_MODULE, 'eye-warm-up')
 
-export function EyeWarmupExperience(): React.JSX.Element {
+type EyeWarmupExperienceProps = {
+  // 21-Day Transformation Journey™ — additive, optional. See
+  // ExerciseRunner.tsx's identical props for the full rationale;
+  // standalone usage (both omitted) is unchanged.
+  onComplete?: () => void
+  completionActionLabel?: string
+}
+
+export function EyeWarmupExperience({ onComplete, completionActionLabel }: EyeWarmupExperienceProps = {}): React.JSX.Element {
   return (
     <ExerciseRunner
       definition={EYE_WARM_UP_DEFINITION}
@@ -31,6 +39,8 @@ export function EyeWarmupExperience(): React.JSX.Element {
       labHref="/labs/quantum-speed-reading"
       previousExercise={previous}
       nextExercise={next}
+      {...(onComplete !== undefined ? { onComplete } : {})}
+      {...(completionActionLabel !== undefined ? { completionActionLabel } : {})}
     />
   )
 }
