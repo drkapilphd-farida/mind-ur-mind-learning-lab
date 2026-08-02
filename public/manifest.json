@@ -1,0 +1,23 @@
+{
+  "name": "Mind Ur Mind Learning Lab",
+  "short_name": "Mind Ur Mind",
+  "description": "AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2B4CE8",
+  "icons": [
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

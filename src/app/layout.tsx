@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { Toaster } from '@/components/ui/sonner'
@@ -23,6 +23,12 @@ export const metadata: Metadata = {
   },
   description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   metadataBase: new URL(appUrl),
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Mind Ur Mind',
+  },
   openGraph: {
     type: 'website',
     siteName: 'Mind Ur Mind Learning Lab™',
@@ -35,6 +41,12 @@ export const metadata: Metadata = {
     title: 'Mind Ur Mind Learning Lab™',
     description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   },
+}
+
+// themeColor lives on the separate `viewport` export, not `metadata` —
+// Next.js deprecated (and warns/build-errors on) putting it there.
+export const viewport: Viewport = {
+  themeColor: '#2B4CE8',
 }
 
 export default function RootLayout({

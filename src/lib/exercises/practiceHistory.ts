@@ -68,6 +68,30 @@ export function computeDailyStreak(
   return { currentStreak, bestStreak, lastPracticedDateKey }
 }
 
+// Brand Logo Warmth™ — real, derived "how many days in a row has this
+// user skipped" figure, never a fabricated counter. An active streak
+// (currentStreak > 0) always means 0 missed days by definition — the
+// streak logic above already resets currentStreak to 0 the moment a full
+// day passes with no practice, so a broken streak (currentStreak === 0)
+// with a real lastPracticedDateKey is exactly when days have actually
+// been missed. A user who has never practiced (lastPracticedDateKey is
+// null) shows 0, not a warning — they haven't skipped anything, they
+// just haven't started.
+export function computeMissedDaysSinceLastPractice(
+  { currentStreak, lastPracticedDateKey }: Pick<DailyStreak, 'currentStreak' | 'lastPracticedDateKey'>,
+  referenceDateKey: string = todayDateKey(),
+): number {
+  if (currentStreak > 0 || lastPracticedDateKey === null) return 0
+
+  let missed = 0
+  let cursor = dateKeyOffset(lastPracticedDateKey, 1)
+  while (cursor <= referenceDateKey) {
+    missed += 1
+    cursor = dateKeyOffset(cursor, 1)
+  }
+  return missed
+}
+
 export type TodaysProgress = {
   exercisesCompletedToday: number
   totalDurationMsToday: number

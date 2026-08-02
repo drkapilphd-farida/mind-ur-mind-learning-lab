@@ -233,15 +233,62 @@
   pointer-events: none;
 }
 
+/* Fallback values below (#2b4ce8/#0fd9a0, the brand gradient's own base
+   colors) make these two usable anywhere in the app, not just inside
+   `.glass-premium` — `--ambient-a`/`--ambient-b` shift with the
+   light/dark and missed-days states there, but most usages (e.g.
+   AppSidebar's permanent wordmark) aren't inside that scope at all. */
 .brand-gradient {
-  background: linear-gradient(135deg, var(--ambient-a), var(--ambient-b));
+  background: linear-gradient(135deg, var(--ambient-a, #2b4ce8), var(--ambient-b, #0fd9a0));
 }
 
 .brand-gradient-text {
-  background: linear-gradient(135deg, var(--ambient-a), var(--ambient-b));
+  background: linear-gradient(135deg, var(--ambient-a, #2b4ce8), var(--ambient-b, #0fd9a0));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/*
+ * Brand Logo Warmth™ — the persistent sidebar logo (AppSidebar.tsx). Two
+ * independent effects, both real-data-driven (missedDays, computed
+ * server-side in (dashboard)/layout.tsx from actual practice history —
+ * never a fabricated 0):
+ *  1. A continuous, subtle breathing scale, always on — "alive," not tied
+ *     to any user state.
+ *  2. A missed-days warmth wash: a red-tinted overlay blended on top of
+ *     the logo via mix-blend-mode (not hue-rotate — the brand gradient's
+ *     two stops, blue ~225° and green ~160°, would rotate to different
+ *     target hues under a single hue-rotate() and never both converge on
+ *     red). Opacity scales with --missed-intensity (0–1, set inline per
+ *     render), capped below 1 so the brand mark is never fully replaced
+ *     by red, just increasingly urgent.
+ */
+@keyframes breath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.brand-logo-wrap {
+  position: relative;
+  display: inline-flex;
+  animation: breath 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px var(--logo-glow-a, #2b4ce8aa)) drop-shadow(0 0 14px var(--logo-glow-b, #0fd9a088));
+}
+
+.brand-logo-warmth {
+  position: absolute;
+  inset: -15%;
+  border-radius: 9999px;
+  background: #ef4444;
+  mix-blend-mode: color;
+  opacity: var(--missed-intensity, 0);
+  pointer-events: none;
 }
 
 @layer base {
