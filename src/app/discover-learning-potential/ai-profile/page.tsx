@@ -3,6 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { buildAiLearningProfile } from '@/features/discover-learning-potential/profile/buildAiLearningProfile'
 import { AiProfileScreen } from './components/AiProfileScreen'
 
+// Explicit, not load-bearing here — this route already renders dynamically
+// on its own (supabase.auth.getUser() below reads cookies via next/headers,
+// which auto-opts App Router out of static generation). Added per explicit
+// request after a reported build-time prerender error on this route; a
+// clean `next build` in this environment shows it already listed as ƒ
+// (Dynamic), not ○ (Static), with zero prerender errors — so this line
+// makes existing behavior explicit rather than actually changing it. If
+// the original error persists after this, the real cause is elsewhere
+// (likely deployment-environment-specific, not reproducible locally).
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Your AI Learning Profile — Mind Ur Mind Learning Lab™',
   description: 'Here is what we discovered about how you learn.',
