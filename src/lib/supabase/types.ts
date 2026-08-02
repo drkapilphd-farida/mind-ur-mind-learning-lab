@@ -1590,8 +1590,11 @@ export type Database = {
       reading_intelligence_sessions: {
         Row: {
           accuracy_percent: number
+          attention_level: string | null
+          attention_score: number
           category: string
           completed: boolean
+          completion_percent: number
           comprehension_percent: number
           difficulty: string
           focus_mode: boolean
@@ -1600,15 +1603,20 @@ export type Database = {
           mode: string | null
           occurred_at: string
           passage_id: string
+          pause_count: number
           reading_intelligence_score: number
           reading_time_ms: number
+          resume_count: number
           user_id: string
           wpm: number
         }
         Insert: {
           accuracy_percent: number
+          attention_level?: string | null
+          attention_score?: number
           category: string
           completed?: boolean
+          completion_percent?: number
           comprehension_percent: number
           difficulty: string
           focus_mode?: boolean
@@ -1617,15 +1625,20 @@ export type Database = {
           mode?: string | null
           occurred_at?: string
           passage_id: string
+          pause_count?: number
           reading_intelligence_score: number
           reading_time_ms: number
+          resume_count?: number
           user_id: string
           wpm: number
         }
         Update: {
           accuracy_percent?: number
+          attention_level?: string | null
+          attention_score?: number
           category?: string
           completed?: boolean
+          completion_percent?: number
           comprehension_percent?: number
           difficulty?: string
           focus_mode?: boolean
@@ -1634,8 +1647,10 @@ export type Database = {
           mode?: string | null
           occurred_at?: string
           passage_id?: string
+          pause_count?: number
           reading_intelligence_score?: number
           reading_time_ms?: number
+          resume_count?: number
           user_id?: string
           wpm?: number
         }
