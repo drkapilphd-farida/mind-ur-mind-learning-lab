@@ -1,19 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { FileText, Loader2 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { formatRelativeDate } from '@/lib/formatRelativeDate'
 import { getQuantumDocumentHistory, type QuantumDocumentHistoryItem } from '../actions/getQuantumDocumentHistory'
-import { getQuantumDocumentById } from '../actions/getQuantumDocumentById'
 import { getLanguageName } from '../supportedLanguages'
-import type { QuantumDocument } from '../types'
 
 type DocumentHistorySidebarProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelectDocument: (document: QuantumDocument) => void
 }
 
 function firstLine(text: string | null): string | null {
@@ -21,38 +19,18 @@ function firstLine(text: string | null): string | null {
   return text.split('\n').find((line) => line.trim().length > 0)?.trim() ?? null
 }
 
-// Document History & Library — reopens a past quantum_documents row's
-// already-generated payload (see getQuantumDocumentById.ts) straight into
-// the widget's existing result state — no new upload, no new Claude call,
-// no new token cost. The list itself (getQuantumDocumentHistory.ts) only
-// ever fetches the light fields a row needs to render here; the full
-// payload is fetched on demand, only for the one document actually
-// clicked.
-export function DocumentHistorySidebar({ open, onOpenChange, onSelectDocument }: DocumentHistorySidebarProps): React.JSX.Element {
+// Document History & Library — each row links straight to that
+// document's own page (/library/[id] — Isolated Document View™). No
+// prefetch here: the destination page does its own real fetch
+// (getQuantumDocumentById), the same Server Component data flow every
+// other detail route in this app already uses.
+export function DocumentHistorySidebar({ open, onOpenChange }: DocumentHistorySidebarProps): React.JSX.Element {
   const [items, setItems] = useState<readonly QuantumDocumentHistoryItem[] | null>(null)
-  const [loadingId, setLoadingId] = useState<string | null>(null)
-  const [selectError, setSelectError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
-    setSelectError(null)
     void getQuantumDocumentHistory().then(setItems)
   }, [open])
-
-  async function handleSelect(item: QuantumDocumentHistoryItem): Promise<void> {
-    setSelectError(null)
-    setLoadingId(item.id)
-    const result = await getQuantumDocumentById(item.id)
-    setLoadingId(null)
-
-    if (!result.success) {
-      setSelectError(result.error)
-      return
-    }
-
-    onSelectDocument(result.document)
-    onOpenChange(false)
-  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -76,14 +54,13 @@ export function DocumentHistorySidebar({ open, onOpenChange, onSelectDocument }:
             <ul className="space-y-2">
               {items.map((item) => (
                 <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => void handleSelect(item)}
-                    disabled={loadingId !== null}
-                    className="flex w-full items-start gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  <Link
+                    href={`/library/${item.id}`}
+                    onClick={() => onOpenChange(false)}
+                    className="flex w-full items-start gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <div aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      {loadingId === item.id ? <Loader2 className="size-4 animate-spin text-primary" /> : <FileText className="size-4 text-primary" />}
+                      <FileText className="size-4 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
@@ -97,13 +74,11 @@ export function DocumentHistorySidebar({ open, onOpenChange, onSelectDocument }:
                       )}
                       <p className="mt-1 text-[11px] text-muted-foreground/70">{formatRelativeDate(item.createdAt)}</p>
                     </div>
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
           )}
-
-          {selectError && <p className="mt-3 text-center text-xs text-destructive" role="alert">{selectError}</p>}
         </div>
       </SheetContent>
     </Sheet>

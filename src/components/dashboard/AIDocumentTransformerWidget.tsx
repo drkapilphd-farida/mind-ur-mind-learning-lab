@@ -1,37 +1,27 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { FileText, Flame, RotateCcw, Sparkles, X } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { FileText, RotateCcw, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { UploadZone } from '@/components/learning/UploadZone'
 import { UploadProgress, type UploadProgressStatus } from '@/components/learning/UploadProgress'
 import { formatFileSize } from '@/lib/formatFileSize'
+import { formatRelativeDate } from '@/lib/formatRelativeDate'
 import { universalUploadParser } from '@/core/universal-learning-engine/upload'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
-import { useCountUp } from '@/hooks/exercises/useCountUp'
-import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
-import { cn } from '@/lib/utils'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
-import { QuantumDocumentSpeedReadingView } from '@/features/quantum-document-transformer/components/QuantumDocumentSpeedReadingView'
-import { QuantumDocumentRecallQuizView } from '@/features/quantum-document-transformer/components/QuantumDocumentRecallQuizView'
-import { SpiderNotesTreeView } from '@/features/quantum-document-transformer/components/SpiderNotesTreeView'
-import { FeynmanChallengeCard } from '@/features/quantum-document-transformer/components/FeynmanChallengeCard'
-import { MnemonicsListView } from '@/features/quantum-document-transformer/components/MnemonicsListView'
-import { SubjectLensView } from '@/features/quantum-document-transformer/components/SubjectLensView'
-import { saveQuantumDocumentSession } from '@/features/quantum-document-transformer/actions/saveQuantumDocumentSession'
-import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
-import { computeQuantumDocumentStreak } from '@/features/quantum-document-transformer/quantumDocumentSessionTracking'
+import { getLanguageName } from '@/features/quantum-document-transformer/supportedLanguages'
+import { type QuantumDocumentHistoryItem } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
 import { UpgradeToProBanner } from '@/features/quantum-document-transformer/components/UpgradeToProBanner'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
 import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type SupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import { DocumentHistorySidebar } from '@/features/quantum-document-transformer/components/DocumentHistorySidebar'
-import { SelectionTooltip } from '@/features/quantum-mentor/components/SelectionTooltip'
 import { logger } from '@/lib/logger'
 
 const ACCEPT = [
@@ -74,8 +64,6 @@ type UploadState = {
   progress: number
   errorMessage: string | null
 }
-
-type SessionPhase = 'results' | 'reading' | 'quiz' | 'complete'
 
 type TransformResponse =
   | { success: true; document: QuantumDocument }
@@ -168,116 +156,38 @@ function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: str
   )
 }
 
-// Text Selection & Interactive AI Mentor Copilot™ — a static, selectable
-// view of the document's own real reading text. Deliberately separate
-// from QuantumDocumentSpeedReadingView (the RSVP flash-reader hosted in
-// the session Dialog below): RSVP shows one word at a time and has no
-// continuous text a user could ever highlight, so this collapsed-by-
-// default section is what makes "select text inside Reading Text" a real,
-// possible interaction. Collapsed by default and height-capped once open
-// — a full document can run to thousands of words, and this section
-// exists for highlighting a passage, not for reading start-to-finish
-// (that's what the Quantum Session below is for).
-function ReadingTextSection({ readingText }: { readingText: string }): React.JSX.Element {
-  const [isExpanded, setIsExpanded] = useState(false)
-
+// Recent Documents™ — the dashboard's only document-related content now.
+// A compact quick-access row, not the heavy output itself (that lives on
+// its own page — see /library/[id]/page.tsx). Capped at 3 so this stays a
+// glance, not another feed; "My Library" (Document History™) is still the
+// way to browse everything.
+function RecentDocuments({ documents }: { documents: readonly QuantumDocumentHistoryItem[] }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-      <button
-        type="button"
-        onClick={() => setIsExpanded((current) => !current)}
-        className="flex w-full items-center justify-between gap-2 text-left"
-        aria-expanded={isExpanded}
-      >
-        <p className={TYPOGRAPHY.label}>Reading Text</p>
-        <span className="text-xs font-medium text-primary">{isExpanded ? 'Hide' : 'Show'}</span>
-      </button>
-
-      {isExpanded && (
-        <p className="mt-3 max-h-96 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground">{readingText}</p>
-      )}
-    </div>
-  )
-}
-
-function QuantumDocumentResultsCard({ document, onStartSession, onReset }: { document: QuantumDocument; onStartSession: () => void; onReset: () => void }): React.JSX.Element {
-  return (
-    <SelectionTooltip documentContext={`${document.title}\n\n${document.aiSummary}`} documentLanguage={document.targetLanguage}>
-      <div className="space-y-4">
-        <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-          <p className={TYPOGRAPHY.label}>Summary</p>
-          <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">{document.aiSummary}</p>
-        </div>
-
-        <SpiderNotesTreeView root={document.spiderNotes} />
-
-        <ReadingTextSection readingText={document.readingText} />
-
-        <FeynmanChallengeCard challenge={document.feynmanChallenge} />
-        <MnemonicsListView mnemonics={document.mnemonics} />
-        <SubjectLensView lens={document.subjectLens} />
-
-        <div>
-          <p className={TYPOGRAPHY.label}>Keywords</p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {document.keywords.map((keyword) => (
-              <Badge key={keyword} variant="outline">{keyword}</Badge>
-            ))}
-          </div>
-        </div>
-
-        <Button type="button" size="lg" className="w-full rounded-full" onClick={onStartSession}>
-          🚀 Start Quantum Session ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
-        </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={onReset}>
-          Transform another document
-        </Button>
-      </div>
-    </SelectionTooltip>
-  )
-}
-
-type SessionReward = { xpEarned: number; streak: number }
-
-// Gamification & XP Sync — the celebratory reveal. Reuses the exact same
-// animated-count-up + streak-flame visual language DailyQuantumSessionCard
-// already established on the real dashboard, so this reads as the same
-// reward system, not a one-off. Respects prefers-reduced-motion like every
-// other animated number in this app.
-function XpGainBadge({ xpEarned, streak }: SessionReward): React.JSX.Element {
-  const prefersReducedMotion = usePrefersReducedMotion()
-  const animatedXp = useCountUp(xpEarned, 800, prefersReducedMotion)
-
-  return (
-    <div
-      className={cn(
-        'flex flex-col items-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-6 py-4',
-        !prefersReducedMotion && 'animate-in zoom-in-95 fade-in duration-300',
-      )}
-    >
-      <div className="flex items-center gap-2 text-2xl font-bold tabular-nums text-foreground">
-        <Sparkles className="size-5 text-indigo-500" aria-hidden="true" />
-        +{Math.round(animatedXp)} XP
-      </div>
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Flame className={cn('size-4', streak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')} aria-hidden="true" />
-        {streak} day{streak !== 1 ? 's' : ''} streak
-      </div>
-    </div>
-  )
-}
-
-function QuantumSessionCompleteCard({ reward, onReset }: { reward: SessionReward | null; onReset: () => void }): React.JSX.Element {
-  return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-foreground/[0.02] p-6 text-center">
-      <p className={TYPOGRAPHY.h3}>Session complete 🎉</p>
-      <p className={TYPOGRAPHY.small}>You read the document and completed the recall quiz.</p>
-      {reward ? (
-        <XpGainBadge xpEarned={reward.xpEarned} streak={reward.streak} />
-      ) : (
-        <p className={cn(TYPOGRAPHY.caption, 'text-muted-foreground')}>We couldn&rsquo;t save your progress this time.</p>
-      )}
-      <Button type="button" variant="outline" onClick={onReset}>Transform another document</Button>
+    <div className="mb-4">
+      <p className={TYPOGRAPHY.label}>Recent Documents</p>
+      <ul className="mt-2 space-y-2">
+        {documents.slice(0, 3).map((document) => (
+          <li key={document.id}>
+            <Link
+              href={`/library/${document.id}`}
+              className="flex items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <div aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <FileText className="size-4 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="truncate text-sm font-medium text-foreground">{document.title}</p>
+                  {document.targetLanguage !== 'en' && (
+                    <Badge variant="outline" className="shrink-0 text-[10px]">{getLanguageName(document.targetLanguage)}</Badge>
+                  )}
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">{formatRelativeDate(document.createdAt)}</p>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -286,23 +196,20 @@ function QuantumSessionCompleteCard({ reward, onReset }: { reward: SessionReward
 // pipeline at /api/quantum-documents/transform: real text extraction for
 // PDF/DOCX/TXT/Image (images via Claude vision, see extractImage.ts), one
 // Claude Haiku call forced into a strict tool-use JSON shape, saved to
-// quantum_documents. On success, the returned payload flows directly into
-// an in-place Quantum Session (Dialog-hosted): Speed Reading over the
-// real extracted text, then an Active Recall quiz over the real generated
-// questions — no page navigation, no re-fetch, the exact response this
-// request already returned.
+// quantum_documents. On success, this widget navigates straight to the
+// document's own page (/library/[id]) — Isolated Document View™ — so the
+// main dashboard feed never has to render the heavy output inline.
 type AIDocumentTransformerWidgetProps = {
   isPro: boolean
   initialDocumentCount: number
+  recentDocuments: readonly QuantumDocumentHistoryItem[]
 }
 
-export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AIDocumentTransformerWidgetProps): React.JSX.Element {
+export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recentDocuments }: AIDocumentTransformerWidgetProps): React.JSX.Element {
+  const router = useRouter()
   const [zoneError, setZoneError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [upload, setUpload] = useState<UploadState | null>(null)
-  const [result, setResult] = useState<QuantumDocument | null>(null)
-  const [sessionPhase, setSessionPhase] = useState<SessionPhase>('results')
-  const [sessionReward, setSessionReward] = useState<SessionReward | null>(null)
   // Pro Paywall — starts from the real count the dashboard fetched at page
   // load, then tracked locally so a free user hits the real limit within
   // the same session without needing a full page reload. The Route
@@ -383,11 +290,10 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
       setUpload((current) => (current ? { ...current, status: 'processing', progress: 100 } : current))
       await new Promise((resolve) => setTimeout(resolve, 650))
 
-      setUpload(null)
-      setSelectedFile(null)
-      setSessionPhase('results')
-      setResult(json.document)
       setDocumentCount((current) => current + 1)
+      // Isolated Document View™ — the fresh result now lives on its own
+      // page instead of rendering inline here.
+      router.push(`/library/${json.document.id}`)
     } catch (error) {
       stopProgressTimer()
       logger.error('[QuantumDocumentTransformer] Transform request threw', { error: error instanceof Error ? error.message : 'Unknown error.' })
@@ -397,7 +303,6 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
 
   async function handleFileSelected(file: File): Promise<void> {
     setZoneError(null)
-    setResult(null)
     const validated = await universalUploadParser.parse(file)
     if (!validated.success) {
       setZoneError(validated.error.message)
@@ -440,61 +345,8 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
     setZoneError(null)
   }
 
-  function handleReset(): void {
-    setResult(null)
-    setSessionPhase('results')
-    setSessionReward(null)
-    setSelectedFile(null)
-    setZoneError(null)
-  }
-
-  // Document History & Library — loads a past document's already-generated
-  // payload straight into the same `result` state a fresh transform would
-  // populate, so every downstream view (Spider Notes, Feynman Challenge,
-  // the Quantum Session dialog) works unchanged. Deliberately does not
-  // touch `documentCount`: reopening a document a learner already paid
-  // for (in tokens or in a free-tier slot) is not a new upload.
-  function handleSelectHistoryDocument(document: QuantumDocument): void {
-    stopProgressTimer()
-    setUpload(null)
-    setSelectedFile(null)
-    setZoneError(null)
-    setSessionReward(null)
-    setSessionPhase('results')
-    setResult(document)
-  }
-
-  // Gamification & XP Sync — fires once, when the learner finishes BOTH
-  // real halves of the session (speed reading + self-assessed recall
-  // quiz). The XP number itself is never computed here — the Server
-  // Action recomputes it from the real correctAnswersCount so a tampered
-  // client request can't award arbitrary XP. The streak shown is
-  // recomputed fresh from the user's own real session history
-  // immediately after this session is saved, not incremented by hand.
-  async function handleQuizComplete(correctAnswersCount: number, totalQuestionsCount: number): Promise<void> {
-    if (!result) return
-
-    const saveResult = await saveQuantumDocumentSession({
-      quantumDocumentId: result.id,
-      correctAnswersCount,
-      totalQuestionsCount,
-    })
-
-    if (saveResult.success) {
-      const history = await getQuantumDocumentSessionHistory()
-      setSessionReward({ xpEarned: saveResult.xpEarned, streak: computeQuantumDocumentStreak(history) })
-    } else {
-      logger.error('[QuantumDocumentTransformer] Session Saved — FAIL', { error: saveResult.error })
-      setSessionReward(null)
-    }
-
-    setSessionPhase('complete')
-  }
-
-  const sessionDialogOpen = result !== null && (sessionPhase === 'reading' || sessionPhase === 'quiz')
-
   return (
-    <div className="glass-premium-card glass-premium-lift p-6">
+    <div className="glass-premium-card glass-premium-lift p-5 sm:p-6">
       <div className="flex items-center gap-1.5">
         <Sparkles className="size-3.5 text-indigo-500" aria-hidden="true" />
         <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Document Transformer™</p>
@@ -502,17 +354,11 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
       <p className="mt-1 text-sm text-muted-foreground">Drop PDFs, Word Docs, Text files, or Images/Notes here — we&rsquo;ll turn them into a summary, spider notes, keywords, and a quiz.</p>
 
       <div className="mt-5">
-        {!result && !isBlocked && (
+        {!isBlocked && (
           <LanguageSelector value={targetLanguage} onChange={setTargetLanguage} disabled={upload !== null} />
         )}
 
-        {result ? (
-          sessionPhase === 'complete' ? (
-            <QuantumSessionCompleteCard reward={sessionReward} onReset={handleReset} />
-          ) : (
-            <QuantumDocumentResultsCard document={result} onStartSession={() => setSessionPhase('reading')} onReset={handleReset} />
-          )
-        ) : isBlocked ? (
+        {isBlocked ? (
           <UpgradeToProBanner documentLimit={FREE_TIER_DOCUMENT_LIMIT} />
         ) : upload ? (
           upload.status === 'error' ? (
@@ -537,42 +383,21 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount }: AID
             </Button>
           </div>
         ) : (
-          <UploadZone
-            onFileSelected={(file) => void handleFileSelected(file)}
-            accept={ACCEPT}
-            title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
-            subtitle="or click to browse"
-            helperText="PDF · Word (.docx) · Text · PNG/JPEG"
-            errorMessage={zoneError}
-          />
+          <>
+            {recentDocuments.length > 0 && <RecentDocuments documents={recentDocuments} />}
+            <UploadZone
+              onFileSelected={(file) => void handleFileSelected(file)}
+              accept={ACCEPT}
+              title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
+              subtitle="or click to browse"
+              helperText="PDF · Word (.docx) · Text · PNG/JPEG"
+              errorMessage={zoneError}
+            />
+          </>
         )}
       </div>
 
-      {result && (
-        <Dialog open={sessionDialogOpen} onOpenChange={(open) => { if (!open) setSessionPhase('results') }}>
-          <DialogContent className="flex h-[85vh] max-w-3xl flex-col p-6 sm:max-w-3xl" showCloseButton={false}>
-            <DialogTitle className="sr-only">{result.title} — Quantum Session</DialogTitle>
-            {sessionPhase === 'reading' && (
-              <QuantumDocumentSpeedReadingView
-                title={result.title}
-                readingText={result.readingText}
-                onComplete={() => setSessionPhase(result.quizQuestions.length > 0 ? 'quiz' : 'complete')}
-                onExit={() => setSessionPhase('results')}
-              />
-            )}
-            {sessionPhase === 'quiz' && (
-              <QuantumDocumentRecallQuizView
-                title={result.title}
-                quizQuestions={result.quizQuestions}
-                onComplete={(correctAnswersCount, totalQuestionsCount) => void handleQuizComplete(correctAnswersCount, totalQuestionsCount)}
-                onExit={() => setSessionPhase('results')}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
-
-      <DocumentHistorySidebar open={historyOpen} onOpenChange={setHistoryOpen} onSelectDocument={handleSelectHistoryDocument} />
+      <DocumentHistorySidebar open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
   )
 }

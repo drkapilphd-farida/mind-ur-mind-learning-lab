@@ -191,6 +191,13 @@
   --ambient-opacity: 0.16;
   --ring-glow-opacity: 0.35;
   background: oklch(0.97 0.006 80);
+  /* Mobile Contrast Pass™ — real user testing found text inside glass
+     cards "dull and hard to read," worst on small screens. Scoped to
+     `.glass-premium` only (never touches the root `--muted-foreground`
+     used everywhere else in the app) and darkened enough to visibly
+     lift every TYPOGRAPHY.caption/.label/.small usage sitting on the
+     translucent glass surface. */
+  --muted-foreground: oklch(0.4 0 0);
 }
 
 .dark .glass-premium {
@@ -205,6 +212,35 @@
   --ambient-opacity: 0.35;
   --ring-glow-opacity: 0.6;
   background: #000000;
+  /* Mobile Contrast Pass™ — dark-mode counterpart: lightened well above
+     the root dark `--muted-foreground` (0.708) since it sits on a
+     near-black, heavily-blurred surface rather than the flat `--card`
+     background that value was tuned for. */
+  --muted-foreground: oklch(0.82 0 0);
+}
+
+/* Mobile Contrast Pass™ — on top of the darker/lighter --muted-foreground
+   above, small glass-card text (captions, eyebrow labels, metadata) reads
+   as genuinely thin on a phone screen; bumping its weight is a one-line,
+   fully reversible fix scoped to exactly the same `.glass-premium` glass
+   cards, real screen sizes only (doesn't touch desktop where the extra
+   weight was never reported as a problem). Also nudges the glass surface
+   itself (a touch more opaque, a touch more defined border) so cards read
+   as distinct surfaces instead of near-invisible film, in both themes. */
+@media (max-width: 640px) {
+  .glass-premium .text-muted-foreground {
+    font-weight: 500;
+  }
+
+  .glass-premium {
+    --glass-bg: oklch(1 0 0 / 68%);
+    --glass-border: oklch(1 0 0 / 88%);
+  }
+
+  .dark .glass-premium {
+    --glass-bg: oklch(1 0 0 / 7%);
+    --glass-border: oklch(1 0 0 / 15%);
+  }
 }
 
 .glass-premium-card {

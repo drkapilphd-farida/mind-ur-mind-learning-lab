@@ -51,7 +51,7 @@ export function DailyMomentumCard({
   const momentumPercent = bestStreak > 0 ? Math.round((currentStreak / Math.max(bestStreak, 7)) * 100) : 0
 
   return (
-    <div className="glass-premium-card glass-premium-lift p-6">
+    <div className="glass-premium-card glass-premium-lift p-5 sm:p-6">
       <div className="flex items-center gap-1.5">
         <Flame
           className={cn('size-3.5', currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground/40')}

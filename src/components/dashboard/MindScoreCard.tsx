@@ -67,7 +67,7 @@ export function MindScoreCard({ mindScore, readingScore }: MindScoreCardProps): 
   const offset = circ * (1 - mindScore / 100)
 
   return (
-    <div className="glass-premium-card glass-premium-lift flex h-full flex-col p-6">
+    <div className="glass-premium-card glass-premium-lift flex h-full flex-col p-5 sm:p-6">
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Mind Score™</p>
 
       {/* Main ring */}

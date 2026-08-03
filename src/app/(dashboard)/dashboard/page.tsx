@@ -25,6 +25,7 @@ import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { DailyMomentumCard } from '@/components/dashboard/DailyMomentumCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
+import { getQuantumDocumentHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { NextEvolutionCard } from '@/components/dashboard/NextEvolutionCard'
@@ -100,7 +101,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
   if (!user) return <div />
 
-  const [labProgress, labSessions, profile, dailyQuantumSessionHistory, isPaidUser, quantumDocumentCount, baselineDiagnostic] =
+  const [labProgress, labSessions, profile, dailyQuantumSessionHistory, isPaidUser, quantumDocumentCount, baselineDiagnostic, recentQuantumDocuments] =
     await Promise.all([
       getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
       getPracticeSessions('quantum-speed-reading'),
@@ -109,6 +110,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
       getIsPaidUser(user.id),
       getQuantumDocumentCount(user.id),
       getBaselineDiagnostic(),
+      getQuantumDocumentHistory(),
     ])
 
   // ── Daily Quantum Session™ — a separate progress source from the Eye
@@ -178,7 +180,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     : null
 
   return (
-    <div className="glass-premium relative -m-6 space-y-6 p-6 sm:-m-8 sm:p-8">
+    <div className="glass-premium relative -m-6 space-y-4 p-6 sm:-m-8 sm:space-y-6 sm:p-8">
       {/* Dashboard Glass™ ambient background — fixed so it stays full-
           viewport regardless of this page's own scroll position or the
           parent layout's max-w-4xl centering; -z-10 keeps it behind both
@@ -234,7 +236,11 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           "Upload & Learn™" card (/dashboard#upload-document), the direct,
           one-click destination for uploading a document from onboarding. */}
       <div id="upload-document">
-        <AIDocumentTransformerWidget isPro={isPaidUser} initialDocumentCount={quantumDocumentCount} />
+        <AIDocumentTransformerWidget
+          isPro={isPaidUser}
+          initialDocumentCount={quantumDocumentCount}
+          recentDocuments={recentQuantumDocuments.slice(0, 3)}
+        />
       </div>
 
       {/* Today's Mission™ + Mind Score™ */}
