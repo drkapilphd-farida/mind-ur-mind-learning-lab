@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -54,6 +55,21 @@ export function Topbar({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Branding Header™ — always visible on mobile (desktop already has
+          the persistent AppSidebar wordmark, so this stays md:hidden to
+          avoid showing the logo twice). Same brand-logo-wrap/brand-
+          gradient-text technique as AppSidebar.tsx and the Document
+          Detail page header — the CSS's own fallback values mean the
+          breathing glow renders correctly here too, with no missedDays
+          prop needed. */}
+      <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
+        <span className="brand-logo-wrap">
+          <LivingBrainLogo size={22} decorative={false} animated={false} />
+          <span className="brand-logo-warmth" aria-hidden="true" />
+        </span>
+        <span className="brand-gradient-text text-sm font-bold tracking-tight">Quantum Mind</span>
+      </Link>
 
       <div className="flex-1" />
 

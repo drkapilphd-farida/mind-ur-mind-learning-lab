@@ -10,25 +10,26 @@ import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import {
   computeDailyStreak,
   computeTodaysProgress,
-  computeWeeklyActivity,
   computeTotalPracticeStats,
 } from '@/lib/exercises/practiceHistory'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 import {
   computeReadingScore,
+  computeMemoryScore,
   computeMindScore as computeMindScore1000,
 } from '@/lib/exercises/mindScore'
 import { GreetingHeading } from '@/components/dashboard/GreetingHeading'
 import { AIMentorSection, AIMentorSkeleton } from '@/components/dashboard/AIMentorSection'
-import { TodaysMissionCard } from '@/components/dashboard/TodaysMissionCard'
 import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { DailyMomentumCard } from '@/components/dashboard/DailyMomentumCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { getQuantumDocumentHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
+import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
+import { getFixationSessions } from '@/features/visual-intelligence/fixation/queries/getFixationSessions'
+import { getFixationStats } from '@/features/visual-intelligence/fixation/queries/getFixationStats'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
-import { NextEvolutionCard } from '@/components/dashboard/NextEvolutionCard'
 import { AchievementsCard } from '@/components/dashboard/AchievementsCard'
 import { BrainEnergyCard } from '@/components/dashboard/BrainEnergyCard'
 import { AIMentorCTA } from '@/components/dashboard/AIMentorCTA'
@@ -40,11 +41,9 @@ import {
   computeLifetimeXp,
   computePersonalBestWpm,
   computeLongestStreakEver,
-  hasCompletedSessionToday,
 } from '@/app/unified-quantum-session-preview/components/dailyQuantumSessionTracking'
 import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagnostic/queries/getBaselineDiagnostic'
-import { getStreakBannerStatus, getNextJourneyDay, getMilestoneHitExactly } from '@/features/quantum-journey/streakMotivation'
-import { StreakReminderBanner } from '@/components/dashboard/StreakReminderBanner'
+import { getNextJourneyDay } from '@/features/quantum-journey/streakMotivation'
 
 export const metadata: Metadata = {
   title: 'Transformation Dashboard',
@@ -61,38 +60,6 @@ function computeMindScore(completionPercent: number, currentStreak: number): num
   return Math.min(100, practiceComponent + consistencyComponent)
 }
 
-// Returns the 3 exercises centered around the student's current position:
-// the last completed, the current (to-do next), and the upcoming one.
-// All statuses come from real exercise_progress data — nothing is fabricated.
-function buildMissionExercises(
-  completedCount: number,
-  totalCount: number,
-  nextId: string | null,
-  statusById: Record<string, string>,
-): Array<{ id: string; title: string; status: 'completed' | 'current' | 'upcoming' }> {
-  if (completedCount >= totalCount && totalCount > 0) {
-    // Module complete — show last 3 as all completed
-    return EYE_FOUNDATION_MODULE.slice(-3).map((ex) => ({
-      id: ex.exerciseId,
-      title: ex.title,
-      status: 'completed',
-    }))
-  }
-
-  const currentIndex = nextId
-    ? EYE_FOUNDATION_MODULE.findIndex((ex) => ex.exerciseId === nextId)
-    : 0
-  const start = Math.max(0, currentIndex - 1)
-  const slice = EYE_FOUNDATION_MODULE.slice(start, start + 3)
-
-  return slice.map((ex) => {
-    const s = statusById[ex.exerciseId]
-    if (s === 'completed') return { id: ex.exerciseId, title: ex.title, status: 'completed' as const }
-    if (ex.exerciseId === nextId) return { id: ex.exerciseId, title: ex.title, status: 'current' as const }
-    return { id: ex.exerciseId, title: ex.title, status: 'upcoming' as const }
-  })
-}
-
 export default async function TransformationDashboard(): Promise<React.JSX.Element> {
   const supabase = await createClient()
   const {
@@ -101,17 +68,29 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
   if (!user) return <div />
 
-  const [labProgress, labSessions, profile, dailyQuantumSessionHistory, isPaidUser, quantumDocumentCount, baselineDiagnostic, recentQuantumDocuments] =
-    await Promise.all([
-      getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
-      getPracticeSessions('quantum-speed-reading'),
-      getCurrentUserProfile(user.id),
-      getDailyQuantumSessionHistory(),
-      getIsPaidUser(user.id),
-      getQuantumDocumentCount(user.id),
-      getBaselineDiagnostic(),
-      getQuantumDocumentHistory(),
-    ])
+  const [
+    labProgress,
+    labSessions,
+    profile,
+    dailyQuantumSessionHistory,
+    isPaidUser,
+    quantumDocumentCount,
+    baselineDiagnostic,
+    recentQuantumDocuments,
+    quantumDocumentSessionHistory,
+    fixationSessions,
+  ] = await Promise.all([
+    getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
+    getPracticeSessions('quantum-speed-reading'),
+    getCurrentUserProfile(user.id),
+    getDailyQuantumSessionHistory(),
+    getIsPaidUser(user.id),
+    getQuantumDocumentCount(user.id),
+    getBaselineDiagnostic(),
+    getQuantumDocumentHistory(),
+    getQuantumDocumentSessionHistory(),
+    getFixationSessions(),
+  ])
 
   // ── Daily Quantum Session™ — a separate progress source from the Eye
   // Foundation Module data above (its own table, its own streak/XP
@@ -128,23 +107,16 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
   // themselves live only on that dedicated page now, not duplicated here.
   const hasBaseline = baselineDiagnostic !== null
 
-  // Daily Streak Reminders & Motivation System™ — the banner's status is
-  // derived fresh from real session dates every request (no caching, no
-  // separately mutable flag), so it's always instantly accurate the
-  // moment a new daily_quantum_sessions row exists.
-  const streakBannerStatus = getStreakBannerStatus({
-    sessionCount: dailyQuantumSessionHistory.length,
-    hasCompletedToday: hasCompletedSessionToday(dailyQuantumSessionHistory),
-    currentStreak: dailyQuantumStreak,
-  })
+  // The next real 21-Day Journey day (1-21) — same value the removed
+  // StreakReminderBanner's own "Day N is waiting for you" CTA used to
+  // compute, now passed straight into TwentyOneDayJourneyCard so its
+  // featured row reflects real progress instead of a hardcoded Day 1.
   const nextJourneyDay = getNextJourneyDay(dailyQuantumSessionHistory.length)
-  const milestoneReachedToday = hasCompletedSessionToday(dailyQuantumSessionHistory) ? getMilestoneHitExactly(dailyQuantumStreak) : null
 
   // ── Derived data from Learning Journey Engine ────────────────────────────
   const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
   const labStreak = computeDailyStreak(labSessions)
   const labToday = computeTodaysProgress(labSessions)
-  const labWeek = computeWeeklyActivity(labSessions)
   const labTotals = computeTotalPracticeStats(labSessions)
 
   const completionPercent = labProgress.totalCount > 0
@@ -153,24 +125,20 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
 
   // ── New computations (all from real data) ────────────────────────────────
   const mindScore = computeMindScore(completionPercent, labStreak.currentStreak)
-  const weeklyActiveDays = labWeek.filter((d) => d.sessionCount > 0).length
-  const consistencyPercent = Math.round((weeklyActiveDays / 7) * 100)
 
-  // 0–1000 scale Mind Score — used by NextEvolutionCard and AIMentorCTA.
-  // The local mindScore above remains 0–100 for MindScoreCard.
+  // 0–1000 scale Mind Score — used by AIMentorCTA. The local mindScore
+  // above remains 0–100 for MindScoreCard.
   const readingScore = computeReadingScore(completionPercent, labStreak.currentStreak)
   const mindScore1000 = computeMindScore1000([readingScore])
 
-  // Next Mind Score milestone (0–1000 scale)
-  const SCORE_THRESHOLDS = [100, 200, 400, 600, 800, 900, 1000] as const
-  const nextMindScoreGoal = SCORE_THRESHOLDS.find((t) => t > mindScore1000) ?? 1000
-
-  const missionExercises = buildMissionExercises(
-    labProgress.completedCount,
-    labProgress.totalCount,
-    labProgress.nextRecommendedExerciseId ?? null,
-    labProgress.statusByExerciseId as Record<string, string>,
-  )
+  // Mind Score breakdown — Memory (AI Document Transformer recall-quiz
+  // accuracy) and Focus (Visual Fixation Engine's own real, already-
+  // computed focus score) — both real proxies, both null (locked in the
+  // UI) until the student has real activity to derive them from, never a
+  // fabricated starting number.
+  const memoryScore = computeMemoryScore(quantumDocumentSessionHistory)
+  const fixationStats = getFixationStats(fixationSessions)
+  const focusScore = fixationStats.completedSessionCount > 0 ? fixationStats.focusScore : null
 
   const studentName = profile?.fullName ?? 'there'
   const studentFirstName = studentName.trim().split(' ').at(0) ?? 'there'
@@ -191,15 +159,6 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         <div className="glass-ambient-blob" style={{ width: 460, height: 460, top: 220, right: -140, background: 'var(--ambient-b)' }} />
         <div className="glass-ambient-blob" style={{ width: 380, height: 380, bottom: -160, left: '35%', background: 'var(--ambient-a)' }} />
       </div>
-
-      {/* Daily Streak Reminders & Motivation System™ */}
-      <StreakReminderBanner
-        studentFirstName={studentFirstName}
-        status={streakBannerStatus}
-        currentStreak={dailyQuantumStreak}
-        nextDay={nextJourneyDay}
-        milestoneReachedToday={milestoneReachedToday}
-      />
 
       {/* Hero */}
       <div className="glass-premium-card glass-premium-lift p-6 sm:p-8">
@@ -239,30 +198,22 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         <AIDocumentTransformerWidget
           isPro={isPaidUser}
           initialDocumentCount={quantumDocumentCount}
-          recentDocuments={recentQuantumDocuments.slice(0, 3)}
+          recentDocuments={recentQuantumDocuments.slice(0, 1)}
         />
       </div>
 
-      {/* Today's Mission™ + Mind Score™ */}
-      <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
-        <TodaysMissionCard
-          exercises={missionExercises}
-          actionHref={labSummary.currentExercise?.href ?? null}
-          actionLabel={labSummary.actionLabel ?? 'Begin session'}
-          isAllDone={labSummary.isComplete}
-          mindScoreGoal={nextMindScoreGoal}
-        />
-        <MindScoreCard
-          mindScore={mindScore}
-          readingScore={completionPercent}
-        />
-      </div>
+      {/* Mind Score™ */}
+      <MindScoreCard
+        mindScore={mindScore}
+        readingScore={completionPercent}
+        memoryScore={memoryScore}
+        focusScore={focusScore}
+      />
 
       {/* Daily Momentum™ */}
       <DailyMomentumCard
         currentStreak={labStreak.currentStreak}
         bestStreak={labStreak.bestStreak}
-        consistencyPercent={consistencyPercent}
         lastPracticedLabel={lastPracticedLabel}
       />
 
@@ -276,18 +227,8 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         longestStreakEver={dailyQuantumLongestStreakEver}
       />
 
-      {/* Next Evolution™ — Sprint 3E */}
-      <NextEvolutionCard
-        currentMindScore={mindScore1000}
-        nextMindScoreGoal={nextMindScoreGoal}
-        completedCount={labProgress.completedCount}
-        totalCount={labProgress.totalCount}
-        nextExerciseHref={labSummary.currentExercise?.href ?? null}
-        nextExerciseTitle={labSummary.currentExercise?.title ?? null}
-      />
-
       {/* 21-Day Transformation Journey™ */}
-      <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} />
+      <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
 
       {/* Achievements™ */}
       <AchievementsCard
@@ -296,6 +237,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         currentStreak={labStreak.currentStreak}
         bestStreak={labStreak.bestStreak}
         totalCompletedSessions={labTotals.totalCompletedSessions}
+        quantumDocumentCount={quantumDocumentCount}
       />
 
       {/* Brain Energy™ */}

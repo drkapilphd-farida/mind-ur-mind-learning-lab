@@ -13,6 +13,8 @@ type SubScore = {
 type MindScoreCardProps = {
   mindScore: number  // 0–100
   readingScore: number
+  memoryScore: number | null  // null = no Quantum Session completed yet
+  focusScore: number | null   // null = no Visual Fixation session completed yet
 }
 
 // Draws a compact SVG ring for a sub-score — separate from the main ProgressRing
@@ -50,14 +52,14 @@ function SmallRing({ value, size = 40 }: { value: number | null; size?: number }
 // Mind Score is computed from real practice data — never fabricated.
 // Sub-disciplines show real scores for active Labs and a locked state for
 // Labs that haven't launched yet, so no fake numbers are ever displayed.
-export function MindScoreCard({ mindScore, readingScore }: MindScoreCardProps): React.JSX.Element {
+export function MindScoreCard({ mindScore, readingScore, memoryScore, focusScore }: MindScoreCardProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedScore = useCountUp(mindScore, 900, prefersReducedMotion)
 
   const subScores: SubScore[] = [
     { label: 'Reading', value: readingScore },
-    { label: 'Memory', value: null },
-    { label: 'Focus', value: null },
+    { label: 'Memory', value: memoryScore },
+    { label: 'Focus', value: focusScore },
   ]
 
   const STROKE = 10

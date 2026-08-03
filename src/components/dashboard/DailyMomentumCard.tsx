@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 type DailyMomentumCardProps = {
   currentStreak: number
   bestStreak: number
-  consistencyPercent: number  // 0–100: days active in last 7
   lastPracticedLabel: string | null
 }
 
@@ -43,7 +42,6 @@ function MeterBar({ value, label, className }: { value: number; label: string; c
 export function DailyMomentumCard({
   currentStreak,
   bestStreak,
-  consistencyPercent,
   lastPracticedLabel,
 }: DailyMomentumCardProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -74,10 +72,10 @@ export function DailyMomentumCard({
           )}
         </div>
 
-        {/* Meters */}
-        <div className="col-span-2 flex flex-col justify-center gap-3">
+        {/* Meter — Consistency bar removed for a cleaner, Duolingo-style
+            focus on the one number that matters most: momentum. */}
+        <div className="col-span-2 flex flex-col justify-center">
           <MeterBar value={momentumPercent} label="Momentum" />
-          <MeterBar value={consistencyPercent} label="Consistency" />
         </div>
       </div>
 

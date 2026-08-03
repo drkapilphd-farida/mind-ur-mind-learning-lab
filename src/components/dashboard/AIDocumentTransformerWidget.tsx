@@ -3,17 +3,17 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FileText, RotateCcw, Sparkles, X } from 'lucide-react'
+import { FileText, RotateCcw, Sparkles, UploadCloud, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { UploadZone } from '@/components/learning/UploadZone'
 import { UploadProgress, type UploadProgressStatus } from '@/components/learning/UploadProgress'
 import { formatFileSize } from '@/lib/formatFileSize'
 import { formatRelativeDate } from '@/lib/formatRelativeDate'
 import { universalUploadParser } from '@/core/universal-learning-engine/upload'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
+import { cn } from '@/lib/utils'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
 import { getLanguageName } from '@/features/quantum-document-transformer/supportedLanguages'
 import { type QuantumDocumentHistoryItem } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
@@ -156,17 +156,74 @@ function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: str
   )
 }
 
+// Compact Upload Trigger™ — a bespoke, sleek replacement for the shared
+// UploadZone's large dashed drop zone (`py-16`, big centered icon) here
+// specifically, since UploadZone is also used by NewLearningProjectWizard
+// and shouldn't shrink for every caller. Single-row, mobile-friendly, but
+// keeps the exact same click-to-browse + drag-and-drop mechanics.
+function CompactUploadTrigger({ onFileSelected, errorMessage }: { onFileSelected: (file: File) => void; errorMessage: string | null }): React.JSX.Element {
+  const [isDragging, setIsDragging] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function handleFiles(fileList: FileList | null): void {
+    const file = fileList?.[0]
+    if (file) onFileSelected(file)
+  }
+
+  return (
+    <div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            inputRef.current?.click()
+          }
+        }}
+        onDragOver={(event) => {
+          event.preventDefault()
+          setIsDragging(true)
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault()
+          setIsDragging(false)
+          handleFiles(event.dataTransfer.files)
+        }}
+        className={cn(
+          'flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/20',
+          isDragging && 'border-primary bg-primary/5',
+        )}
+      >
+        <div aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <UploadCloud className="size-4 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">Upload a document</p>
+          <p className="truncate text-xs text-muted-foreground">PDF · Word · Text · Image — tap or drop</p>
+        </div>
+        <input ref={inputRef} type="file" accept={ACCEPT} className="sr-only" onChange={(event) => { handleFiles(event.target.files); event.target.value = '' }} />
+      </div>
+      {errorMessage && (
+        <p className="mt-2 text-xs text-destructive" role="alert">{errorMessage}</p>
+      )}
+    </div>
+  )
+}
+
 // Recent Documents™ — the dashboard's only document-related content now.
 // A compact quick-access row, not the heavy output itself (that lives on
-// its own page — see /library/[id]/page.tsx). Capped at 3 so this stays a
-// glance, not another feed; "My Library" (Document History™) is still the
-// way to browse everything.
+// its own page — see /library/[id]/page.tsx). Capped at 1 to save mobile
+// vertical space; "My Library" (Document History™) is still the way to
+// browse everything.
 function RecentDocuments({ documents }: { documents: readonly QuantumDocumentHistoryItem[] }): React.JSX.Element {
   return (
     <div className="mb-4">
-      <p className={TYPOGRAPHY.label}>Recent Documents</p>
+      <p className={TYPOGRAPHY.label}>Recent Document</p>
       <ul className="mt-2 space-y-2">
-        {documents.slice(0, 3).map((document) => (
+        {documents.slice(0, 1).map((document) => (
           <li key={document.id}>
             <Link
               href={`/library/${document.id}`}
@@ -349,11 +406,10 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
     <div className="glass-premium-card glass-premium-lift p-5 sm:p-6">
       <div className="flex items-center gap-1.5">
         <Sparkles className="size-3.5 text-indigo-500" aria-hidden="true" />
-        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Document Transformer™</p>
+        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Transform Document for 10x Reading &amp; Memorizing</p>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">Drop PDFs, Word Docs, Text files, or Images/Notes here — we&rsquo;ll turn them into a summary, spider notes, keywords, and a quiz.</p>
 
-      <div className="mt-5">
+      <div className="mt-4">
         {!isBlocked && (
           <LanguageSelector value={targetLanguage} onChange={setTargetLanguage} disabled={upload !== null} />
         )}
@@ -385,14 +441,7 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
         ) : (
           <>
             {recentDocuments.length > 0 && <RecentDocuments documents={recentDocuments} />}
-            <UploadZone
-              onFileSelected={(file) => void handleFileSelected(file)}
-              accept={ACCEPT}
-              title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
-              subtitle="or click to browse"
-              helperText="PDF · Word (.docx) · Text · PNG/JPEG"
-              errorMessage={zoneError}
-            />
+            <CompactUploadTrigger onFileSelected={(file) => void handleFileSelected(file)} errorMessage={zoneError} />
           </>
         )}
       </div>

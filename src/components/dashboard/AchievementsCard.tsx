@@ -1,4 +1,4 @@
-import { Star, Flame, BookOpen, Zap, Trophy, CheckCircle2 } from 'lucide-react'
+import { Star, Flame, BookOpen, Zap, Trophy, CheckCircle2, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 
@@ -16,6 +16,7 @@ type AchievementsCardProps = {
   currentStreak: number
   bestStreak: number
   totalCompletedSessions: number
+  quantumDocumentCount: number
 }
 
 // All achievements are computed from real practice data — never awarded for
@@ -27,6 +28,7 @@ function buildAchievements({
   currentStreak,
   bestStreak,
   totalCompletedSessions,
+  quantumDocumentCount,
 }: AchievementsCardProps): Achievement[] {
   return [
     {
@@ -70,6 +72,13 @@ function buildAchievements({
       label: 'Reading Master',
       description: 'Completed the Eye Foundation Module',
       achieved: completedCount >= totalCount && totalCount > 0,
+    },
+    {
+      id: 'document-explorer',
+      icon: FileText,
+      label: 'Document Explorer',
+      description: 'Transformed your first document',
+      achieved: quantumDocumentCount >= 1,
     },
   ]
 }

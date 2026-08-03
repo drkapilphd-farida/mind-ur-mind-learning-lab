@@ -19,9 +19,23 @@ export function computeReadingScore(
   return Math.min(100, Math.round(breadth + consistency))
 }
 
-// When future Labs are live, add a parallel function here:
-//   export function computeMemoryScore(...): number { ... }
-//   export function computeFocusScore(...): number { ... }
+// Memory Intelligence score: average recall-quiz accuracy across every
+// completed AI Document Transformer Quantum Session — a real signal
+// (comprehension of uploaded material), distinct from Reading
+// Intelligence's exercise-completion breadth. Returns null (never 0)
+// when the student hasn't completed one yet — an honest "not yet
+// attempted" state, never a fabricated starting score. (Focus's
+// equivalent lives in the Visual Fixation Engine's own
+// computeFocusScore — src/features/visual-intelligence/fixation/focusScore.ts
+// — reused directly rather than duplicated here.)
+export function computeMemoryScore(
+  documentSessions: readonly { correctAnswersCount: number; totalQuestionsCount: number }[],
+): number | null {
+  if (documentSessions.length === 0) return null
+  const averageAccuracy =
+    documentSessions.reduce((sum, session) => sum + (session.correctAnswersCount / session.totalQuestionsCount) * 100, 0) / documentSessions.length
+  return Math.round(averageAccuracy)
+}
 
 // ── Overall Mind Score™ (0–1000) ─────────────────────────────────────────
 

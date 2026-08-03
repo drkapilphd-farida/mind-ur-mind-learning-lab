@@ -19,26 +19,26 @@ function fallbackMessage(input: MentorMessageInput): string {
   const first = studentName.split(' ')[0]
 
   if (completedCount === 0) {
-    return `Welcome to your transformation journey, ${first}. Your first Mind Session is ready — it takes less than 5 minutes and it's the most important step you'll take today. Every expert was once a beginner.`
+    return `${first}, your first Mind Session is ready — every expert was once a beginner.`
   }
 
   if (todaySessionCount > 0) {
     if (currentStreak >= 7) {
-      return `${first}, your ${currentStreak}-day streak shows real commitment to your mind. You've already practiced today — that consistency is what transforms potential into ability. Keep building on this momentum.`
+      return `${first}, your ${currentStreak}-day streak is real commitment — keep building on this momentum.`
     }
-    return `You've already practiced today, ${first} — that single decision puts you ahead of where you were yesterday. Your mind is building new habits with every session. Keep going.`
+    return `You've already shown up today, ${first} — that's how transformation happens.`
   }
 
   if (currentStreak >= 3) {
-    return `${first}, you're on a ${currentStreak}-day streak. That kind of consistency is how transformation actually happens — not in one big session, but in showing up every single day. Your mind is ready for today's practice.`
+    return `${first}, your ${currentStreak}-day streak is proof — your mind is ready for today's practice.`
   }
 
   const remaining = totalCount - completedCount
   if (remaining === 1) {
-    return `${first}, you're one exercise away from completing the Eye Foundation Module. This is the kind of moment that separates those who intend to grow from those who actually do. Today is the day.`
+    return `${first}, you're one exercise away from finishing — today is the day.`
   }
 
-  return `${first}, you've completed ${completedCount} of ${totalCount} exercises in your Reading Intelligence journey. Every practice session is rewiring how your mind processes information. Today's session matters.`
+  return `${first}, you've completed ${completedCount} of ${totalCount} exercises — today's session matters.`
 }
 
 // Calls the Anthropic API to generate a personalized, transformation-focused
@@ -66,7 +66,7 @@ Reading exercises completed: ${completedCount} of ${totalCount}
 Sessions today: ${todaySessionCount}
 Total sessions ever: ${totalCompletedSessions}
 
-Write exactly 2–3 sentences.
+Write exactly ONE single sentence — punchy, highly motivating, no more than 20 words.
 Be specific about their actual numbers — don't be generic.
 Sound like someone who genuinely knows them and is rooting for them.
 Focus on transformation, growth, momentum — never content or lessons.
@@ -76,7 +76,7 @@ No emojis. No exclamation marks. No corporate language. Calm and direct.`
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 150,
+      max_tokens: 60,
       messages: [{ role: 'user', content: prompt }],
     })
 
