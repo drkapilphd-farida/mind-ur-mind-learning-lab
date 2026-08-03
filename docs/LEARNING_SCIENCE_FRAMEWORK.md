@@ -1,6 +1,6 @@
 # LEARNING_SCIENCE_FRAMEWORK.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Learning Science Framework — Educational Operating System v1.0
 
@@ -266,7 +266,7 @@ These rules are immutable, across every Lab, every exercise, and every future ad
 
 # Section 17 — Educational Constitution
 
-The purpose of Mind Ur Mind Learning Lab™ is not merely to improve performance.
+The purpose of Quantum Mind Learning Lab™ is not merely to improve performance.
 
 Its purpose is to help learners develop the cognitive habits that make lifelong learning calmer, deeper, more effective, and more enjoyable.
 

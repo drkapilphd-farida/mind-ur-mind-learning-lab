@@ -1,6 +1,6 @@
 # QUANTUM_SPEED_READING_CURRICULUM.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Quantum Speed Reading Lab™ — Curriculum Specification v1.0
 

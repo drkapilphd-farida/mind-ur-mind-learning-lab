@@ -57,7 +57,7 @@ morning."), then the brief's literal block as the heading + subtitle ("Welcome b
 "Whatever you're trying to learn today... We'll help you understand it faster, remember it longer, and
 revise it smarter."). These read as different registers, not redundant, and the brief's block reads as
 prescriptive, sign-off-able copy for the single highest-stakes screen this sprint. First-time-user copy
-(not specified by the brief) swaps only the name-specific opening line to "Welcome to Mind Ur Mind. 👋"
+(not specified by the brief) swaps only the name-specific opening line to "Welcome to Quantum Mind. 👋"
 and keeps the rest identical — this substitution is this plan's own addition, not literal brief text.
 
 ---

@@ -157,7 +157,7 @@ export function CameraCaptureExperience({ onCapture }: CameraCaptureExperiencePr
       {state === 'permission-denied' && (
         <>
           <p className={cn(TYPOGRAPHY.body, 'max-w-xs text-muted-foreground')}>
-            Mind Ur Mind needs camera access to scan a page. Check your browser&rsquo;s permission settings and try again.
+            Quantum Mind needs camera access to scan a page. Check your browser&rsquo;s permission settings and try again.
           </p>
           <Button size="lg" className="rounded-full px-8" onClick={() => void handleStart()}>
             Try Again

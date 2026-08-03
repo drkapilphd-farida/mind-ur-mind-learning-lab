@@ -1,6 +1,6 @@
 # COGNITIVE_SKILLS_MAP.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Cognitive Skills Map — Educational Competency Framework v1.0
 

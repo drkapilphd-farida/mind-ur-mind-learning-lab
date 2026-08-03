@@ -1,4 +1,4 @@
-# Mind Ur Mind Learning Lab™ — Claude Code Context
+# Quantum Mind Learning Lab™ — Claude Code Context
 
 ## What this project is
 Enterprise SaaS EdTech platform. AI-powered learning with courses, lessons, progress tracking, and subscription billing.

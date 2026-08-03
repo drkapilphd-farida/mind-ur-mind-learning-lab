@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { LearningPotentialRevealExperience } from './components/LearningPotentialRevealExperience'
 
 export const metadata: Metadata = {
-  title: 'Your Learning Potential — Mind Ur Mind Learning Lab™',
+  title: 'Your Learning Potential — Quantum Mind Learning Lab™',
   description: 'The path from your Discovery results to your personalized AI Learning Studio journey.',
 }
 

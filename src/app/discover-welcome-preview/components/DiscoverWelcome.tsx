@@ -54,7 +54,7 @@ export function DiscoverWelcome({ onStart }: DiscoverWelcomeProps): React.JSX.El
         className="flex items-center gap-2.5"
       >
         <LivingBrainLogo size={32} animated={false} />
-        <span className="font-heading text-base font-semibold tracking-tight text-foreground">Mind Ur Mind</span>
+        <span className="font-heading text-base font-semibold tracking-tight text-foreground">Quantum Mind</span>
       </motion.header>
 
       <div className="flex w-full max-w-lg flex-1 flex-col items-center justify-center text-center">

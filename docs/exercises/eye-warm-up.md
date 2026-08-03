@@ -1,6 +1,6 @@
 # eye-warm-up.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Eye Warm-up™ — Educational & Scientific Master Specification v1.0
 

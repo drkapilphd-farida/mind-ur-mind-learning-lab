@@ -412,7 +412,7 @@ export function NewLearningProjectWizard(): React.JSX.Element {
       <div className="relative mx-auto max-w-2xl">
         <div className="flex flex-col items-center gap-3 text-center">
           <AIPresenceLogo size={56} />
-          <p className={TYPOGRAPHY.label}>Mind Ur Mind™</p>
+          <p className={TYPOGRAPHY.label}>Quantum Mind™</p>
           <OnboardingJourneyIndicator currentStepId="method" className="mt-2 w-full max-w-sm" />
         </div>
 

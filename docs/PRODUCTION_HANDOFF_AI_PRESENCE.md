@@ -1,4 +1,4 @@
-# Production Handoff — AI Presence™ (Living Mind Ur Mind™ Symbol)
+# Production Handoff — AI Presence™ (Living Quantum Mind™ Symbol)
 
 **Generated:** 2026-07-14
 **Purpose:** Allow a new Claude Code session to continue LW-1B onward with zero context loss.
@@ -12,7 +12,7 @@ flow context.
 
 The brief assumed "the existing Brain + Book logo" was already present on the Arrival Experience screen
 and just needed a breathing animation added. In reality, that screen had **no logo at all** — just a
-plain "Mind Ur Mind™" text kicker. The real logo, `src/components/brand/LivingBrainLogo.tsx` ("Living
+plain "Quantum Mind™" text kicker. The real logo, `src/components/brand/LivingBrainLogo.tsx` ("Living
 Brain™ Logo — official mark"), exists but lives elsewhere: it's already used in **5 live screens** under
 the Discovery/assessment flow (`ReadingExperimentLayout.tsx`, `MemoryExperimentLayout.tsx`,
 `FocusExperimentLayout.tsx`, `focus/components/PreparationScreen.tsx`, and
@@ -83,7 +83,7 @@ whole SVG scales/floats together as one unit, satisfying "the book should remain
 participate in the overall breathing scale" by construction (nothing in this wrapper singles the book out).
 
 ### `src/components/welcome/ArrivalExperience.tsx` (edited)
-- `<AIPresenceLogo size={96} acknowledging={isAcknowledging} />` added above the existing "Mind Ur Mind™"
+- `<AIPresenceLogo size={96} acknowledging={isAcknowledging} />` added above the existing "Quantum Mind™"
   text kicker (kept, not removed) as part of the screen's existing stage-0 entrance.
 - The "Let's Begin" CTA changed from a plain `<Link>` to an `onClick` handler (`handleBegin`): sets
   `isAcknowledging`/`isExiting` state (triggering the logo's flash and a 250ms local content fade), then
@@ -118,7 +118,7 @@ participate in the overall breathing scale" by construction (nothing in this wra
   depth, consistent with every prior motion sprint this session).
 - `decorative` was deliberately left at `LivingBrainLogo`'s own default (`true`/`aria-hidden`), per that
   component's own documented guidance: decorative when adjacent text already conveys the same meaning —
-  which it does here, since the "Mind Ur Mind™" text kicker is kept directly beneath the logo. This avoids
+  which it does here, since the "Quantum Mind™" text kicker is kept directly beneath the logo. This avoids
   a screen reader announcing the brand name twice in a row.
 - The CTA remains a real, focusable `<Button>` with an `onClick` handler — no keyboard-navigation
   regression from removing the `<Link>` wrapper; `router.push` fires identically regardless of activation

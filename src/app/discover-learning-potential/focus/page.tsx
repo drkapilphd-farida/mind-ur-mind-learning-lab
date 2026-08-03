@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { FocusDiscoveryExperience } from './components/FocusDiscoveryExperience'
 
 export const metadata: Metadata = {
-  title: 'Focus Discovery™ — Mind Ur Mind Learning Lab™',
+  title: 'Focus Discovery™ — Quantum Mind Learning Lab™',
   description: "Let's discover how your brain naturally manages attention. There are no right or wrong answers.",
 }
 

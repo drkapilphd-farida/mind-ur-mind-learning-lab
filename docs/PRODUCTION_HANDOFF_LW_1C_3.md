@@ -55,7 +55,7 @@ oversight: the Blueprint page keeps its normal `AppShell` chrome exactly as befo
 
 **Each onboarding screen supplies its own "Logo" / "Living AI Symbol" / "current step"** — the shell itself
 injects nothing extra. `NewLearningProjectWizard.tsx` (the one screen that had neither) now has a compact
-`<AIPresenceLogo>` + "Mind Ur Mind™" kicker + journey indicator header, matching every other onboarding
+`<AIPresenceLogo>` + "Quantum Mind™" kicker + journey indicator header, matching every other onboarding
 screen.
 
 ## Onboarding Journey Indicator™

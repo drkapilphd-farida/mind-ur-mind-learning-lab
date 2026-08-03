@@ -9,7 +9,7 @@ export default function AuthLayout({
     <div className="bg-muted/40 flex min-h-screen flex-col">
       <header className="bg-background flex h-14 items-center border-b px-6">
         <Link href="/" className="font-semibold tracking-tight">
-          Mind Ur Mind Learning Lab™
+          Quantum Mind Learning Lab™
         </Link>
       </header>
       <main className="flex flex-1 items-center justify-center p-6">

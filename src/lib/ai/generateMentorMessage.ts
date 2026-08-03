@@ -57,7 +57,7 @@ export async function generateMentorMessage(input: MentorMessageInput): Promise<
     const { studentName, currentStreak, bestStreak, completedCount, totalCount, todaySessionCount, totalCompletedSessions } = input
     const first = studentName.split(' ')[0]
 
-    const prompt = `You are the AI Mentor for Mind Ur Mind Learning Lab™ — a premium AI-powered brain transformation platform. Your voice is that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. A transformation partner.
+    const prompt = `You are the AI Mentor for Quantum Mind Learning Lab™ — a premium AI-powered brain transformation platform. Your voice is that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. A transformation partner.
 
 Student: ${first}
 Current streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}

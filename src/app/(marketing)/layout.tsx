@@ -19,7 +19,7 @@ export default function MarketingLayout({
       <header className="bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b border-border/60 px-6 backdrop-blur-md sm:px-8">
         <Link href="/" className="mr-8 flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
           <LivingBrainLogo size={26} decorative={false} animated={false} />
-          Mind Ur Mind Learning Lab™
+          Quantum Mind Learning Lab™
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
@@ -49,9 +49,9 @@ export default function MarketingLayout({
 
       <footer className="border-t border-border/60 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 text-center">
-          <p className="text-sm font-medium text-foreground">Mind Ur Mind Learning Lab™</p>
+          <p className="text-sm font-medium text-foreground">Quantum Mind Learning Lab™</p>
           <p className="text-sm text-muted-foreground">
-            © 2026 Mind Ur Mind Learning Lab™. All rights reserved.
+            © 2026 Quantum Mind Learning Lab™. All rights reserved.
           </p>
         </div>
       </footer>

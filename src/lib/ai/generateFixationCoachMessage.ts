@@ -49,7 +49,7 @@ export async function generateFixationCoachMessage(input: FixationCoachInput): P
     const { studentName, completedSessionCount, currentStreak, focusScore, mostPracticedExerciseLabel, lastSessionExerciseLabel } = input
     const first = studentName.split(' ')[0]
 
-    const prompt = `You are the AI Coach for Visual Fixation Engine™, part of Mind Ur Mind Learning Lab's Visual Intelligence Lab™.
+    const prompt = `You are the AI Coach for Visual Fixation Engine™, part of Quantum Mind Learning Lab's Visual Intelligence Lab™.
 
 Student: ${first}
 Completed fixation sessions: ${completedSessionCount}

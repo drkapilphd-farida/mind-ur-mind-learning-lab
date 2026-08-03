@@ -170,7 +170,7 @@ export function RecordAndLearnExperience(): React.JSX.Element {
             <div>
               <h1 className={TYPOGRAPHY.h1}>We couldn&rsquo;t access your microphone</h1>
               <p className={cn(TYPOGRAPHY.bodyLarge, 'mx-auto mt-3 max-w-md text-muted-foreground')}>
-                Mind Ur Mind needs microphone access to record. Check your browser&rsquo;s permission settings and try again.
+                Quantum Mind needs microphone access to record. Check your browser&rsquo;s permission settings and try again.
               </p>
             </div>
             <div className="flex items-center gap-3">

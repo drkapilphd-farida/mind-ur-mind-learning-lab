@@ -29,7 +29,7 @@ promise).
 - Split the old single stage-2 block (headline + a paragraph repeating "understand it faster, remember it
   longer, revise it smarter" in body text) into three: headline alone, `<HeroPromise />`, and a new short
   subtitle — exactly following the brief's example hierarchy.
-- Headline copy: dropped the trailing "👋" emoji from "Welcome back, {name}." / "Welcome to Mind Ur Mind." —
+- Headline copy: dropped the trailing "👋" emoji from "Welcome back, {name}." / "Welcome to Quantum Mind." —
   a small, deliberate restraint matching "never feel like marketing... a quiet promise from an intelligent
   mentor," now that the Hero Promise itself carries the screen's warmth.
 - New subtitle (replacing the old repetitive paragraph): "Bring anything you want to learn. / We'll

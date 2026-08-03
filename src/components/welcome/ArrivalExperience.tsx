@@ -86,7 +86,7 @@ export function ArrivalExperience({ firstName, isReturningUser }: ArrivalExperie
         <div className={cn(stageClass, 'w-full max-w-sm')} style={stageStyle(0)}>
           <OnboardingJourneyIndicator currentStepId="welcome" className="mb-6" />
           <AIPresenceLogo size={112} acknowledging={isAcknowledging} className="mb-4" />
-          <p className={TYPOGRAPHY.label}>Mind Ur Mind™</p>
+          <p className={TYPOGRAPHY.label}>Quantum Mind™</p>
         </div>
 
         <p className={cn(TYPOGRAPHY.body, 'text-muted-foreground', stageClass)} style={stageStyle(1)}>
@@ -94,7 +94,7 @@ export function ArrivalExperience({ firstName, isReturningUser }: ArrivalExperie
         </p>
 
         <div className={stageClass} style={stageStyle(2)}>
-          <h1 className={TYPOGRAPHY.display}>{isReturningUser ? `Welcome back${nameSuffix}.` : 'Welcome to Mind Ur Mind.'}</h1>
+          <h1 className={TYPOGRAPHY.display}>{isReturningUser ? `Welcome back${nameSuffix}.` : 'Welcome to Quantum Mind.'}</h1>
         </div>
 
         <div className={stageClass} style={stageStyle(3)}>

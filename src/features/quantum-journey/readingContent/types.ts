@@ -13,7 +13,7 @@ export type JourneyReadingCategory =
   | 'indian-civics'
   | 'geography'
   | 'social-media'
-  | 'mind-ur-mind-programs'
+  | 'quantum-mind-programs'
   | 'cricket-and-celebrities'
   | 'sports'
 
@@ -23,7 +23,7 @@ export const JOURNEY_READING_CATEGORY_LABELS: Record<JourneyReadingCategory, str
   'indian-civics': 'Indian Civics & Governance',
   geography: 'Geography',
   'social-media': 'Social Media',
-  'mind-ur-mind-programs': 'Mind Ur Mind Programs',
+  'quantum-mind-programs': 'Quantum Mind Programs',
   'cricket-and-celebrities': 'Cricketers & Celebrities',
   sports: 'Sports',
 }

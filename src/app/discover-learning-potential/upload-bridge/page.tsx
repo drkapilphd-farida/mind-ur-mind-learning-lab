@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { DiscoveryUploadBridgeScreen } from './components/DiscoveryUploadBridgeScreen'
 
 export const metadata: Metadata = {
-  title: 'Your Learning Profile Is Ready — Mind Ur Mind Learning Lab™',
+  title: 'Your Learning Profile Is Ready — Quantum Mind Learning Lab™',
   description: 'The bridge from your Discovery results to your first real learning document.',
 }
 

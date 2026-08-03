@@ -94,7 +94,7 @@ export default async function VisualIntelligenceDashboardPage(): Promise<React.J
   })
 
   const achievementCountFallback = dnaAchievements.filter((a) => a.unlocked).length
-  const shareSummaryText = `My Visual Intelligence Score is ${context.scoreProgress.currentScore}/1000 at ${dnaLevelName} level, with a ${context.unifiedStats.currentStreak}-day streak. — Mind Ur Mind Learning Lab™`
+  const shareSummaryText = `My Visual Intelligence Score is ${context.scoreProgress.currentScore}/1000 at ${dnaLevelName} level, with a ${context.unifiedStats.currentStreak}-day streak. — Quantum Mind Learning Lab™`
 
   return (
     <DashboardExperience

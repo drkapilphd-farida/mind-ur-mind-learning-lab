@@ -1,4 +1,4 @@
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 Enterprise SaaS EdTech platform. AI-powered learning with courses, lessons, progress tracking, and subscription billing.
 

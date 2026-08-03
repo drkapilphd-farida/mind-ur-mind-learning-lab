@@ -20,7 +20,7 @@ export function buildQuantumDocumentTransformerPrompt(documentTitle: string, doc
     ? `\n- reading_text: translate the ENTIRE document text below into ${languageName}, faithfully preserving meaning, order, and paragraph structure. This will be used for a word-by-word speed-reading exercise, so write it as natural, flowing ${languageName} prose — no commentary, no headers, no markdown, nothing added or omitted.`
     : ''
 
-  return `You are the AI Document Transformer for Mind Ur Mind Learning Lab™, a cognitive-training platform. A learner just uploaded a document. Turn it into study material by calling the \`return_document_intelligence\` tool exactly once.
+  return `You are the AI Document Transformer for Quantum Mind Learning Lab™, a cognitive-training platform. A learner just uploaded a document. Turn it into study material by calling the \`return_document_intelligence\` tool exactly once.
 
 Write every field entirely in ${languageName} — ai_summary, spider_notes labels, keywords, quiz_questions, feynman_challenge, mnemonics, and subject_lens all in ${languageName}, regardless of what language the source document below is written in. Do not mix in English unless ${languageName} itself is English.
 

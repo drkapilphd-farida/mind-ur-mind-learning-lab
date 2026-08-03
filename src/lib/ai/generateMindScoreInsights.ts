@@ -74,7 +74,7 @@ export async function generateMindScoreInsights(input: MindScoreInsightsInput): 
     const { studentName, mindScore, readingScore, weeklyTrend, currentStreak, completedCount, totalCount, journeyStatus } = input
     const first = studentName.split(' ').at(0) ?? studentName
 
-    const prompt = `You are the AI Intelligence Analyst for Mind Ur Mind Learning Lab™ — a premium brain transformation platform.
+    const prompt = `You are the AI Intelligence Analyst for Quantum Mind Learning Lab™ — a premium brain transformation platform.
 
 Generate exactly 3 concise, specific intelligence insights for ${first}.
 

@@ -1,6 +1,6 @@
 # LEARNING_BIBLE.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Learning Bible™ — Educational Constitution v1.0
 
@@ -168,7 +168,7 @@ Ninety-five exercises will be added gradually, over a long period, likely by peo
 
 # Final Constitution
 
-This Learning Bible™ is the educational constitution of Mind Ur Mind Learning Lab™.
+This Learning Bible™ is the educational constitution of Quantum Mind Learning Lab™.
 
 Every exercise — built, building, or yet to be imagined — answers to it. Future exercises extend this document; they do not replace it, override it, or quietly drift from it. Where a future decision seems to require breaking a rule written here, the correct response is to revise this document deliberately and visibly, not to make an exception that exists nowhere but in one exercise's code.
 

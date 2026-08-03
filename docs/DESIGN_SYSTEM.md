@@ -1,6 +1,6 @@
 # Design System Foundation™
 
-Authoritative visual reference for Mind Ur Mind Learning Lab™. Every future
+Authoritative visual reference for Quantum Mind Learning Lab™. Every future
 Lab (Memory Intelligence Lab™, Focus Intelligence Lab™, AI Mentor™, Parent
 Dashboard™, Admin CMS™, ...) must build on what's documented here rather than
 introducing parallel tokens, colors, or components.

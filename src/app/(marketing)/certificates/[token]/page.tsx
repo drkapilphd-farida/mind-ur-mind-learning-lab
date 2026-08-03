@@ -83,7 +83,7 @@ export default async function CertificatePage({
               <Award className="size-12" />
             </div>
             <p className="text-xs font-semibold tracking-widest uppercase opacity-80">
-              Mind Ur Mind Learning Lab™
+              Quantum Mind Learning Lab™
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight">
               Certificate of Completion

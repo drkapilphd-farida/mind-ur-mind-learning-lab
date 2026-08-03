@@ -1,6 +1,6 @@
-// Mind Ur Mind Learning Lab™ — Neural Evolution Index™.
+// Quantum Mind Learning Lab™ — Neural Evolution Index™.
 // THIS IS NOT scoped to Visual Intelligence Lab — this is the global,
-// cross-lab architecture for the future Mind Ur Mind Learning Lab™.
+// cross-lab architecture for the future Quantum Mind Learning Lab™.
 // Visual Intelligence is the first lab to contribute a real dimension;
 // future labs (Reading, Memory, Focus, Meditation, Emotional Intelligence)
 // will contribute their own dimensions later without needing this file to

@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
 
 export const metadata: Metadata = {
-  title: 'Pricing — Mind Ur Mind Learning Lab™',
-  description: 'Free vs Pro plans for Mind Ur Mind Learning Lab™.',
+  title: 'Pricing — Quantum Mind Learning Lab™',
+  description: 'Free vs Pro plans for Quantum Mind Learning Lab™.',
 }
 
 type PlanCardProps = {

@@ -46,7 +46,7 @@ export async function generateVisualDnaCoachMessage(input: VisualDnaCoachInput):
     const { studentName, observationStyle, focusStyle, topStrengthLabel, topGrowthOpportunityLabel, visualIntelligenceScore, growthPercent } = input
     const first = studentName.split(' ')[0]
 
-    const prompt = `You are the AI Coach for Visual DNA™, the intelligence profile engine of Mind Ur Mind Learning Lab's Visual Intelligence Lab™. This is a deterministic system, not machine learning — you only comment on real numbers already computed.
+    const prompt = `You are the AI Coach for Visual DNA™, the intelligence profile engine of Quantum Mind Learning Lab's Visual Intelligence Lab™. This is a deterministic system, not machine learning — you only comment on real numbers already computed.
 
 Student: ${first}
 Observation Style: ${observationStyle}

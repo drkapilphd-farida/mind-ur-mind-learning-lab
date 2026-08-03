@@ -27,7 +27,7 @@ export default async function PreviewLayout({
 
   return (
     <AppShell
-      brandLabel="Mind Ur Mind Learning Lab™"
+      brandLabel="Quantum Mind Learning Lab™"
       brandHref="/preview/dashboard"
       navItems={PREVIEW_NAV_ITEMS}
       fullName={profile?.fullName ?? null}

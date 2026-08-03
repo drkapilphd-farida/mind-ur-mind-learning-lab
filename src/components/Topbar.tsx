@@ -46,7 +46,7 @@ export function Topbar({
           <SheetHeader className="flex h-14 shrink-0 flex-row items-center gap-2 border-b px-4 py-0 space-y-0">
             <LivingBrainLogo size={22} decorative={false} animated={false} />
             <SheetTitle className="text-sm font-semibold tracking-tight">
-              Mind Ur Mind
+              Quantum Mind
             </SheetTitle>
           </SheetHeader>
           <div className="py-4">

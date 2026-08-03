@@ -32,7 +32,7 @@ export default async function LoginPage({
       )}
       <AuthCard
         title="Welcome back"
-        description="Sign in to your Mind Ur Mind account"
+        description="Sign in to your Quantum Mind account"
       >
         <LoginForm next={params.next} />
       </AuthCard>

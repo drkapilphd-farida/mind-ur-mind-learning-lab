@@ -15,7 +15,7 @@ import { AiProfileScreen } from './components/AiProfileScreen'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Your AI Learning Profile — Mind Ur Mind Learning Lab™',
+  title: 'Your AI Learning Profile — Quantum Mind Learning Lab™',
   description: 'Here is what we discovered about how you learn.',
 }
 

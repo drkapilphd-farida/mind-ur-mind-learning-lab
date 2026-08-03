@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { QuantumSpeedReadingIntroExperience } from './components/QuantumSpeedReadingIntroExperience'
 
 export const metadata: Metadata = {
-  title: 'Quantum Speed Reading™ — Mind Ur Mind Learning Lab™',
+  title: 'Quantum Speed Reading™ — Quantum Mind Learning Lab™',
   description: 'A motivational bridge from Reading Discovery into your Quantum Speed Reading™ journey.',
 }
 

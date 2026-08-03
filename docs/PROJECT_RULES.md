@@ -1,6 +1,6 @@
 # PROJECT_RULES.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Project Rules v1.0
 
@@ -8,7 +8,7 @@
 
 # Vision
 
-Mind Ur Mind Learning Lab™ is an AI-powered Cognitive Skill Training Platform designed exclusively for students.
+Quantum Mind Learning Lab™ is an AI-powered Cognitive Skill Training Platform designed exclusively for students.
 
 It is not a Learning Management System (LMS).
 
@@ -332,7 +332,7 @@ Maintain clean folder structure.
 
 # Success Criteria
 
-A successful Mind Ur Mind Learning Lab™ should make students say:
+A successful Quantum Mind Learning Lab™ should make students say:
 
 "I actually enjoy practicing."
 
@@ -354,6 +354,6 @@ Whenever there is uncertainty, choose the option that creates a better learning 
 
 Student transformation always comes before software complexity.
 
-This document is the permanent constitution of Mind Ur Mind Learning Lab™.
+This document is the permanent constitution of Quantum Mind Learning Lab™.
 
 Every future feature, screen, component, prompt and AI interaction must follow these rules.

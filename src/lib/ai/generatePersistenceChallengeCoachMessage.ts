@@ -56,7 +56,7 @@ export async function generatePersistenceChallengeCoachMessage(input: Persistenc
     const first = studentName.split(' ')[0]
     const noticed = REFLECTION_LABEL[reflectionResponse] ?? 'their own observation'
 
-    const prompt = `You are the AI Coach for Image Persistence Challenge™, part of Mind Ur Mind Learning Lab's Visual Intelligence Lab™.
+    const prompt = `You are the AI Coach for Image Persistence Challenge™, part of Quantum Mind Learning Lab's Visual Intelligence Lab™.
 
 Student: ${first}
 Just completed: ${challengeLabel} observation challenge

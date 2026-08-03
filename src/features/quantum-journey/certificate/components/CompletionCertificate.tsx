@@ -100,7 +100,7 @@ export function CompletionCertificate({
           </div>
         </div>
 
-        <p className="text-[10px] tracking-wide text-muted-foreground/70 uppercase">Mind Ur Mind Learning Lab™</p>
+        <p className="text-[10px] tracking-wide text-muted-foreground/70 uppercase">Quantum Mind Learning Lab™</p>
       </div>
     </div>
   )

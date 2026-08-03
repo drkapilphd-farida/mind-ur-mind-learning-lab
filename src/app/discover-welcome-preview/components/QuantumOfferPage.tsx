@@ -134,7 +134,7 @@ export function QuantumOfferPage({ fullName, readingWpm, onClaimAccess }: Quantu
           className="flex items-center justify-center gap-2.5"
         >
           <LivingBrainLogo size={28} animated={false} />
-          <span className="font-heading text-sm font-semibold tracking-tight text-foreground">Mind Ur Mind</span>
+          <span className="font-heading text-sm font-semibold tracking-tight text-foreground">Quantum Mind</span>
         </motion.div>
 
         {/* Section 1 — Personalized Assessment Hook */}

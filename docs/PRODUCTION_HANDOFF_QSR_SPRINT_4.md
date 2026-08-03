@@ -44,4 +44,4 @@ Rollout
 - Monitor reading-intelligence event counts and error rates via existing telemetry.
 
 Contact
-- Engineering owner: Mind Ur Mind Learning Lab — Reading Team
+- Engineering owner: Quantum Mind Learning Lab — Reading Team

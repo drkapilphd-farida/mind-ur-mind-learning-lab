@@ -4,7 +4,7 @@ import { SCIENCE_EXPLAINED } from './scienceExplained'
 import { INDIAN_CIVICS } from './indianCivics'
 import { GEOGRAPHY } from './geography'
 import { SOCIAL_MEDIA } from './socialMedia'
-import { MIND_UR_MIND_PROGRAMS } from './mindUrMindPrograms'
+import { QUANTUM_MIND_PROGRAMS } from './quantumMindPrograms'
 import { CRICKET_AND_CELEBRITIES } from './cricketAndCelebrities'
 import { SPORTS } from './sports'
 
@@ -13,7 +13,7 @@ export { JOURNEY_READING_CATEGORY_LABELS } from './types'
 
 // Rich Indian-Centric Content Database™ — real passages spanning all 8
 // requested categories (Short Stories, Science Explained, Indian Civics &
-// Governance, Geography, Social Media, Mind Ur Mind Programs, Cricketers
+// Governance, Geography, Social Media, Quantum Mind Programs, Cricketers
 // & Celebrities, Sports). This is a genuine, hand-written initial batch
 // (38 real passages at the time this was built) — a strong foundation
 // toward the requested 100+, not a padded-out placeholder count. Adding
@@ -26,7 +26,7 @@ export const JOURNEY_READING_SETS: readonly JourneyReadingSet[] = [
   ...INDIAN_CIVICS,
   ...GEOGRAPHY,
   ...SOCIAL_MEDIA,
-  ...MIND_UR_MIND_PROGRAMS,
+  ...QUANTUM_MIND_PROGRAMS,
   ...CRICKET_AND_CELEBRITIES,
   ...SPORTS,
 ].map(buildReadingSet)

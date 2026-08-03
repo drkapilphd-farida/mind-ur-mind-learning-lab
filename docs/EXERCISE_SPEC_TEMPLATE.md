@@ -1,6 +1,6 @@
 # EXERCISE_SPEC_TEMPLATE.md
 
-# Mind Ur Mind Learning Lab™
+# Quantum Mind Learning Lab™
 
 ## Exercise Specification Template v1.0
 

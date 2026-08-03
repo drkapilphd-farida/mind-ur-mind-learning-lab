@@ -146,7 +146,7 @@ export function AppShell({
         </div>
 
         <footer className="shrink-0 border-t px-6 py-3 text-center text-xs text-muted-foreground">
-          Mind Ur Mind Learning Lab™
+          Quantum Mind Learning Lab™
         </footer>
       </div>
     </div>

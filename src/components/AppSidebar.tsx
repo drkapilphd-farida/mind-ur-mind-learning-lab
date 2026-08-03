@@ -43,7 +43,7 @@ export function AppSidebar({ missedDays }: AppSidebarProps): React.JSX.Element {
             <LivingBrainLogo size={24} decorative={false} animated={false} />
             <span className="brand-logo-warmth" aria-hidden="true" />
           </span>
-          <span className="brand-gradient-text">Mind Ur Mind</span>
+          <span className="brand-gradient-text">Quantum Mind</span>
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto py-3">

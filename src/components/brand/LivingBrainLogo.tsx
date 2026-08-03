@@ -99,7 +99,7 @@ export function LivingBrainLogo({
 
   const accessibilityProps = decorative
     ? { 'aria-hidden': true as const }
-    : { role: 'img' as const, 'aria-label': 'Mind Ur Mind Living Brain Logo' }
+    : { role: 'img' as const, 'aria-label': 'Quantum Mind Living Brain Logo' }
 
   const sizeStyle = size !== undefined ? { width: size, height: size } : {}
 

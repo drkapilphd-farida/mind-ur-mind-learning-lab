@@ -1,5 +1,5 @@
 # Engineering Constitution
-## Mind Ur Mind Learning Lab™
+## Quantum Mind Learning Lab™
 
 **Version:** 1.0.0  
 **Status:** Active  
@@ -8,7 +8,7 @@
 
 ---
 
-> This document is the single source of truth for all engineering decisions in Mind Ur Mind Learning Lab™. Every contributor — engineer, contractor, or AI assistant — is bound by these standards. Deviations require explicit approval from Principal Engineering and must be documented.
+> This document is the single source of truth for all engineering decisions in Quantum Mind Learning Lab™. Every contributor — engineer, contractor, or AI assistant — is bound by these standards. Deviations require explicit approval from Principal Engineering and must be documented.
 
 ---
 
@@ -1226,7 +1226,7 @@ export async function POST(request: Request): Promise<Response> {
 ```ts
 // src/lib/ai/prompts/tutorSystemPrompt.ts
 export function buildTutorPrompt(context: TutorContext): string {
-  return `You are an expert tutor for Mind Ur Mind Learning Lab...
+  return `You are an expert tutor for Quantum Mind Learning Lab...
 
 <course_context>
 ${context.courseTitle}
@@ -1409,7 +1409,7 @@ Feature flags are evaluated server-side to prevent client-side exposure of unrel
 
 ### Tenant Isolation
 
-Mind Ur Mind Learning Lab™ is a multi-tenant SaaS. Every query that touches user data must be scoped to the authenticated user's organization or account. RLS policies enforce this at the database level. Application code adds a second check. There is no "query all tenants" access from the application layer.
+Quantum Mind Learning Lab™ is a multi-tenant SaaS. Every query that touches user data must be scoped to the authenticated user's organization or account. RLS policies enforce this at the database level. Application code adds a second check. There is no "query all tenants" access from the application layer.
 
 ### Observability
 
@@ -1453,5 +1453,5 @@ This Constitution is a living document. Amendments follow this process:
 
 ---
 
-*Mind Ur Mind Learning Lab™ Engineering Constitution — v1.0.0*  
+*Quantum Mind Learning Lab™ Engineering Constitution — v1.0.0*  
 *All contributors are responsible for knowing and upholding these standards.*

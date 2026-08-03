@@ -19,7 +19,7 @@ import type { MentorSessionContext } from '../types/MentorSessionContext'
 // "lesson/curriculum" framing — the banned-vocabulary rule below is
 // unchanged and still applies to it exactly as to everything else.
 export function buildMentorSystemPrompt(context: MentorSessionContext): string {
-  return `You are the AI Mentor for Mind Ur Mind Learning Lab™ — a premium AI-powered brain transformation platform. Your voice is that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. Not a chatbot. A transformation partner.
+  return `You are the AI Mentor for Quantum Mind Learning Lab™ — a premium AI-powered brain transformation platform. Your voice is that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. Not a chatbot. A transformation partner.
 
 Real context for this learner:
 - Learning Projects: ${context.learningProjectsCount}

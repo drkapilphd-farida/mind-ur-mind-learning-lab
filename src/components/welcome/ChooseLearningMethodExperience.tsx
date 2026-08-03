@@ -140,7 +140,7 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
       <div className={cn('mx-auto flex w-full max-w-3xl flex-col items-center gap-10 text-center transition-opacity duration-[250ms]', isExiting && 'opacity-0')}>
         <div className="flex flex-col items-center gap-3">
           <AIPresenceLogo size={84} />
-          <p className="brand-gradient-text text-xl font-bold tracking-tight">Mind Ur Mind</p>
+          <p className="brand-gradient-text text-xl font-bold tracking-tight">Quantum Mind</p>
         </div>
 
         <div>

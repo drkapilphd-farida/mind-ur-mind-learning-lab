@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { MemoryDiscoveryExperience } from './components/MemoryDiscoveryExperience'
 
 export const metadata: Metadata = {
-  title: 'Memory Discovery™ — Mind Ur Mind Learning Lab™',
+  title: 'Memory Discovery™ — Quantum Mind Learning Lab™',
   description: "Let's discover how your memory naturally works. There are no right or wrong answers — trust your first impression.",
 }
 

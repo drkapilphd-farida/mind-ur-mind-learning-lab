@@ -18,8 +18,8 @@ const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Mind Ur Mind Learning Lab™',
-    template: '%s | Mind Ur Mind Learning Lab™',
+    default: 'Quantum Mind Learning Lab™',
+    template: '%s | Quantum Mind Learning Lab™',
   },
   description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   metadataBase: new URL(appUrl),
@@ -27,18 +27,18 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Mind Ur Mind',
+    title: 'Quantum Mind',
   },
   openGraph: {
     type: 'website',
-    siteName: 'Mind Ur Mind Learning Lab™',
-    title: 'Mind Ur Mind Learning Lab™',
+    siteName: 'Quantum Mind Learning Lab™',
+    title: 'Quantum Mind Learning Lab™',
     description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
     url: appUrl,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mind Ur Mind Learning Lab™',
+    title: 'Quantum Mind Learning Lab™',
     description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   },
 }
