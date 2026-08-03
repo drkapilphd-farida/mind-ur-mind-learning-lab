@@ -1,6 +1,5 @@
 import { Telescope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import type { SubjectLens } from '../types'
 
 type SubjectLensViewProps = {
@@ -14,10 +13,12 @@ type SubjectLensViewProps = {
 // subject.
 export function SubjectLensView({ lens }: SubjectLensViewProps): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-      <div className="flex items-center gap-1.5">
-        <Telescope className="size-3.5 text-emerald-500" aria-hidden="true" />
-        <p className={TYPOGRAPHY.label}>Subject Lens™</p>
+    <div className="quantum-section-card p-4">
+      <div className="flex items-center gap-2">
+        <div className="quantum-icon-chip" aria-hidden="true">
+          <Telescope className="size-3.5 text-emerald-500" />
+        </div>
+        <p className="text-sm font-semibold tracking-wide text-foreground">Subject Lens™</p>
         <Badge variant="outline" className="ml-1">{lens.subject}</Badge>
       </div>
       <ul className="mt-3 space-y-3">

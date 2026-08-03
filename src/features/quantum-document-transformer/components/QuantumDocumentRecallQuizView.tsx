@@ -6,27 +6,30 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { cn } from '@/lib/utils'
-import type { QuizQuestion } from '../types'
+import type { LegacyQuizQuestion } from '../types'
 
 type Assessment = 'correct' | 'missed'
 
 type QuantumDocumentRecallQuizViewProps = {
   title: string
-  quizQuestions: readonly QuizQuestion[]
+  quizQuestions: readonly LegacyQuizQuestion[]
   onComplete: (correctAnswersCount: number, totalQuestionsCount: number) => void
   onExit: () => void
 }
 
-// AI Document Transformer™ — Active Recall Memory session. Same
-// tap-to-flip card interaction FlashCardDeckView.tsx already established
-// for structural review cards, applied here to the AI-generated
-// question/answer pairs, plus a real self-assessment step (Gamification &
-// XP Sync): these are open-ended recall questions, not multiple choice,
-// so there is no way to programmatically check "correct" — the learner
-// grades their own recall after seeing the answer, the same honest
-// mechanism every real spaced-repetition app (Anki, RemNote, etc.) uses
-// for free-recall content. `onComplete` reports the real tally so the
-// caller can award real, non-fabricated XP.
+// AI Document Transformer™ — Active Recall Memory session, used only for
+// documents generated before the Smart Dynamic MCQ Assessment™ upgrade
+// (see isMcqQuizQuestion in ../types — new documents always get the true
+// MCQ engine, QuantumDocumentMcqQuizView). Same tap-to-flip card
+// interaction FlashCardDeckView.tsx already established for structural
+// review cards, applied here to the AI-generated question/answer pairs,
+// plus a real self-assessment step (Gamification & XP Sync): these are
+// open-ended recall questions, not multiple choice, so there is no way to
+// programmatically check "correct" — the learner grades their own recall
+// after seeing the answer, the same honest mechanism every real spaced-
+// repetition app (Anki, RemNote, etc.) uses for free-recall content.
+// `onComplete` reports the real tally so the caller can award real,
+// non-fabricated XP.
 export function QuantumDocumentRecallQuizView({ title, quizQuestions, onComplete, onExit }: QuantumDocumentRecallQuizViewProps): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)

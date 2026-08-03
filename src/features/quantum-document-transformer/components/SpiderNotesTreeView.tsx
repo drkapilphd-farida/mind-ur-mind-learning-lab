@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { ChevronRight, GitBranch } from 'lucide-react'
-import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { cn } from '@/lib/utils'
 import type { SpiderNote } from '../types'
 
@@ -72,10 +71,12 @@ type SpiderNotesTreeViewProps = {
 // returned.
 export function SpiderNotesTreeView({ root }: SpiderNotesTreeViewProps): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-      <div className="flex items-center gap-1.5">
-        <GitBranch className="size-3.5 text-indigo-500" aria-hidden="true" />
-        <p className={TYPOGRAPHY.label}>Spider Notes™</p>
+    <div className="quantum-section-card p-4">
+      <div className="flex items-center gap-2">
+        <div className="quantum-icon-chip" aria-hidden="true">
+          <GitBranch className="size-3.5 text-indigo-500" />
+        </div>
+        <p className="text-sm font-semibold tracking-wide text-foreground">Spider Notes™</p>
       </div>
       <ul className="mt-3">
         <TreeNode node={root} depth={0} />

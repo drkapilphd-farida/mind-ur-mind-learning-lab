@@ -1,5 +1,4 @@
 import { Brain } from 'lucide-react'
-import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import type { Mnemonic } from '../types'
 
 type MnemonicsListViewProps = {
@@ -15,10 +14,12 @@ export function MnemonicsListView({ mnemonics }: MnemonicsListViewProps): React.
   if (mnemonics.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-      <div className="flex items-center gap-1.5">
-        <Brain className="size-3.5 text-fuchsia-500" aria-hidden="true" />
-        <p className={TYPOGRAPHY.label}>Smart Mnemonics™</p>
+    <div className="quantum-section-card p-4">
+      <div className="flex items-center gap-2">
+        <div className="quantum-icon-chip" aria-hidden="true">
+          <Brain className="size-3.5 text-fuchsia-500" />
+        </div>
+        <p className="text-sm font-semibold tracking-wide text-foreground">Smart Mnemonics™</p>
       </div>
       <ul className="mt-3 space-y-2.5">
         {mnemonics.map((mnemonic) => (

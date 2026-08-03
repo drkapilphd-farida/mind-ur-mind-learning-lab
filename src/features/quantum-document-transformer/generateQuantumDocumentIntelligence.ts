@@ -4,7 +4,8 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { DEFAULT_MODEL_PRICING } from '@/core/ai-foundation/types/ModelPricing'
 import { buildQuantumDocumentTransformerPrompt } from '@/lib/ai/prompts/quantumDocumentTransformerPrompt'
 import { buildQuantumDocumentIntelligenceTool } from '@/lib/ai/tools/quantumDocumentIntelligenceTool'
-import { buildQuantumDocumentPayloadSchema, type QuantumDocumentPayload } from './types'
+import { buildQuantumDocumentPayloadSchema, deriveMcqQuizQuestions, type QuantumDocumentPayload } from './types'
+import { computeTargetQuizQuestionCount } from './computeTargetQuizQuestionCount'
 import type { SupportedLanguage } from './supportedLanguages'
 import { logger } from '@/lib/logger'
 
@@ -102,6 +103,13 @@ export async function generateQuantumDocumentIntelligence(
   const maxPromptChars = targetLanguage === 'en' ? MAX_PROMPT_CHARS : MAX_TRANSLATED_PROMPT_CHARS
   const promptText = documentText.length > maxPromptChars ? `${documentText.slice(0, maxPromptChars)}\n\n[Content truncated for length.]` : documentText
 
+  // Smart Dynamic MCQ Assessment™ — computed from the real word count of
+  // what the model actually sees (the possibly-truncated promptText, not
+  // the full stored raw_text), so the requested question count never
+  // exceeds what the model was actually given to draw from.
+  const wordCount = promptText.trim().split(/\s+/).filter(Boolean).length
+  const targetQuestionCount = computeTargetQuizQuestionCount(wordCount)
+
   try {
     // Explicit, not the SDK's 10-minute default — comfortably under the
     // route handler's own `maxDuration = 60`, so a stuck/overloaded model
@@ -110,14 +118,14 @@ export async function generateQuantumDocumentIntelligence(
     // default (2) made explicit — it already retries transient 429/5xx
     // errors with backoff before this ever reaches the catch block below.
     const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 2 })
-    const tool = buildQuantumDocumentIntelligenceTool(targetLanguage)
+    const tool = buildQuantumDocumentIntelligenceTool(targetLanguage, targetQuestionCount)
 
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
       tools: [tool],
       tool_choice: { type: 'tool', name: tool.name },
-      messages: [{ role: 'user', content: buildQuantumDocumentTransformerPrompt(documentTitle, promptText, targetLanguage) }],
+      messages: [{ role: 'user', content: buildQuantumDocumentTransformerPrompt(documentTitle, promptText, targetLanguage, targetQuestionCount) }],
     })
 
     const toolUseBlock = response.content.find((block) => block.type === 'tool_use')
@@ -162,7 +170,15 @@ export async function generateQuantumDocumentIntelligence(
       success: true,
     })
 
-    return { success: true, payload: parsed.data, modelId: MODEL }
+    // Smart Dynamic MCQ Assessment™ — shuffle each question's options and
+    // derive the final correctIndex only now, after validation, never
+    // trusting the model's own option ordering to be the storage order.
+    const payload: QuantumDocumentPayload = {
+      ...parsed.data,
+      quiz_questions: deriveMcqQuizQuestions(parsed.data.quiz_questions),
+    }
+
+    return { success: true, payload, modelId: MODEL }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error.'
     // Previously this real cause only reached `ai_cost_log.error_message`

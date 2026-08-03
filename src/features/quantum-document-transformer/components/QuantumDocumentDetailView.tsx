@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Flame, Sparkles } from 'lucide-react'
+import { BookOpen, Flame, Sparkles, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -10,16 +10,19 @@ import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { cn } from '@/lib/utils'
-import type { QuantumDocument } from '../types'
+import { isMcqQuizQuestion, type LegacyQuizQuestion, type QuantumDocument } from '../types'
 import { QuantumDocumentSpeedReadingView } from './QuantumDocumentSpeedReadingView'
 import { QuantumDocumentRecallQuizView } from './QuantumDocumentRecallQuizView'
+import { QuantumDocumentMcqQuizView } from './QuantumDocumentMcqQuizView'
 import { SpiderNotesTreeView } from './SpiderNotesTreeView'
 import { FeynmanChallengeCard } from './FeynmanChallengeCard'
 import { MnemonicsListView } from './MnemonicsListView'
 import { SubjectLensView } from './SubjectLensView'
+import { DocumentOutcomeProfileCard } from './DocumentOutcomeProfileCard'
 import { SelectionTooltip } from '@/features/quantum-mentor/components/SelectionTooltip'
 import { saveQuantumDocumentSession } from '../actions/saveQuantumDocumentSession'
 import { getQuantumDocumentSessionHistory } from '../actions/getQuantumDocumentSessionHistory'
+import { getQuantumDocumentOutcomeProfile, type QuantumDocumentOutcomeProfile } from '../actions/getQuantumDocumentOutcomeProfile'
 import { computeQuantumDocumentStreak } from '../quantumDocumentSessionTracking'
 import { logger } from '@/lib/logger'
 
@@ -36,14 +39,19 @@ function ReadingTextSection({ readingText }: { readingText: string }): React.JSX
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
+    <div className="quantum-section-card p-4">
       <button
         type="button"
         onClick={() => setIsExpanded((current) => !current)}
         className="flex w-full items-center justify-between gap-2 text-left"
         aria-expanded={isExpanded}
       >
-        <p className={TYPOGRAPHY.label}>Reading Text</p>
+        <div className="flex items-center gap-2">
+          <div className="quantum-icon-chip" aria-hidden="true">
+            <BookOpen className="size-3.5 text-sky-500" />
+          </div>
+          <p className="text-sm font-semibold tracking-wide text-foreground">Reading Text</p>
+        </div>
         <span className="text-xs font-medium text-primary">{isExpanded ? 'Hide' : 'Show'}</span>
       </button>
 
@@ -96,19 +104,21 @@ function QuantumSessionCompleteCard({ reward }: { reward: SessionReward | null }
 
 type QuantumDocumentDetailViewProps = {
   document: QuantumDocument
+  initialOutcomeProfile: QuantumDocumentOutcomeProfile
 }
 
-export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailViewProps): React.JSX.Element {
+export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: QuantumDocumentDetailViewProps): React.JSX.Element {
   const [sessionPhase, setSessionPhase] = useState<SessionPhase>('results')
   const [sessionReward, setSessionReward] = useState<SessionReward | null>(null)
+  const [outcomeProfile, setOutcomeProfile] = useState(initialOutcomeProfile)
 
   // Gamification & XP Sync — fires once, when the learner finishes BOTH
-  // real halves of the session (speed reading + self-assessed recall
-  // quiz). The XP number itself is never computed here — the Server
-  // Action recomputes it from the real correctAnswersCount so a tampered
-  // client request can't award arbitrary XP. The streak shown is
-  // recomputed fresh from the user's own real session history
-  // immediately after this session is saved, not incremented by hand.
+  // real halves of the session (speed reading + recall quiz). The XP
+  // number itself is never computed here — the Server Action recomputes
+  // it from the real correctAnswersCount so a tampered client request
+  // can't award arbitrary XP. Document Outcome Profile™ is refetched
+  // right after so the score/mastery card reflects this attempt
+  // immediately, without a full page reload.
   async function handleQuizComplete(correctAnswersCount: number, totalQuestionsCount: number): Promise<void> {
     const saveResult = await saveQuantumDocumentSession({
       quantumDocumentId: document.id,
@@ -117,8 +127,12 @@ export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailVie
     })
 
     if (saveResult.success) {
-      const history = await getQuantumDocumentSessionHistory()
+      const [history, freshOutcomeProfile] = await Promise.all([
+        getQuantumDocumentSessionHistory(),
+        getQuantumDocumentOutcomeProfile(document.id),
+      ])
       setSessionReward({ xpEarned: saveResult.xpEarned, streak: computeQuantumDocumentStreak(history) })
+      setOutcomeProfile(freshOutcomeProfile)
     } else {
       logger.error('[QuantumDocumentTransformer] Session Saved — FAIL', { error: saveResult.error })
       setSessionReward(null)
@@ -128,6 +142,8 @@ export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailVie
   }
 
   const sessionDialogOpen = sessionPhase === 'reading' || sessionPhase === 'quiz'
+  const firstQuestion = document.quizQuestions[0]
+  const isMcqQuiz = firstQuestion !== undefined && isMcqQuizQuestion(firstQuestion)
 
   return (
     <div className="glass-premium-card glass-premium-lift p-5 sm:p-8">
@@ -136,10 +152,25 @@ export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailVie
       ) : (
         <SelectionTooltip documentContext={`${document.title}\n\n${document.aiSummary}`} documentLanguage={document.targetLanguage}>
           <div className="space-y-4">
-            <div className="rounded-xl border border-border bg-foreground/[0.02] p-4">
-              <p className={TYPOGRAPHY.label}>Summary</p>
-              <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">{document.aiSummary}</p>
+            <div className="quantum-section-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="quantum-icon-chip" aria-hidden="true">
+                  <Sparkles className="size-3.5 text-indigo-500" />
+                </div>
+                <p className="text-sm font-semibold tracking-wide text-foreground">Summary</p>
+              </div>
+              <p className="mt-2 whitespace-pre-line text-sm text-foreground">{document.aiSummary}</p>
             </div>
+
+            {/* Quantum Speed Reading First™ — the primary action now sits
+                right below the summary overview, not buried at the bottom
+                after every deep-dive section, so a learner can launch
+                straight into reading. */}
+            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
+              🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
+            </Button>
+
+            <DocumentOutcomeProfileCard profile={outcomeProfile} />
 
             <SpiderNotesTreeView root={document.spiderNotes} />
 
@@ -149,18 +180,20 @@ export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailVie
             <MnemonicsListView mnemonics={document.mnemonics} />
             <SubjectLensView lens={document.subjectLens} />
 
-            <div>
-              <p className={TYPOGRAPHY.label}>Keywords</p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="quantum-section-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="quantum-icon-chip" aria-hidden="true">
+                  <Tags className="size-3.5 text-orange-500" />
+                </div>
+                <p className="text-sm font-semibold tracking-wide text-foreground">Keywords</p>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {document.keywords.map((keyword) => (
                   <Badge key={keyword} variant="outline">{keyword}</Badge>
                 ))}
               </div>
             </div>
 
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
-              🚀 Start Quantum Session ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
-            </Button>
             <Button type="button" variant="ghost" className="w-full" asChild>
               <Link href="/dashboard#upload-document">Transform another document</Link>
             </Button>
@@ -180,12 +213,21 @@ export function QuantumDocumentDetailView({ document }: QuantumDocumentDetailVie
             />
           )}
           {sessionPhase === 'quiz' && (
-            <QuantumDocumentRecallQuizView
-              title={document.title}
-              quizQuestions={document.quizQuestions}
-              onComplete={(correctAnswersCount, totalQuestionsCount) => void handleQuizComplete(correctAnswersCount, totalQuestionsCount)}
-              onExit={() => setSessionPhase('results')}
-            />
+            isMcqQuiz ? (
+              <QuantumDocumentMcqQuizView
+                title={document.title}
+                quizQuestions={document.quizQuestions.filter(isMcqQuizQuestion)}
+                onComplete={(correctAnswersCount, totalQuestionsCount) => void handleQuizComplete(correctAnswersCount, totalQuestionsCount)}
+                onExit={() => setSessionPhase('results')}
+              />
+            ) : (
+              <QuantumDocumentRecallQuizView
+                title={document.title}
+                quizQuestions={document.quizQuestions.filter((question): question is LegacyQuizQuestion => !isMcqQuizQuestion(question))}
+                onComplete={(correctAnswersCount, totalQuestionsCount) => void handleQuizComplete(correctAnswersCount, totalQuestionsCount)}
+                onExit={() => setSessionPhase('results')}
+              />
+            )
           )}
         </DialogContent>
       </Dialog>

@@ -286,6 +286,45 @@
 }
 
 /*
+ * Quantum Section Accent™ — the AI Document Transformer's output cards
+ * (Summary, Spider Notes, Feynman Challenge, Smart Mnemonics, Subject
+ * Lens, Keywords, Document Outcome Profile). A subtle brand-gradient top
+ * bar + icon chip applied uniformly across every section so they read as
+ * one coherent, branded surface instead of plain neutral-bordered boxes
+ * — each section keeps its own Lucide icon color as its only remaining
+ * differentiator (see QuantumDocumentDetailView.tsx and its section
+ * components). Same fallback-value convention as `.brand-gradient`
+ * above: works both inside `.glass-premium` (where --ambient-a/b shift
+ * with theme/missed-days) and outside it.
+ */
+.quantum-section-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--glass-bg, oklch(1 0 0 / 4%));
+  overflow: hidden;
+}
+
+.quantum-section-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ambient-a, #2b4ce8), var(--ambient-b, #0fd9a0));
+}
+
+.quantum-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ambient-a, #2b4ce8) 16%, transparent), color-mix(in srgb, var(--ambient-b, #0fd9a0) 16%, transparent));
+  flex-shrink: 0;
+}
+
+/*
  * Brand Logo Warmth™ — the persistent sidebar logo (AppSidebar.tsx). Two
  * independent effects, both real-data-driven (missedDays, computed
  * server-side in (dashboard)/layout.tsx from actual practice history —

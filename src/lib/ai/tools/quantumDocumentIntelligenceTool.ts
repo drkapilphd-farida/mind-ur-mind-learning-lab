@@ -19,7 +19,13 @@ const BASE_REQUIRED_FIELDS = ['ai_summary', 'spider_notes', 'keywords', 'quiz_qu
 // generateQuantumDocumentIntelligence.ts for why the English case skips it
 // entirely rather than asking the model to reproduce the original text for
 // free).
-export function buildQuantumDocumentIntelligenceTool(targetLanguage: SupportedLanguage): Anthropic.Tool {
+//
+// Smart Dynamic MCQ Assessment™ — also a function of targetQuestionCount
+// (computeTargetQuizQuestionCount.ts), embedded straight into the
+// quiz_questions field's own description so the model sees the exact
+// target inline with the schema, not just in prose elsewhere in the
+// prompt.
+export function buildQuantumDocumentIntelligenceTool(targetLanguage: SupportedLanguage, targetQuestionCount: number): Anthropic.Tool {
   return {
     name: 'return_document_intelligence',
     description: 'Return the structured study-material payload generated from the uploaded document.',
@@ -57,11 +63,12 @@ export function buildQuantumDocumentIntelligenceTool(targetLanguage: SupportedLa
             type: 'object',
             properties: {
               question: { type: 'string' },
-              answer: { type: 'string' },
+              options: { type: 'array', items: { type: 'string' }, description: 'Exactly 4 answer options.' },
+              correct_answer: { type: 'string', description: "The exact text of the correct option, copied verbatim from options." },
             },
-            required: ['question', 'answer'],
+            required: ['question', 'options', 'correct_answer'],
           },
-          description: '2-3 active-recall micro-quiz questions with answers.',
+          description: `Exactly ${targetQuestionCount} multiple-choice active-recall questions, each with 4 options and the correct answer's exact text.`,
         },
         feynman_challenge: {
           type: 'object',
