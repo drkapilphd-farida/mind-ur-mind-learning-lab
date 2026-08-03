@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { UploadZone } from '@/components/learning/UploadZone'
 import { UploadProgress, type UploadProgressStatus } from '@/components/learning/UploadProgress'
 import { formatFileSize } from '@/lib/formatFileSize'
 import { formatRelativeDate } from '@/lib/formatRelativeDate'
@@ -156,11 +157,14 @@ function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: str
   )
 }
 
-// Compact Upload Trigger™ — a bespoke, sleek replacement for the shared
-// UploadZone's large dashed drop zone (`py-16`, big centered icon) here
-// specifically, since UploadZone is also used by NewLearningProjectWizard
-// and shouldn't shrink for every caller. Single-row, mobile-friendly, but
-// keeps the exact same click-to-browse + drag-and-drop mechanics.
+// Compact Upload Trigger™ — the mobile half of Smart Transformer,
+// Responsive Cross-Device™: a bespoke, single-row alternative to the
+// shared UploadZone's large dashed drop zone, rendered only below the sm
+// breakpoint (see the render() below, which shows the real UploadZone at
+// sm and above instead). Built bespoke rather than shrinking UploadZone
+// itself, since that component is also used at full size by
+// NewLearningProjectWizard. Keeps the exact same click-to-browse +
+// drag-and-drop mechanics as UploadZone, just in a compact shell.
 function CompactUploadTrigger({ onFileSelected, errorMessage }: { onFileSelected: (file: File) => void; errorMessage: string | null }): React.JSX.Element {
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -441,7 +445,24 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
         ) : (
           <>
             {recentDocuments.length > 0 && <RecentDocuments documents={recentDocuments} />}
-            <CompactUploadTrigger onFileSelected={(file) => void handleFileSelected(file)} errorMessage={zoneError} />
+
+            {/* Smart Transformer, Responsive Cross-Device™ — a compact
+                tap-to-upload row below the sm breakpoint (640px), the
+                shared UploadZone's full drag-and-drop surface at sm and
+                above. Same handleFileSelected callback either way. */}
+            <div className="sm:hidden">
+              <CompactUploadTrigger onFileSelected={(file) => void handleFileSelected(file)} errorMessage={zoneError} />
+            </div>
+            <div className="hidden sm:block">
+              <UploadZone
+                onFileSelected={(file) => void handleFileSelected(file)}
+                accept={ACCEPT}
+                title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
+                subtitle="or click to browse"
+                helperText="PDF · Word (.docx) · Text · PNG/JPEG"
+                errorMessage={zoneError}
+              />
+            </div>
           </>
         )}
       </div>

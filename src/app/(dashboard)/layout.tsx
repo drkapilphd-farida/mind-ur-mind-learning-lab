@@ -1,10 +1,20 @@
 import { redirect } from 'next/navigation'
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { computeDailyStreak, computeMissedDaysSinceLastPractice } from '@/lib/exercises/practiceHistory'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Topbar } from '@/components/Topbar'
+
+// Design Tokens™ — Plus Jakarta Sans (primary) with Inter (fallback),
+// scoped to the dashboard route group only via CSS variables, not a
+// global font swap. `.glass-premium`'s own CSS (globals.css) reads these
+// vars — the same "scoped exception" convention already established for
+// its color tokens, so every other route keeps the app's default Geist
+// font untouched.
+const plusJakartaSans = Plus_Jakarta_Sans({ variable: '--font-plus-jakarta', subsets: ['latin'] })
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] })
 
 export default async function DashboardLayout({
   children,
@@ -32,7 +42,7 @@ export default async function DashboardLayout({
   const missedDays = computeMissedDaysSinceLastPractice(labStreak)
 
   return (
-    <div className="bg-muted/30 flex h-screen overflow-hidden">
+    <div className={`bg-muted/30 flex h-screen overflow-hidden ${plusJakartaSans.variable} ${inter.variable}`}>
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
         <AppSidebar missedDays={missedDays} />

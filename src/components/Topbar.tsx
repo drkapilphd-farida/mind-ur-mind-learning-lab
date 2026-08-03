@@ -73,8 +73,8 @@ export function Topbar({
 
       <div className="flex-1" />
 
-      <InstallButton />
       <ThemeToggle />
+      <InstallButton />
       <UserMenu fullName={fullName} avatarUrl={avatarUrl} email={email} />
     </header>
   )

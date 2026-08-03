@@ -181,6 +181,12 @@
  * new.
  */
 .glass-premium {
+  /* Design Tokens™ — Plus Jakarta Sans / Inter, loaded as CSS variables
+     by (dashboard)/layout.tsx. Falls back to the app-wide --font-sans
+     (Geist) wherever this file's --font-plus-jakarta/--font-inter aren't
+     defined (e.g. /welcome/choose-method, which also uses .glass-premium
+     but sits outside the dashboard route group) — never a broken font. */
+  font-family: var(--font-plus-jakarta, var(--font-inter, var(--font-sans)));
   --glass-bg: oklch(1 0 0 / 55%);
   --glass-border: oklch(1 0 0 / 75%);
   --glass-inset: oklch(0.75 0.03 75 / 35%);
