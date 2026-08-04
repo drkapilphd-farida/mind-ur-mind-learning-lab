@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { GoogleSignInButton } from './GoogleSignInButton'
+import { AuthDivider } from './AuthDivider'
 
 type LoginFormProps = {
   next?: string | undefined
@@ -42,77 +44,82 @@ export function LoginForm({ next, onSwitchToSignup }: LoginFormProps): React.JSX
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="space-y-4">
+      <GoogleSignInButton next={next} />
+      <AuthDivider label="or continue with email" />
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>Password</FormLabel>
-                <Link
-                  href="/forgot-password"
-                  className="text-muted-foreground hover:text-foreground text-xs"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? 'Signing in…' : 'Sign in'}
-        </Button>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="text-muted-foreground hover:text-foreground text-xs"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <p className="text-muted-foreground text-center text-sm">
-          Don&apos;t have an account?{' '}
-          {onSwitchToSignup ? (
-            <button
-              type="button"
-              onClick={onSwitchToSignup}
-              className="text-foreground font-medium hover:underline"
-            >
-              Sign up
-            </button>
-          ) : (
-            <Link
-              href="/signup"
-              className="text-foreground font-medium hover:underline"
-            >
-              Sign up
-            </Link>
-          )}
-        </p>
-      </form>
-    </Form>
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? 'Signing in…' : 'Sign in'}
+          </Button>
+
+          <p className="text-muted-foreground text-center text-sm">
+            Don&apos;t have an account?{' '}
+            {onSwitchToSignup ? (
+              <button
+                type="button"
+                onClick={onSwitchToSignup}
+                className="text-foreground font-medium hover:underline"
+              >
+                Sign up
+              </button>
+            ) : (
+              <Link
+                href="/signup"
+                className="text-foreground font-medium hover:underline"
+              >
+                Sign up
+              </Link>
+            )}
+          </p>
+        </form>
+      </Form>
+    </div>
   )
 }

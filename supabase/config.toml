@@ -76,8 +76,16 @@ max_enrolled_factors = 10
 enroll_enabled = true
 verify_enabled = true
 
+# One-Click Google Sign-In™ — enabled for local `supabase start` dev.
+# Requires AUTH_GOOGLE_CLIENT_ID / AUTH_GOOGLE_SECRET in .env.local (see
+# .env.example). This only configures the *local* CLI stack — the hosted
+# Supabase project used in staging/production needs Google enabled
+# separately in its own Dashboard under Authentication > Providers,
+# using real credentials from Google Cloud Console (OAuth client, with
+# this project's Supabase callback URL — https://<project-ref>.supabase.co/auth/v1/callback —
+# added as an authorized redirect URI there).
 [auth.external.google]
-enabled = false
+enabled = true
 client_id = "env(AUTH_GOOGLE_CLIENT_ID)"
 secret = "env(AUTH_GOOGLE_SECRET)"
 
