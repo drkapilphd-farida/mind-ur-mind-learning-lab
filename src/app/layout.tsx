@@ -16,10 +16,15 @@ const geistMono = Geist_Mono({
 
 const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
 
+// Strict App Naming™ — every surface that shows "the app name" (browser
+// tab, PWA install prompt, iOS home screen label, social share cards)
+// says exactly "Quantum Mind," nothing appended. Only the `description`
+// fields (not name fields) still use full prose — naming a product and
+// describing it are different things.
 export const metadata: Metadata = {
   title: {
-    default: 'Quantum Mind Learning Lab™',
-    template: '%s | Quantum Mind Learning Lab™',
+    default: 'Quantum Mind',
+    template: '%s | Quantum Mind',
   },
   description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   metadataBase: new URL(appUrl),
@@ -31,14 +36,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'Quantum Mind Learning Lab™',
-    title: 'Quantum Mind Learning Lab™',
+    siteName: 'Quantum Mind',
+    title: 'Quantum Mind',
     description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
     url: appUrl,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Quantum Mind Learning Lab™',
+    title: 'Quantum Mind',
     description: 'AI-powered adaptive learning platform. Master in-demand skills with personalized courses and intelligent tutoring.',
   },
 }

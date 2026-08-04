@@ -62,13 +62,15 @@ export function Topbar({
           gradient-text technique as AppSidebar.tsx and the Document
           Detail page header — the CSS's own fallback values mean the
           breathing glow renders correctly here too, with no missedDays
-          prop needed. */}
-      <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
-        <span className="brand-logo-wrap">
-          <LivingBrainLogo size={22} decorative={false} animated={false} />
+          prop needed. Sized at 36px (w-9) — real Android device testing
+          found the previous 22px mark read as barely-there next to the
+          hamburger icon and the header's other 36-40px touch targets. */}
+      <Link href="/dashboard" className="flex shrink-0 items-center gap-2 md:hidden">
+        <span className="brand-logo-wrap shrink-0">
+          <LivingBrainLogo size={36} className="size-9" decorative={false} animated={false} />
           <span className="brand-logo-warmth" aria-hidden="true" />
         </span>
-        <span className="brand-gradient-text text-sm font-bold tracking-tight">Quantum Mind</span>
+        <span className="brand-gradient-text text-base font-bold tracking-tight">Quantum Mind</span>
       </Link>
 
       <div className="flex-1" />
