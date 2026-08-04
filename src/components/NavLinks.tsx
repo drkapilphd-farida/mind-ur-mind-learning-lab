@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Eye, Library, LayoutDashboard, Settings } from 'lucide-react'
+import { BarChart3, Eye, Library, LayoutDashboard, Settings, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // "My Library" doesn't navigate to its own page — it opens the Document
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: '/labs/quantum-speed-reading', label: 'Quantum Speed Reading', icon: Eye },
   { href: '/dashboard?library=open', label: 'My Library', icon: Library },
   { href: '/progress', label: 'Mind Score™', icon: BarChart3 },
+  { href: '/parent-dashboard', label: 'Parents Dashboard', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
 
