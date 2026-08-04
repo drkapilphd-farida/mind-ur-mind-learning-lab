@@ -28,20 +28,18 @@ export function ParentDashboard(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header & Multi-Child Profile Switcher — one language for the
-            whole block (Hindi), the parent's real name kept in Latin
-            script within the sentence rather than hand-transliterated
-            (a real `profiles.full_name` would be whatever script the
-            parent typed it in, almost always Latin) — this reads as one
-            cohesive, intentional greeting instead of a Hindi headline
-            bolted onto an unrelated English caption. */}
+        {/* Header & Multi-Child Profile Switcher — English throughout,
+            matching every other string on this dashboard. Subtitle
+            names whichever child is currently selected, so it stays
+            accurate across a switch rather than reading as a generic
+            leftover greeting. */}
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <p className="text-2xl font-bold tracking-tight text-slate-900">
-              नमस्ते, {PARENT_NAME} जी 👋
+              Hello, {PARENT_NAME} 👋
             </p>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              इस सप्ताह {selectedChild.name} की प्रगति यहाँ देखें
+              Here&rsquo;s how {selectedChild.name}&rsquo;s progress looks this week
             </p>
           </div>
           <ChildSwitcher childProfiles={CHILDREN} selectedChildId={selectedChildId} onSelectChild={setSelectedChildId} />

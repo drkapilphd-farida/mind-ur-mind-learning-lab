@@ -9,12 +9,6 @@ import type { ChildProfile, WeeklySnapshot } from './types'
 // is a drop-in change — no component below imports this file directly
 // except ParentDashboard.tsx, which is the one seam to change.
 
-// Kept in Latin script deliberately — a real `profiles.full_name` would
-// be stored in whatever script the parent typed it in (almost always
-// Latin, even for Hindi speakers), so the header composes it into a
-// Hindi sentence rather than assuming a hand-transliterated Devanagari
-// name always exists. See ParentDashboard.tsx's header for the exact
-// composition.
 export const PARENT_NAME = 'Kapil'
 
 export const CHILDREN: readonly ChildProfile[] = [
