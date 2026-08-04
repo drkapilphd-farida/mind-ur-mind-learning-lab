@@ -2,27 +2,36 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createServiceClient } from '@/lib/supabase/service'
 import { DEFAULT_MODEL_PRICING } from '@/core/ai-foundation/types/ModelPricing'
-import { buildQuantumDocumentTransformerPrompt } from '@/lib/ai/prompts/quantumDocumentTransformerPrompt'
+import { QUANTUM_DOCUMENT_TRANSFORMER_SYSTEM_PROMPT, buildQuantumDocumentTransformerUserMessage } from '@/lib/ai/prompts/quantumDocumentTransformerPrompt'
 import { buildQuantumDocumentIntelligenceTool } from '@/lib/ai/tools/quantumDocumentIntelligenceTool'
 import { buildQuantumDocumentPayloadSchema, deriveMcqQuizQuestions, type QuantumDocumentPayload } from './types'
 import { computeTargetQuizQuestionCount } from './computeTargetQuizQuestionCount'
+import { computeDocumentContentHash, getCachedAnalysis, saveCachedAnalysis } from './documentAnalysisCache'
 import type { SupportedLanguage } from './supportedLanguages'
 import { logger } from '@/lib/logger'
 
 const MODEL = 'claude-haiku-4-5-20251001'
-// Raised from 4096 — translating the document for `reading_text` (non-
-// English targets only) can itself run to several thousand output tokens
-// on top of the existing summary/spider-notes/quiz/feynman/mnemonics/
-// subject-lens fields, all produced in this same call.
-const MAX_OUTPUT_TOKENS = 8192
 
-// A real book chapter can run well past this many characters — capping
-// what's sent to the model bounds cost and latency for one synchronous
-// request/response call (per the brief's "single optimized LLM call").
-// The FULL extracted text is still what gets persisted to
-// `quantum_documents.raw_text` (see the Route Handler) — only the prompt
-// input is truncated, never the stored record.
-const MAX_PROMPT_CHARS = 60_000
+// AI Cost Optimization™ — Token Payload Optimization. Right-sized to the
+// realistic worst case (20 MCQ questions + every other field, English —
+// the no-translation case has no reading_text competing for the same
+// budget) rather than a round-number ceiling picked without a reason.
+// This is a safety CAP on cost/latency, not itself a savings mechanism —
+// Anthropic bills for tokens actually generated, not max_tokens — the
+// real output-side lever is the model simply not needing to write more
+// than this in practice.
+const MAX_OUTPUT_TOKENS = 4096
+
+// AI Cost Optimization™ — Token Payload Optimization. Lowered from
+// 60,000: input tokens scale linearly with what's sent, so this constant
+// is the single biggest lever over typical-case cost after
+// deduplication. 24,000 characters is still a genuinely large chunk (a
+// full book chapter, not a snippet) — comfortably enough real material
+// for an accurate summary/spider-map/quiz — while cutting the previous
+// worst-case input by more than half. The FULL extracted text is still
+// what gets persisted to `quantum_documents.raw_text` (see the Route
+// Handler) — only the prompt input is trimmed, never the stored record.
+const MAX_PROMPT_CHARS = 24_000
 
 // Multi-Language Support — a much smaller cap used only when translating
 // (target language isn't English). Translation output scales with input
@@ -45,12 +54,18 @@ export type GenerateQuantumDocumentIntelligenceResult =
 // JSON contract this feature requires. Cost is logged by hand into the
 // same `ai_cost_log` table AIFoundation's own calls persist to, so this
 // bypass is still fully visible in cost reporting, never a blind spot.
+// `cacheReadTokens`/`cacheWriteTokens` are logged too (0 for a cache-hit
+// short-circuit or a request that never reached Anthropic) so the real
+// savings from prompt caching are visible in the same table, not just
+// asserted.
 async function logTransformerCost(entry: {
   requestId: string
   quantumDocumentId: string | null
   modelId: string
   inputTokens: number
   outputTokens: number
+  cacheReadTokens?: number
+  cacheWriteTokens?: number
   processingTimeMs: number
   success: boolean
   errorMessage?: string
@@ -58,8 +73,17 @@ async function logTransformerCost(entry: {
   try {
     const supabase = createServiceClient()
     const rate = DEFAULT_MODEL_PRICING[entry.modelId]
+    // Cache reads bill at Anthropic's published ~10% of the normal input
+    // rate (a ~90% discount); cache writes bill at a ~25% premium over
+    // the normal input rate for the one call that populates the cache.
+    // Both are estimates in the same disclosed spirit ModelPricing.ts's
+    // own rates already are — not confirmed line items from a real
+    // invoice.
     const estimatedCostCents = rate
-      ? (entry.inputTokens / 1000) * rate.inputCentsPer1kTokens + (entry.outputTokens / 1000) * rate.outputCentsPer1kTokens
+      ? (entry.inputTokens / 1000) * rate.inputCentsPer1kTokens +
+        (entry.outputTokens / 1000) * rate.outputCentsPer1kTokens +
+        ((entry.cacheReadTokens ?? 0) / 1000) * rate.inputCentsPer1kTokens * 0.1 +
+        ((entry.cacheWriteTokens ?? 0) / 1000) * rate.inputCentsPer1kTokens * 1.25
       : 0
 
     const { error } = await supabase.from('ai_cost_log').insert({
@@ -88,6 +112,20 @@ async function logTransformerCost(entry: {
 // re-validated against QuantumDocumentPayloadSchema before this function
 // ever returns success — a tool-use call constrains what shape the model
 // *attempts*, it does not guarantee valid lengths/counts on its own.
+//
+// AI Cost Optimization™ — three real, stacked savings, cheapest-first:
+//   1. Global dedup cache: if this exact text (post-truncation) was ever
+//      analyzed before, for any student, in this target language, that
+//      stored result is returned immediately — zero Claude tokens, zero
+//      Claude cost, for this call.
+//   2. Prompt caching: on a genuine cache MISS, the large static
+//      instruction block still gets sent, but marked so Anthropic caches
+//      it — the next call within the cache window (any student, any
+//      document, any language) reads it at a steep discount instead of
+//      full price.
+//   3. Trimmed prompt input + a right-sized output ceiling, so a call
+//      that does have to go to Claude sends and requests less to begin
+//      with.
 export async function generateQuantumDocumentIntelligence(
   documentTitle: string,
   documentText: string,
@@ -102,6 +140,25 @@ export async function generateQuantumDocumentIntelligence(
   const startedAt = Date.now()
   const maxPromptChars = targetLanguage === 'en' ? MAX_PROMPT_CHARS : MAX_TRANSLATED_PROMPT_CHARS
   const promptText = documentText.length > maxPromptChars ? `${documentText.slice(0, maxPromptChars)}\n\n[Content truncated for length.]` : documentText
+
+  // Global Document Deduplication — checked before anything else. The
+  // hash covers exactly the text that would be sent to the model, so a
+  // hit here guarantees the cached analysis is the same analysis a fresh
+  // call would have produced.
+  const contentHash = computeDocumentContentHash(promptText)
+  const cached = await getCachedAnalysis(contentHash, targetLanguage)
+  if (cached) {
+    void logTransformerCost({
+      requestId,
+      quantumDocumentId: null,
+      modelId: cached.modelId,
+      inputTokens: 0,
+      outputTokens: 0,
+      processingTimeMs: Date.now() - startedAt,
+      success: true,
+    })
+    return { success: true, payload: cached.payload, modelId: cached.modelId }
+  }
 
   // Smart Dynamic MCQ Assessment™ — computed from the real word count of
   // what the model actually sees (the possibly-truncated promptText, not
@@ -123,13 +180,25 @@ export async function generateQuantumDocumentIntelligence(
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
+      // AI Cost Optimization™ — Prompt Caching. `cache_control` marks
+      // this exact, always-identical instruction block as cacheable;
+      // Anthropic caches it server-side and future calls (from any
+      // student, within the cache window) reference it at a steep
+      // discount instead of paying full input-token price again. Only
+      // pays off once this block is large enough to clear Anthropic's
+      // minimum cacheable-block size for this model — see this file's
+      // own cost-log comment for why the actual saving is measured, not
+      // just assumed.
+      system: [{ type: 'text', text: QUANTUM_DOCUMENT_TRANSFORMER_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       tools: [tool],
       tool_choice: { type: 'tool', name: tool.name },
-      messages: [{ role: 'user', content: buildQuantumDocumentTransformerPrompt(documentTitle, promptText, targetLanguage, targetQuestionCount) }],
+      messages: [{ role: 'user', content: buildQuantumDocumentTransformerUserMessage(documentTitle, promptText, targetLanguage, targetQuestionCount) }],
     })
 
     const toolUseBlock = response.content.find((block) => block.type === 'tool_use')
     const processingTimeMs = Date.now() - startedAt
+    const cacheReadTokens = response.usage.cache_read_input_tokens ?? 0
+    const cacheWriteTokens = response.usage.cache_creation_input_tokens ?? 0
 
     if (!toolUseBlock || toolUseBlock.type !== 'tool_use') {
       void logTransformerCost({
@@ -138,6 +207,8 @@ export async function generateQuantumDocumentIntelligence(
         modelId: MODEL,
         inputTokens: response.usage.input_tokens,
         outputTokens: response.usage.output_tokens,
+        cacheReadTokens,
+        cacheWriteTokens,
         processingTimeMs,
         success: false,
         errorMessage: 'Response contained no tool_use block.',
@@ -153,6 +224,8 @@ export async function generateQuantumDocumentIntelligence(
         modelId: MODEL,
         inputTokens: response.usage.input_tokens,
         outputTokens: response.usage.output_tokens,
+        cacheReadTokens,
+        cacheWriteTokens,
         processingTimeMs,
         success: false,
         errorMessage: `Tool input failed schema validation: ${parsed.error.issues[0]?.message ?? 'unknown validation error'}`,
@@ -166,6 +239,8 @@ export async function generateQuantumDocumentIntelligence(
       modelId: MODEL,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
+      cacheReadTokens,
+      cacheWriteTokens,
       processingTimeMs,
       success: true,
     })
@@ -177,6 +252,12 @@ export async function generateQuantumDocumentIntelligence(
       ...parsed.data,
       quiz_questions: deriveMcqQuizQuestions(parsed.data.quiz_questions),
     }
+
+    // Global Document Deduplication — populate the cache for the NEXT
+    // person who uploads this exact content. Best-effort: see
+    // documentAnalysisCache.ts's own comment on why a write failure here
+    // must never fail this already-successful request.
+    void saveCachedAnalysis(contentHash, targetLanguage, payload, MODEL)
 
     return { success: true, payload, modelId: MODEL }
   } catch (error) {

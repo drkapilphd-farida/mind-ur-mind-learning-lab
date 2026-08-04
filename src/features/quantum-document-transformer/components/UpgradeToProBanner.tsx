@@ -11,11 +11,11 @@ type UpgradeToProBannerProps = {
 // Pro Paywall — shown proactively in place of the drop zone once a free
 // user has already used their real quantum_documents allowance (never
 // shown reactively after a wasted upload attempt — see
-// AIDocumentTransformerWidget.tsx). Links to /pricing rather than a fake
-// "Upgrade" button that goes nowhere: no real Pro checkout exists in this
-// app yet (Stripe billing today only covers one-time course purchases),
-// so /pricing is the honest, real destination — not a fabricated
-// checkout flow.
+// AIDocumentTransformerWidget.tsx). Links to /pricing#family-pro — the
+// pricing page's own Family/Pro card, which now has a real, live
+// Razorpay "Subscribe" button (see PricingPlansGrid.tsx) — rather than
+// linking straight to a specific Razorpay URL and guessing Monthly vs.
+// Yearly on the learner's behalf.
 export function UpgradeToProBanner({ documentLimit }: UpgradeToProBannerProps): React.JSX.Element {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-8 text-center">
@@ -31,7 +31,7 @@ export function UpgradeToProBanner({ documentLimit }: UpgradeToProBannerProps): 
       </div>
 
       <Button asChild size="lg" className="rounded-full">
-        <Link href="/pricing">
+        <Link href="/pricing#family-pro">
           <Sparkles className="size-4" aria-hidden="true" />
           Upgrade to Pro
         </Link>

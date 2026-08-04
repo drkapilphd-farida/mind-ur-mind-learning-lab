@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
@@ -20,6 +21,7 @@ import { PremiumUpsellCard } from './PremiumUpsellCard'
 // `snapshot` — swapping mockData.ts for a real Server Action later
 // means changing only this one file, not the components themselves.
 export function ParentDashboard(): React.JSX.Element {
+  const router = useRouter()
   const [selectedChildId, setSelectedChildId] = useState<string>(CHILDREN[0]!.id)
   const selectedChild = CHILDREN.find((child) => child.id === selectedChildId) ?? CHILDREN[0]!
   const snapshot = getWeeklySnapshot(selectedChildId)
@@ -93,8 +95,11 @@ export function ParentDashboard(): React.JSX.Element {
                   inside the same grid/fade wrapper as the stats so the
                   whole row transitions as one unit rather than the
                   upsell card visibly holding still while everything
-                  beside it fades. */}
-              <PremiumUpsellCard onUpgrade={() => toast.info('Redirecting to upgrade flow…')} />
+                  beside it fades. Routes to the pricing page's real
+                  Family/Pro card (a live Razorpay "Subscribe" button
+                  lives there — see PricingPlansGrid.tsx) rather than a
+                  no-op toast. */}
+              <PremiumUpsellCard onUpgrade={() => router.push('/pricing#family-pro')} />
             </div>
           </motion.div>
         </AnimatePresence>

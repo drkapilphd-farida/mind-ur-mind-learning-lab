@@ -1474,6 +1474,57 @@ export type Database = {
           },
         ]
       }
+      quantum_document_analysis_cache: {
+        Row: {
+          ai_summary: string
+          content_hash: string
+          created_at: string
+          feynman_challenge: Json
+          hit_count: number
+          keywords: string[]
+          last_hit_at: string | null
+          mnemonics: Json
+          model_id: string
+          quiz_questions: Json
+          reading_text: string | null
+          spider_notes: Json
+          subject_lens: Json
+          target_language: string
+        }
+        Insert: {
+          ai_summary: string
+          content_hash: string
+          created_at?: string
+          feynman_challenge: Json
+          hit_count?: number
+          keywords: string[]
+          last_hit_at?: string | null
+          mnemonics: Json
+          model_id: string
+          quiz_questions: Json
+          reading_text?: string | null
+          spider_notes: Json
+          subject_lens: Json
+          target_language: string
+        }
+        Update: {
+          ai_summary?: string
+          content_hash?: string
+          created_at?: string
+          feynman_challenge?: Json
+          hit_count?: number
+          keywords?: string[]
+          last_hit_at?: string | null
+          mnemonics?: Json
+          model_id?: string
+          quiz_questions?: Json
+          reading_text?: string | null
+          spider_notes?: Json
+          subject_lens?: Json
+          target_language?: string
+        }
+        Relationships: []
+      }
       quantum_document_sessions: {
         Row: {
           correct_answers_count: number
