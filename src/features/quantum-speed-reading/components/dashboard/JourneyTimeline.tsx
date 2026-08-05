@@ -8,6 +8,12 @@ export type JourneyTimelineStage = {
   title: string
   status: 'locked' | 'current' | 'complete'
   href: string
+  // Quantum Speed Reading Paywall™ — true when this stage's own real
+  // lock (see the exercise pages' own hasQuantumSpeedReadingProAccess
+  // checks) is a Pro requirement rather than the ordinary sequential-
+  // mastery reason every other locked stage already shows. Only
+  // meaningful when status is 'locked'.
+  requiresPro?: boolean
 }
 
 type JourneyTimelineProps = {
@@ -39,8 +45,10 @@ export function JourneyTimeline({ stages, currentStageId }: JourneyTimelineProps
         const isHere = stage.id === currentStageId
         const previousStageTitle = index > 0 ? stages[index - 1]?.title : null
 
-        return (
-          <li key={stage.id} className="flex items-center gap-4 px-6 py-4">
+        const isProLocked = isLocked && stage.requiresPro === true
+
+        const rowContent = (
+          <>
             <div
               aria-hidden="true"
               className={cn(
@@ -56,14 +64,15 @@ export function JourneyTimeline({ stages, currentStageId }: JourneyTimelineProps
                 {stage.title}
                 {isHere && <span className="ml-2 text-xs font-medium tracking-wide text-primary uppercase">You are here</span>}
               </p>
-              {isLocked && (
+              {isProLocked ? (
+                <p className="mt-0.5 text-xs font-medium text-primary">Requires Pro — tap to upgrade</p>
+              ) : isLocked ? (
                 <p className="mt-0.5 text-xs text-muted-foreground/70">
                   {previousStageTitle !== null ? `Available after completing ${previousStageTitle}` : 'Available soon'}
                 </p>
-              )}
-              {isComplete && (
+              ) : isComplete ? (
                 <p className="mt-0.5 text-xs text-muted-foreground/70">Evolved</p>
-              )}
+              ) : null}
             </div>
 
             {isComplete && (
@@ -71,6 +80,26 @@ export function JourneyTimeline({ stages, currentStageId }: JourneyTimelineProps
                 Review
               </Link>
             )}
+          </>
+        )
+
+        // Quantum Speed Reading Paywall™ — a Pro-locked stage is the one
+        // "locked" state that's still a real, clickable entry point (to
+        // /pricing), not just a status readout — matches every other
+        // locked-day/locked-exercise treatment in this pass, where
+        // locking is never a dead end.
+        return isProLocked ? (
+          <li key={stage.id}>
+            <Link
+              href="/pricing#family-pro"
+              className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+            >
+              {rowContent}
+            </Link>
+          </li>
+        ) : (
+          <li key={stage.id} className="flex items-center gap-4 px-6 py-4">
+            {rowContent}
           </li>
         )
       })}

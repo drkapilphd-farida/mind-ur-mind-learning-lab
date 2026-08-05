@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { ReadingPreparationSequence } from '@/features/quantum-speed-reading/components/ReadingPreparationSequence'
 import { ExerciseLockedScreen } from '@/components/exercises/ExerciseLockedScreen'
+import { ProLockedScreen } from '@/components/exercises/ProLockedScreen'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
 import { VISUAL_ACTIVATION_EXERCISE_IDS } from '@/features/visual-intelligence/visualActivationSequence'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 
@@ -11,6 +13,13 @@ export const metadata: Metadata = {
 }
 
 export default async function ReadingPreparationPage(): Promise<React.JSX.Element> {
+  // Quantum Speed Reading Paywall™ — the Reading Preparation™ stage
+  // itself requires Pro, checked before the Visual Activation™
+  // cross-stage gate below.
+  if (!(await hasQuantumSpeedReadingProAccess())) {
+    return <ProLockedScreen title="Reading Preparation™" />
+  }
+
   const visualActivationProgress = await getModuleProgress('visual-intelligence', VISUAL_ACTIVATION_EXERCISE_IDS)
   const isVisualActivationComplete =
     visualActivationProgress.totalCount > 0 && visualActivationProgress.completedCount === visualActivationProgress.totalCount

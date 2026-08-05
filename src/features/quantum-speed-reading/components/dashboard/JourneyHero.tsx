@@ -15,6 +15,13 @@ type JourneyHeroProps = {
   exercisePosition: { index: number; total: number } | null
   continueHref: string
   isJourneyComplete: boolean
+  // Quantum Speed Reading Paywall™ — true when the current stage itself
+  // requires Pro (every stage but Visual Activation™, for a free user).
+  // `continueHref` still points at the real stage — its own page is the
+  // real enforcement boundary — this only changes the button's label and
+  // destination so a free user isn't told "Continue" into a page that's
+  // actually going to turn them away.
+  currentStageRequiresPro?: boolean
   // SPRINT-2A — Reading Preparation™ is optional, so its "current stage"
   // screen offers a second, quieter path straight into Core Reading
   // Journey™ instead of the one mandatory CTA every other stage has.
@@ -44,6 +51,7 @@ export function JourneyHero({
   exercisePosition,
   continueHref,
   isJourneyComplete,
+  currentStageRequiresPro = false,
   secondaryHref,
   secondaryLabel,
 }: JourneyHeroProps): React.JSX.Element {
@@ -81,7 +89,9 @@ export function JourneyHero({
           </div>
 
           <Button asChild size="lg" className="mt-8 min-w-[220px] rounded-full shadow-sm">
-            <Link href={continueHref}>Continue Your Journey™</Link>
+            <Link href={currentStageRequiresPro ? '/pricing#family-pro' : continueHref}>
+              {currentStageRequiresPro ? 'Upgrade to Pro' : 'Continue Your Journey™'}
+            </Link>
           </Button>
 
           {secondaryHref !== null && secondaryHref !== undefined && (

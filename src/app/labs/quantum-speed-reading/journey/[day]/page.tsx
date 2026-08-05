@@ -11,6 +11,14 @@ import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagno
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
+import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+
+// 21-Day Journey Paywall™ — Day 1, 2, and 3 are free for every user (the
+// real "try it for real, not a demo" window); Day 4 onward requires an
+// active Pro subscription. A fixed threshold, not tied to `currentDay`/
+// progress — a free user's own "next" day past Day 3 is still locked,
+// not just days they haven't reached yet.
+const FREE_JOURNEY_DAYS = 3
 
 export const metadata: Metadata = {
   title: '21-Day Transformation Journey™',
@@ -33,6 +41,21 @@ export default async function QuantumJourneyDayPage({ params }: QuantumJourneyDa
 
   if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > TOTAL_JOURNEY_DAYS) {
     notFound()
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // 21-Day Journey Paywall™ — checked before anything else below: no
+  // point resolving weakest-domain/streak/baseline data for a session the
+  // user isn't allowed to start.
+  if (dayNumber > FREE_JOURNEY_DAYS && !isDevUnlockEnabled()) {
+    const isPaidUser = user ? await getIsPaidUser(user.id) : false
+    if (!isPaidUser) {
+      redirect('/pricing#family-pro')
+    }
   }
 
   const [weakestDomain, readingHistory, baselineDiagnostic] = await Promise.all([
@@ -72,10 +95,6 @@ export default async function QuantumJourneyDayPage({ params }: QuantumJourneyDa
   const daysSinceLastSession =
     readingHistory[0] !== undefined ? Math.floor((Date.now() - new Date(readingHistory[0].occurredAt).getTime()) / 86_400_000) : null
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
   const profile = user ? await getCurrentUserProfile(user.id) : null
   const studentName = profile?.fullName ?? 'there'
   const studentFirstName = studentName.trim().split(' ').at(0) ?? 'there'

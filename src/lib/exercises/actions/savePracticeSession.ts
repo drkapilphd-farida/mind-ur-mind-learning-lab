@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { PracticeSessionInputSchema, type PracticeSessionResult } from '../types'
 import { verifyExerciseIsUnlocked } from '../queries/getExerciseAccess'
+import { isProGatedQuantumSpeedReadingExercise } from '@/lib/subscription/proGatedQuantumSpeedReadingExercises'
+import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 
 // Persists current exercise status (in_progress / completed) for the signed-in
 // user. These routes are reachable without signing in, so "no user" is a
@@ -43,6 +46,18 @@ export async function savePracticeSession(input: unknown): Promise<PracticeSessi
   if (!unlocked) {
     logger.warn('rejected practice session write for a locked exercise', { userId: user.id, labId, exerciseId })
     return { success: false, error: 'This exercise is not yet unlocked.' }
+  }
+
+  // Quantum Speed Reading Paywall™ — the write-time counterpart to every
+  // exercise page's own hasQuantumSpeedReadingProAccess render-time
+  // check, same reasoning as verifyExerciseIsUnlocked above: a bypassed
+  // render should never be pairable with a write that still succeeds.
+  if (isProGatedQuantumSpeedReadingExercise(labId, exerciseId) && !isDevUnlockEnabled()) {
+    const isPaidUser = await getIsPaidUser(user.id)
+    if (!isPaidUser) {
+      logger.warn('rejected practice session write for a Pro-gated exercise', { userId: user.id, labId, exerciseId })
+      return { success: false, error: 'This exercise requires Quantum Mind Pro.' }
+    }
   }
 
   // Append-only history record of this attempt — logged regardless of

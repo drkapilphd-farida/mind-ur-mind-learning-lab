@@ -23,7 +23,9 @@ import { AiCoachPanel } from '@/features/quantum-speed-reading/components/adapti
 import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { LabPageHeader } from '@/features/quantum-speed-reading/components/shell/LabPageHeader'
 import { ExerciseLockedScreen } from '@/components/exercises/ExerciseLockedScreen'
+import { ProLockedScreen } from '@/components/exercises/ProLockedScreen'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
 import { READING_EXPANSION_MODULE } from '@/features/quantum-speed-reading/readingExpansionModule'
 
 export const metadata: Metadata = {
@@ -36,6 +38,12 @@ const CORE_READING_JOURNEY_EXERCISE_IDS = READING_EXPANSION_MODULE.map((exercise
 // from real reading_intelligence_sessions rows (see the one recording
 // hook in ComprehensionQuizExperience.tsx) — nothing is fabricated.
 export default async function ReadingIntelligencePage(): Promise<React.JSX.Element> {
+  // Quantum Speed Reading Paywall™ — Reading Intelligence™ requires Pro,
+  // checked before the Core Reading Journey™ completion gate below.
+  if (!(await hasQuantumSpeedReadingProAccess())) {
+    return <ProLockedScreen title="Reading Intelligence" />
+  }
+
   // Sprint-12: Reading Intelligence™ (Stage 5) is this journey's final
   // stage — its entry point requires Core Reading Journey™ (Stage 4) to be
   // fully complete first. Its other 10 pages (analytics/history/etc.) stay

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Check, FlaskConical, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 type TwentyOneDayJourneyCardProps = {
   isPaidUser: boolean
@@ -10,12 +11,20 @@ type TwentyOneDayJourneyCardProps = {
   isDevUnlocked: boolean
   // The next real day to complete (1-21) — getNextJourneyDay(sessionCount)
   // from streakMotivation.ts, the same value StreakReminderBanner's own
-  // "Day N is waiting for you" CTA already used. Previously this card
-  // hardcoded "Day 1" regardless of real progress.
+  // "Day N is waiting for you" CTA already used.
   currentDay: number
 }
 
 const TOTAL_DAYS = 21
+
+// 21-Day Journey Paywall™ — a fixed free window, not tied to progress:
+// Day 1-3 are free for every user; Day 4 onward requires Pro, even if
+// it's the learner's own "next" day. Mirrors the exact same
+// FREE_JOURNEY_DAYS threshold enforced server-side in
+// journey/[day]/page.tsx — this component's own lock styling is a UI
+// convenience matching that real boundary, not a separate rule of its
+// own that could drift out of sync.
+const FREE_JOURNEY_DAYS = 3
 
 function journeyDayHref(day: number): string {
   return `/labs/quantum-speed-reading/journey/${day}`
@@ -26,25 +35,24 @@ function journeyDayHref(day: number): string {
 // 4-level session chaining a real Reading Intelligence, Intuition
 // Development, Right Brain Activation, and Visualisation exercise (which
 // exact exercises per day is QuantumJourneySession's own, real, deterministic
-// day-parity rotation — never fabricated). `currentDay` is always the
-// featured, always-open row; days before it show as completed (never
-// re-locked, even for a free user); days after it are gated by real (if
-// currently always-free) subscription state from getIsPaidUser, or the
-// dev/test bypass — locked days show only their number, never a
-// fabricated preview of that day's content.
+// day-parity rotation — never fabricated). Locked days (Day 4+ for a
+// free user) are real links to /pricing, not dead ends — tapping one is
+// exactly how a free user is meant to discover the upgrade.
 export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay }: TwentyOneDayJourneyCardProps): React.JSX.Element {
   const otherDays = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).filter((day) => day !== currentDay)
-  const isUnlocked = isPaidUser || isDevUnlocked
+  const hasProAccess = isPaidUser || isDevUnlocked
+  const isDayUnlocked = (day: number): boolean => day <= FREE_JOURNEY_DAYS || hasProAccess
   const isReplay = currentDay > 1
+  const isCurrentDayUnlocked = isDayUnlocked(currentDay)
 
   return (
     <div className="glass-premium-card glass-premium-lift p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">21-Day Transformation Journey™</p>
-        {!isUnlocked && (
+        {!hasProAccess && (
           <Badge variant="secondary" className="gap-1">
             <Lock className="size-2.5" aria-hidden="true" />
-            Pro unlocks remaining days
+            Free through Day {FREE_JOURNEY_DAYS} — Pro unlocks the rest
           </Badge>
         )}
         {isDevUnlocked && !isPaidUser && (
@@ -56,22 +64,37 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
       </div>
 
       <Link
-        href={journeyDayHref(currentDay)}
-        className="mt-4 flex items-center gap-4 rounded-xl border bg-foreground/[0.02] p-4 transition-colors hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        href={isCurrentDayUnlocked ? journeyDayHref(currentDay) : '/pricing#family-pro'}
+        className={cn(
+          'mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          isCurrentDayUnlocked ? 'bg-foreground/[0.02] hover:bg-foreground/[0.04]' : 'border-dashed bg-muted/30 hover:bg-muted/50',
+        )}
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {currentDay}
+        <div
+          className={cn(
+            'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+            isCurrentDayUnlocked ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20 text-muted-foreground',
+          )}
+        >
+          {isCurrentDayUnlocked ? currentDay : <Lock className="size-3.5" aria-hidden="true" />}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">Day {currentDay}</p>
-          <p className="truncate text-xs text-muted-foreground">Reading · Intuition · Right Brain · Visualisation</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {isCurrentDayUnlocked ? 'Reading · Intuition · Right Brain · Visualisation' : 'Upgrade to Pro to unlock this day'}
+          </p>
         </div>
-        <span className="shrink-0 text-xs font-medium text-primary">{isReplay ? 'Continue →' : 'Begin →'}</span>
+        <span className="shrink-0 text-xs font-medium text-primary">
+          {isCurrentDayUnlocked ? (isReplay ? 'Continue →' : 'Begin →') : 'Upgrade →'}
+        </span>
       </Link>
 
       <div className="mt-4 grid grid-cols-10 gap-2 sm:grid-cols-10">
         {otherDays.map((day) => {
-          if (day < currentDay) {
+          const unlocked = isDayUnlocked(day)
+          const isCompleted = unlocked && day < currentDay
+
+          if (isCompleted) {
             return (
               <Link
                 key={day}
@@ -84,7 +107,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
             )
           }
 
-          return isUnlocked ? (
+          return unlocked ? (
             <Link
               key={day}
               href={journeyDayHref(day)}
@@ -94,14 +117,20 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               {day}
             </Link>
           ) : (
-            <div
+            // Locked days are real links to pricing, not dead <div>s —
+            // clicking a locked day is a real upgrade entry point, per
+            // the brief ("clicking them should prompt the user to
+            // upgrade and redirect them to /pricing"), not just a
+            // visual indicator.
+            <Link
               key={day}
-              aria-label={`Day ${day}, locked, Pro`}
-              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 text-[11px] font-medium text-muted-foreground/50"
+              href="/pricing#family-pro"
+              aria-label={`Day ${day}, locked, upgrade to Pro`}
+              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 text-[11px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/60 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <Lock className="size-2.5" aria-hidden="true" />
               {day}
-            </div>
+            </Link>
           )
         })}
       </div>

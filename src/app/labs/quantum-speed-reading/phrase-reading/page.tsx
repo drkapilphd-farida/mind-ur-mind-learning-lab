@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { PhraseReadingExperience } from '@/features/phrase-reading/components/PhraseReadingExperience'
 import { ExerciseLockedScreen } from '@/components/exercises/ExerciseLockedScreen'
+import { ProLockedScreen } from '@/components/exercises/ProLockedScreen'
 import { getExerciseAccess } from '@/lib/exercises/queries/getExerciseAccess'
 import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
+import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
 import { READING_EXPANSION_MODULE } from '@/features/quantum-speed-reading/readingExpansionModule'
 import { VISUAL_ACTIVATION_EXERCISE_IDS } from '@/features/visual-intelligence/visualActivationSequence'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
@@ -13,6 +15,12 @@ export const metadata: Metadata = {
 }
 
 export default async function PhraseReadingPage(): Promise<React.JSX.Element> {
+  // Quantum Speed Reading Paywall™ — Core Reading Journey™ requires Pro,
+  // checked before the cross-stage/sequential gates below.
+  if (!(await hasQuantumSpeedReadingProAccess())) {
+    return <ProLockedScreen title="Phrase Reading" />
+  }
+
   // SPRINT-2A — Quantum Speed Reading Library Cleanup™. Phrase Reading is
   // now Core Reading Journey™'s first exercise (Progressive Chunk Reading
   // removed from Version-1's active sequence), and Core Reading Journey™ is

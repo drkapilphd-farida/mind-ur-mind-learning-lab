@@ -12,7 +12,14 @@ import { JourneyStatsRow } from '@/features/quantum-speed-reading/components/das
 import { JourneyTimeline, type JourneyTimelineStage } from '@/features/quantum-speed-reading/components/dashboard/JourneyTimeline'
 import { TodaysProgress } from '@/features/quantum-speed-reading/components/dashboard/TodaysProgress'
 import { LabPillarsGrid } from '@/features/quantum-speed-reading/components/dashboard/LabPillarsGrid'
+import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
 import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
+
+// Quantum Speed Reading Paywall™ — every stage except Visual Activation™
+// requires Pro. Kept as an explicit allowlist of the one free stage
+// (rather than a denylist of the three gated ones) so a future 5th stage
+// defaults to gated, never accidentally free.
+const FREE_STAGE_ID = 'visual-activation'
 
 const ALL_SEQUENCES: readonly ExerciseSequenceItem[] = [...VISUAL_ACTIVATION_SEQUENCE, ...EYE_FOUNDATION_MODULE, ...READING_EXPANSION_MODULE]
 
@@ -68,10 +75,13 @@ function findExercisePosition(
 // read of the orchestrator's already-computed values. No journey, progress,
 // streak, or scoring logic is duplicated anywhere in this file.
 export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.Element> {
-  const experience = await createReadingIntelligenceExperience().load()
+  const [experience, recentSessions, hasProAccess] = await Promise.all([
+    createReadingIntelligenceExperience().load(),
+    getPracticeSessions('quantum-speed-reading', 1),
+    hasQuantumSpeedReadingProAccess(),
+  ])
   const { journey, mindScore, mindScoreLabel, streak } = experience.journeyState
 
-  const recentSessions = await getPracticeSessions('quantum-speed-reading', 1)
   const lastSession = recentSessions[0] ?? null
   const lastSessionExerciseTitle = lastSession !== null ? (ALL_SEQUENCES.find((item) => item.exerciseId === lastSession.exerciseId)?.title ?? null) : null
   const lastSessionLabel =
@@ -106,15 +116,26 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
   const currentExercisePosition =
     currentStageSequence !== undefined ? findExercisePosition(currentStageSequence, currentStageSummary?.currentExercise?.exerciseId) : null
 
-  const timelineStages: JourneyTimelineStage[] = journey.stages.map((stage) => ({
-    id: stage.id,
-    icon: STAGE_COPY[stage.id]?.icon ?? '',
-    title: stage.title,
-    status: stage.status,
-    href: stage.href,
-  }))
+  // Quantum Speed Reading Paywall™ — a free user sees every non-Visual-
+  // Activation™ stage as locked here, regardless of what its real
+  // sequential progress would otherwise say (even a stage with real
+  // completed exercises from before a subscription lapsed reads as
+  // locked again) — the exact same rule the underlying pages themselves
+  // now enforce for real via hasQuantumSpeedReadingProAccess.
+  const timelineStages: JourneyTimelineStage[] = journey.stages.map((stage) => {
+    const isProGatedStage = stage.id !== FREE_STAGE_ID && !hasProAccess
+    return {
+      id: stage.id,
+      icon: STAGE_COPY[stage.id]?.icon ?? '',
+      title: stage.title,
+      status: isProGatedStage ? 'locked' : stage.status,
+      href: stage.href,
+      requiresPro: isProGatedStage,
+    }
+  })
 
   const nextStageTeaser = currentStage !== null ? (currentStageCopy?.nextStageTeaser ?? null) : null
+  const currentStageRequiresPro = currentStage !== null && currentStage.id !== FREE_STAGE_ID && !hasProAccess
 
   return (
     <div>
@@ -132,6 +153,7 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
           exercisePosition={currentExercisePosition}
           continueHref={journey.continueHref}
           isJourneyComplete={journey.isJourneyComplete}
+          currentStageRequiresPro={currentStageRequiresPro}
           secondaryHref={isVisualActivationComplete && currentStage?.id === 'reading-preparation' ? SKIP_TO_READING_PRACTICE_HREF : null}
           secondaryLabel="Skip to Reading Practice →"
         />
