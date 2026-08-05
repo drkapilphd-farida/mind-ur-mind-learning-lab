@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { UserMenu } from '@/components/UserMenu'
@@ -51,6 +53,10 @@ const IMMERSIVE_ROUTE_PATTERNS = [
 
 type AppShellProps = {
   brandLabel: string
+  // School Dashboard white-labeling — a tenant's uploaded logo, shown in
+  // place of the plain text brandLabel when set. Absent/null for every
+  // other AppShell consumer.
+  brandLogoUrl?: string | null
   brandHref: string
   navItems: readonly ShellNavItem[]
   fullName: string | null
@@ -61,6 +67,11 @@ type AppShellProps = {
   // details, ...) — Sprint 0 renders nothing here; passing `rightPanel`
   // later needs no shell changes, only a prop.
   rightPanel?: React.ReactNode
+  // School Dashboard — data-table-heavy admin screens (rosters,
+  // analytics) need more room than the default max-w-4xl reading-width
+  // column every other AppShell consumer uses. Additive, defaults to
+  // the existing behavior for every current consumer.
+  contentMaxWidth?: 'default' | 'wide'
 }
 
 // A reusable app shell (persistent sidebar + topbar + content + optional
@@ -73,6 +84,7 @@ type AppShellProps = {
 // instead of hand-copying sidebar/topbar markup a fourth time.
 export function AppShell({
   brandLabel,
+  brandLogoUrl = null,
   brandHref,
   navItems,
   fullName,
@@ -80,6 +92,7 @@ export function AppShell({
   email,
   children,
   rightPanel,
+  contentMaxWidth = 'default',
 }: AppShellProps): React.JSX.Element {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const pathname = usePathname()
@@ -95,8 +108,11 @@ export function AppShell({
         <div className="flex h-14 shrink-0 items-center border-b border-border/60 px-4">
           <Link
             href={brandHref}
-            className="text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-70"
+            className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-70"
           >
+            {brandLogoUrl !== null && (
+              <Image src={brandLogoUrl} alt="" width={24} height={24} className="size-6 shrink-0 rounded object-contain" unoptimized />
+            )}
             {brandLabel}
           </Link>
         </div>
@@ -135,7 +151,7 @@ export function AppShell({
 
         <div className="flex flex-1 overflow-hidden">
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8">{children}</div>
+            <div className={cn('mx-auto px-6 py-8 sm:px-8', contentMaxWidth === 'wide' ? 'max-w-7xl' : 'max-w-4xl')}>{children}</div>
           </main>
 
           {rightPanel !== undefined && (

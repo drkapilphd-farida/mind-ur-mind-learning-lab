@@ -1,4 +1,4 @@
-import { CreditCard, LayoutDashboard, LifeBuoy, Settings, Sparkles, User, Layers } from 'lucide-react'
+import { BookOpen, CreditCard, LayoutDashboard, LifeBuoy, Settings, Sparkles, User, Layers } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 // The only place shell nav icon *components* are resolved — imported
@@ -14,6 +14,7 @@ export const SHELL_ICONS = {
   Settings,
   CreditCard,
   LifeBuoy,
+  BookOpen,
 } as const satisfies Record<string, LucideIcon>
 
 export type ShellIconName = keyof typeof SHELL_ICONS

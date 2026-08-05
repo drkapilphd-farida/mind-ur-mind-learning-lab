@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,12 +21,17 @@ type TopbarProps = {
   fullName: string | null
   avatarUrl: string | null
   email: string
+  // School Dashboard white-labeling — see AppSidebar.tsx's identical props.
+  brandName?: string | null
+  brandLogoUrl?: string | null
 }
 
 export function Topbar({
   fullName,
   avatarUrl,
   email,
+  brandName = null,
+  brandLogoUrl = null,
 }: TopbarProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
 
@@ -45,9 +51,13 @@ export function Topbar({
 
         <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
           <SheetHeader className="flex h-14 shrink-0 flex-row items-center gap-2 border-b px-4 py-0 space-y-0">
-            <LivingBrainLogo size={22} decorative={false} animated={false} />
+            {brandLogoUrl !== null ? (
+              <Image src={brandLogoUrl} alt="" width={22} height={22} className="size-[22px] rounded object-contain" unoptimized />
+            ) : (
+              <LivingBrainLogo size={22} decorative={false} animated={false} />
+            )}
             <SheetTitle className="text-sm font-semibold tracking-tight">
-              Quantum Mind
+              {brandName ?? 'Quantum Mind'}
             </SheetTitle>
           </SheetHeader>
           <div className="py-4">
@@ -66,11 +76,15 @@ export function Topbar({
           found the previous 22px mark read as barely-there next to the
           hamburger icon and the header's other 36-40px touch targets. */}
       <Link href="/dashboard" className="flex shrink-0 items-center gap-2 md:hidden">
-        <span className="brand-logo-wrap shrink-0">
-          <LivingBrainLogo size={36} className="size-9" decorative={false} animated={false} />
-          <span className="brand-logo-warmth" aria-hidden="true" />
-        </span>
-        <span className="brand-gradient-text text-base font-bold tracking-tight">Quantum Mind</span>
+        {brandLogoUrl !== null ? (
+          <Image src={brandLogoUrl} alt="" width={36} height={36} className="size-9 shrink-0 rounded object-contain" unoptimized />
+        ) : (
+          <span className="brand-logo-wrap shrink-0">
+            <LivingBrainLogo size={36} className="size-9" decorative={false} animated={false} />
+            <span className="brand-logo-warmth" aria-hidden="true" />
+          </span>
+        )}
+        <span className="brand-gradient-text text-base font-bold tracking-tight">{brandName ?? 'Quantum Mind'}</span>
       </Link>
 
       <div className="flex-1" />

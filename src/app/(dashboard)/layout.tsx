@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { computeDailyStreak, computeMissedDaysSinceLastPractice } from '@/lib/exercises/practiceHistory'
+import { getTenantBrandingForUser } from '@/features/school-dashboard/queries/getTenantBrandingForUser'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Topbar } from '@/components/Topbar'
 
@@ -28,9 +29,10 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
-  const [profile, labSessions] = await Promise.all([
+  const [profile, labSessions, tenantBranding] = await Promise.all([
     getCurrentUserProfile(user.id),
     getPracticeSessions('quantum-speed-reading'),
+    getTenantBrandingForUser(user.id),
   ])
 
   // Brand Logo Warmth™ — the persistent sidebar logo's streak-based tint
@@ -45,7 +47,7 @@ export default async function DashboardLayout({
     <div className={`bg-muted/30 flex h-screen overflow-hidden ${plusJakartaSans.variable} ${inter.variable}`}>
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
-        <AppSidebar missedDays={missedDays} />
+        <AppSidebar missedDays={missedDays} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} />
       </div>
 
       {/* Main column */}
@@ -54,6 +56,8 @@ export default async function DashboardLayout({
           fullName={profile?.fullName ?? null}
           avatarUrl={profile?.avatarUrl ?? null}
           email={user.email ?? ''}
+          brandName={tenantBranding?.name ?? null}
+          brandLogoUrl={tenantBranding?.logoUrl ?? null}
         />
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8">{children}</div>

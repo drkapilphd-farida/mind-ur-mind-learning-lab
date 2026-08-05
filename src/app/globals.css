@@ -798,3 +798,72 @@
     box-shadow: none !important;
   }
 }
+
+/*
+ * School Corporate™ — a deliberate, scoped B2B exception for the school /
+ * institutional dashboard (see docs/PROJECT_RULES.md's own "not an LMS /
+ * not a dashboard-heavy institutional tool" framing — this is the one
+ * corner of the app where that framing intentionally doesn't apply,
+ * isolated behind this class exactly the way .glass-premium isolates its
+ * own scoped exception above). Navy / cream / gold / sage per the
+ * institutional buyer brief; every other route's neutral OKLCH palette
+ * and Geist typography are completely untouched.
+ *
+ * Font variables (--font-playfair / --font-inter-corporate) are loaded by
+ * (school-admin)/layout.tsx only — same "scoped CSS variable, falls back
+ * to --font-sans anywhere it isn't defined" technique as
+ * (dashboard)/layout.tsx's --font-plus-jakarta/--font-inter.
+ */
+.school-corporate {
+  font-family: var(--font-inter-corporate, var(--font-sans));
+  --background: oklch(0.983 0.01 81.8); /* cream #FDF9F2 */
+  --foreground: oklch(0.241 0.063 257.7); /* navy #0A1F3D */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.241 0.063 257.7);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.241 0.063 257.7);
+  --primary: oklch(0.241 0.063 257.7); /* navy #0A1F3D */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.983 0.01 81.8); /* cream #FDF9F2 */
+  --secondary-foreground: oklch(0.241 0.063 257.7);
+  --muted: oklch(0.95 0.008 81.8);
+  --muted-foreground: oklch(0.45 0.02 257.7);
+  --accent: oklch(0.767 0.139 91.1); /* gold #D4AF37 */
+  --accent-foreground: oklch(0.241 0.063 257.7);
+  --border: oklch(0.9 0.015 90);
+  --input: oklch(0.9 0.015 90);
+  --ring: oklch(0.767 0.139 91.1);
+  /* Sage #8FA68E — kept as its own token rather than overloaded onto
+     --secondary, so components that specifically want the sage accent
+     (e.g. a "healthy progress" indicator) can reach it explicitly. */
+  --school-sage: oklch(0.701 0.043 144);
+  --school-sage-foreground: oklch(0.985 0 0);
+}
+
+.school-corporate h1,
+.school-corporate h2,
+.school-corporate h3 {
+  font-family: var(--font-playfair, var(--font-sans));
+}
+
+.dark .school-corporate {
+  --background: oklch(0.19 0.02 257.7);
+  --foreground: oklch(0.95 0.01 81.8);
+  --card: oklch(0.23 0.03 257.7);
+  --card-foreground: oklch(0.95 0.01 81.8);
+  --popover: oklch(0.23 0.03 257.7);
+  --popover-foreground: oklch(0.95 0.01 81.8);
+  --primary: oklch(0.8 0.05 257.7);
+  --primary-foreground: oklch(0.19 0.02 257.7);
+  --secondary: oklch(0.27 0.03 257.7);
+  --secondary-foreground: oklch(0.95 0.01 81.8);
+  --muted: oklch(0.27 0.03 257.7);
+  --muted-foreground: oklch(0.75 0.02 81.8);
+  --accent: oklch(0.767 0.139 91.1);
+  --accent-foreground: oklch(0.19 0.02 257.7);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.767 0.139 91.1);
+  --school-sage: oklch(0.701 0.043 144);
+  --school-sage-foreground: oklch(0.19 0.02 257.7);
+}

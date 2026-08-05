@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { NavLinks } from '@/components/NavLinks'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
@@ -16,9 +17,15 @@ const MAX_WARNING_MISSED_DAYS = 5
 
 type AppSidebarProps = {
   missedDays: number
+  // School Dashboard white-labeling — set only for a student who belongs
+  // to a school/franchise partner that has uploaded a logo; falls back
+  // to the default Quantum Mind mark otherwise (the vast majority of
+  // users, who aren't part of any tenant).
+  brandName?: string | null
+  brandLogoUrl?: string | null
 }
 
-export function AppSidebar({ missedDays }: AppSidebarProps): React.JSX.Element {
+export function AppSidebar({ missedDays, brandName = null, brandLogoUrl = null }: AppSidebarProps): React.JSX.Element {
   const intensity = Math.min(missedDays / MAX_WARNING_MISSED_DAYS, 1)
   const glowA = interpolateHexColor(BRAND_A, WARNING_RED, intensity)
   const glowB = interpolateHexColor(BRAND_B, WARNING_RED, intensity)
@@ -30,20 +37,24 @@ export function AppSidebar({ missedDays }: AppSidebarProps): React.JSX.Element {
           href="/dashboard"
           className="flex items-center gap-2.5 text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-70"
         >
-          <span
-            className="brand-logo-wrap"
-            style={
-              {
-                '--missed-intensity': intensity * 0.8,
-                '--logo-glow-a': `${glowA}aa`,
-                '--logo-glow-b': `${glowB}88`,
-              } as React.CSSProperties
-            }
-          >
-            <LivingBrainLogo size={24} decorative={false} animated={false} />
-            <span className="brand-logo-warmth" aria-hidden="true" />
-          </span>
-          <span className="brand-gradient-text">Quantum Mind</span>
+          {brandLogoUrl !== null ? (
+            <Image src={brandLogoUrl} alt="" width={24} height={24} className="size-6 shrink-0 rounded object-contain" unoptimized />
+          ) : (
+            <span
+              className="brand-logo-wrap"
+              style={
+                {
+                  '--missed-intensity': intensity * 0.8,
+                  '--logo-glow-a': `${glowA}aa`,
+                  '--logo-glow-b': `${glowB}88`,
+                } as React.CSSProperties
+              }
+            >
+              <LivingBrainLogo size={24} decorative={false} animated={false} />
+              <span className="brand-logo-warmth" aria-hidden="true" />
+            </span>
+          )}
+          <span className="brand-gradient-text">{brandName ?? 'Quantum Mind'}</span>
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto py-3">
