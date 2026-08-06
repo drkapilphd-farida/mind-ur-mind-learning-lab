@@ -26,6 +26,11 @@ export type School = {
   monthlyAiQuota: number
   status: SchoolStatus
   ownerId: string
+  // Subscription/renewal — null means no expiry (the default for every
+  // tenant today; there's still no live billing integration). See
+  // subscriptionStatus.ts for how this becomes an Active/Expiring
+  // Soon/Expired label.
+  expiresAt: string | null
   createdAt: string
   updatedAt: string
 }

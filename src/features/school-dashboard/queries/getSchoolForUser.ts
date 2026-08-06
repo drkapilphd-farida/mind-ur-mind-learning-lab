@@ -36,7 +36,7 @@ export async function getSchoolForUser(): Promise<SchoolMembershipForUser | null
 
   const { data: schoolRow } = await supabase
     .from('schools')
-    .select('id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, created_at, updated_at')
+    .select('id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, created_at, updated_at')
     .eq('id', memberRow.school_id)
     .maybeSingle()
 
@@ -67,6 +67,7 @@ export async function getSchoolForUser(): Promise<SchoolMembershipForUser | null
       monthlyAiQuota: schoolRow.monthly_ai_quota,
       status: schoolRow.status as SchoolStatus,
       ownerId: schoolRow.owner_id,
+      expiresAt: schoolRow.expires_at,
       createdAt: schoolRow.created_at,
       updatedAt: schoolRow.updated_at,
     },

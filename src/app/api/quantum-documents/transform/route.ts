@@ -8,6 +8,7 @@ import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transforme
 import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
 import { formatFileSize } from '@/lib/formatFileSize'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { logSchoolAiUsage } from '@/features/school-dashboard/logSchoolAiUsage'
 import { DEFAULT_LANGUAGE, isSupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
 import type { Json } from '@/lib/supabase/types'
@@ -198,6 +199,11 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ success: false, error: 'We generated your study material but could not save it. Please try again.' }, { status: 500 })
     }
     logger.info('[QuantumDocumentTransformer] Quantum Document Saved — SUCCESS', { userId: user.id, quantumDocumentId: row.id })
+
+    // Master Admin Analytics Dashboard — best-effort per-school AI-usage
+    // attribution (see logSchoolAiUsage.ts). Logging only; never blocks
+    // or fails this response.
+    await logSchoolAiUsage(user.id, row.id)
 
     // Built from `payload` (the just-validated AI output) rather than
     // re-reading it back off `row` — `quantum_documents.ai_summary`/

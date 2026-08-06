@@ -1910,6 +1910,45 @@ export type Database = {
         }
         Relationships: []
       }
+      school_ai_usage_log: {
+        Row: {
+          id: string
+          occurred_at: string
+          quantum_document_id: string | null
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          occurred_at?: string
+          quantum_document_id?: string | null
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          occurred_at?: string
+          quantum_document_id?: string | null
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_ai_usage_log_quantum_document_id_fkey"
+            columns: ["quantum_document_id"]
+            isOneToOne: false
+            referencedRelation: "quantum_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_ai_usage_log_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_members: {
         Row: {
           created_at: string
@@ -1957,6 +1996,7 @@ export type Database = {
       schools: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           logo_url: string | null
           max_students: number
@@ -1971,6 +2011,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           logo_url?: string | null
           max_students?: number
@@ -1985,6 +2026,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           logo_url?: string | null
           max_students?: number
