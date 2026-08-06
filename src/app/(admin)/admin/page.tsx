@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Award, BookOpen, DollarSign, TrendingUp, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = { title: 'Admin Overview' }
@@ -13,6 +14,12 @@ function formatRevenue(cents: number): string {
 
 export default async function AdminOverviewPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
+  // certificates_select_public was removed as a 2026-08-06 security fix
+  // (it let anyone, unauthenticated, bulk-read every certificate ever
+  // issued) — the only remaining client-facing policy is self-only, so
+  // this platform-wide stats query needs the service-role client, same
+  // as every other master-admin aggregate read in this app.
+  const serviceClient = createServiceClient()
 
   const [courseRes, lessonRes, enrollmentRes, certRes] = await Promise.all([
     supabase
@@ -22,7 +29,7 @@ export default async function AdminOverviewPage(): Promise<React.JSX.Element> {
       .from('lessons')
       .select('id, is_published', { count: 'exact' }),
     supabase.from('enrollments').select('course_id'),
-    supabase.from('certificates').select('course_id'),
+    serviceClient.from('certificates').select('course_id'),
   ])
 
   const courses = courseRes.data ?? []

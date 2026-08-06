@@ -54,6 +54,25 @@ export async function addStudentManually(input: unknown): Promise<AddStudentManu
     return { success: false, error: 'Not authorized.' }
   }
 
+  // Security audit finding (2026-08-06) — classId was previously taken
+  // on trust once schoolId was authorized, letting an admin of one
+  // tenant enroll a student into ANOTHER tenant's class if they ever
+  // obtained that class's id. Checked here via the RLS-respecting
+  // client (classes_select_scoped already hides foreign-tenant rows, so
+  // a mismatched or invisible class both correctly resolve to null) as
+  // an early, cheap rejection — provisionStudentAccount below re-checks
+  // this authoritatively at the actual service-role write boundary.
+  const { data: classRow } = await supabase.from('classes').select('school_id').eq('id', parsed.data.classId).maybeSingle()
+
+  if (!classRow || classRow.school_id !== parsed.data.schoolId) {
+    logger.warn('[school-dashboard] addStudentManually — classId does not belong to schoolId', {
+      userId: user.id,
+      schoolId: parsed.data.schoolId,
+      classId: parsed.data.classId,
+    })
+    return { success: false, error: 'That class does not belong to this school.' }
+  }
+
   const { data: school } = await supabase.from('schools').select('max_students').eq('id', parsed.data.schoolId).maybeSingle()
 
   if (!school) {

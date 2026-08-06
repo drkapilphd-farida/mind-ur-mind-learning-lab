@@ -11,27 +11,24 @@ type CertificatePageProps = {
   params: Promise<{ token: string }>
 }
 
+// Certificate verification is intentionally public (no login required —
+// that's the point of a shareable certificate link), but the underlying
+// `certificates` table is not publicly readable (see the 2026-08-06
+// security fix migration) — the verify_certificate(token) RPC is the
+// one narrow, SECURITY DEFINER lookup this page is allowed, returning
+// only the single certificate matching the token, joined with the
+// course title/slug and the holder's display name.
 export async function generateMetadata({
   params,
 }: CertificatePageProps): Promise<Metadata> {
   const { token } = await params
   const supabase = await createClient()
 
-  const { data: cert } = await supabase
-    .from('certificates')
-    .select('course_id')
-    .eq('token', token)
-    .single()
+  const { data: cert } = await supabase.rpc('verify_certificate', { p_token: token }).maybeSingle()
 
   if (!cert) return { title: 'Certificate Not Found' }
 
-  const { data: course } = await supabase
-    .from('courses')
-    .select('title')
-    .eq('id', cert.course_id)
-    .single()
-
-  return { title: `Certificate — ${course?.title ?? 'Course'}` }
+  return { title: `Certificate — ${cert.course_title}` }
 }
 
 export default async function CertificatePage({
@@ -40,30 +37,11 @@ export default async function CertificatePage({
   const { token } = await params
   const supabase = await createClient()
 
-  const { data: cert } = await supabase
-    .from('certificates')
-    .select('id, token, issued_at, course_id, user_id')
-    .eq('token', token)
-    .single()
+  const { data: cert } = await supabase.rpc('verify_certificate', { p_token: token }).maybeSingle()
 
   if (!cert) notFound()
 
-  const [{ data: course }, { data: profile }] = await Promise.all([
-    supabase
-      .from('courses')
-      .select('title, slug')
-      .eq('id', cert.course_id)
-      .single(),
-    supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', cert.user_id)
-      .single(),
-  ])
-
-  if (!course) notFound()
-
-  const studentName = profile?.full_name ?? 'A dedicated learner'
+  const studentName = cert.student_name
   const issueDate = new Intl.DateTimeFormat('en-US', {
     day: 'numeric',
     month: 'long',
@@ -71,7 +49,7 @@ export default async function CertificatePage({
   }).format(new Date(cert.issued_at))
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  const certUrl = `${appUrl}/certificates/${cert.token}`
+  const certUrl = `${appUrl}/certificates/${token}`
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
@@ -102,7 +80,7 @@ export default async function CertificatePage({
               has successfully completed
             </p>
 
-            <p className="mt-2 text-xl font-semibold">{course.title}</p>
+            <p className="mt-2 text-xl font-semibold">{cert.course_title}</p>
 
             <Separator className="my-8" />
 
@@ -118,7 +96,7 @@ export default async function CertificatePage({
               <p className="text-muted-foreground truncate text-xs">{certUrl}</p>
               <div className="flex shrink-0 gap-2">
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/courses/${course.slug}`}>
+                  <Link href={`/courses/${cert.course_slug}`}>
                     <BookOpen className="size-3.5" />
                     Back to course
                   </Link>

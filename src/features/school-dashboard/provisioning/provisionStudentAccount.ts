@@ -35,6 +35,27 @@ export type ProvisionStudentAccountResult =
 export async function provisionStudentAccount(input: ProvisionStudentAccountInput): Promise<ProvisionStudentAccountResult> {
   const supabase = createServiceClient()
 
+  // Security audit finding (2026-08-06) — this insert uses the
+  // service-role client, which bypasses RLS entirely, and is the only
+  // write path for class_enrollments. Without this check, a caller could
+  // pass a classId belonging to a DIFFERENT tenant and this would
+  // silently enroll the new student into that foreign class — the
+  // caller's own authorization (checked by addStudentManually against
+  // schoolId only) never verified classId belonged to that same school.
+  // This is the authoritative check: every current and future caller
+  // (manual add, bulk import) is protected here, at the actual write
+  // boundary, not just at the call site.
+  const { data: classRow, error: classLookupError } = await supabase.from('classes').select('school_id').eq('id', input.classId).maybeSingle()
+
+  if (classLookupError || !classRow || classRow.school_id !== input.schoolId) {
+    logger.warn('[school-dashboard] provisionStudentAccount — classId does not belong to schoolId', {
+      schoolId: input.schoolId,
+      classId: input.classId,
+      error: classLookupError?.message,
+    })
+    return { success: false, error: 'That class does not belong to this school.' }
+  }
+
   const usernameResult = await generateUniqueUsername(supabase, {
     schoolSlug: input.schoolSlug,
     classSlug: input.classSlug,

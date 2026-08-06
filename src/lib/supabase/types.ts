@@ -2242,6 +2242,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_active_family_member: {
+        Args: { p_family_id: string }
+        Returns: boolean
+      }
       is_active_school_member: {
         Args: { p_school_id: string }
         Returns: boolean
@@ -2253,6 +2257,25 @@ export type Database = {
       is_school_admin_for_class: {
         Args: { p_class_id: string }
         Returns: boolean
+      }
+      shares_family_with: {
+        Args: { p_target_user_id: string }
+        Returns: boolean
+      }
+      shares_school_with: {
+        Args: { p_target_user_id: string }
+        Returns: boolean
+      }
+      verify_certificate: {
+        Args: { p_token: string }
+        Returns: {
+          certificate_id: string
+          course_id: string
+          course_slug: string
+          course_title: string
+          issued_at: string
+          student_name: string
+        }[]
       }
     }
     Enums: {
