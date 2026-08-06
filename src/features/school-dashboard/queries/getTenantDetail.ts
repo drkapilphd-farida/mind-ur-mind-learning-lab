@@ -1,6 +1,16 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { deriveSubscriptionStatus, type SubscriptionStatus } from '../subscriptionStatus'
-import type { School, SchoolMemberStatus, SchoolStatus, SchoolTier, SchoolType } from '../types'
+import type { BillingCycle, PaymentStatus, School, SchoolMemberStatus, SchoolStatus, SchoolTier, SchoolType } from '../types'
+
+export type BillingEventType = 'activated' | 'charged' | 'halted' | 'cancelled'
+
+export type BillingEventRow = {
+  id: string
+  eventType: BillingEventType
+  amountCents: number | null
+  currency: string | null
+  occurredAt: string
+}
 
 export type TenantStudentRow = {
   schoolMemberId: string
@@ -19,6 +29,7 @@ export type TenantDetail = {
   aiUsageThisMonth: number
   subscriptionStatus: SubscriptionStatus
   students: TenantStudentRow[]
+  billingEvents: BillingEventRow[]
 }
 
 function startOfCurrentMonth(): Date {
@@ -38,7 +49,9 @@ export async function getTenantDetail(schoolId: string): Promise<TenantDetail | 
 
   const { data: schoolRow } = await supabase
     .from('schools')
-    .select('id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, created_at, updated_at')
+    .select(
+      'id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, razorpay_subscription_id, razorpay_customer_id, billing_cycle, payment_status, created_at, updated_at',
+    )
     .eq('id', schoolId)
     .maybeSingle()
 
@@ -46,7 +59,7 @@ export async function getTenantDetail(schoolId: string): Promise<TenantDetail | 
     return null
   }
 
-  const [ownerUserResponse, { data: memberRows }, { data: usageRows }] = await Promise.all([
+  const [ownerUserResponse, { data: memberRows }, { data: usageRows }, { data: billingEventRows }] = await Promise.all([
     supabase.auth.admin.getUserById(schoolRow.owner_id),
     supabase
       .from('school_members')
@@ -55,6 +68,12 @@ export async function getTenantDetail(schoolId: string): Promise<TenantDetail | 
       .eq('role', 'student')
       .order('created_at', { ascending: true }),
     supabase.from('school_ai_usage_log').select('user_id, occurred_at').eq('school_id', schoolId),
+    supabase
+      .from('school_billing_events')
+      .select('id, event_type, amount_cents, currency, occurred_at')
+      .eq('school_id', schoolId)
+      .order('occurred_at', { ascending: false })
+      .limit(50),
   ])
 
   const students = memberRows ?? []
@@ -93,6 +112,10 @@ export async function getTenantDetail(schoolId: string): Promise<TenantDetail | 
       status: schoolRow.status as SchoolStatus,
       ownerId: schoolRow.owner_id,
       expiresAt: schoolRow.expires_at,
+      razorpaySubscriptionId: schoolRow.razorpay_subscription_id,
+      razorpayCustomerId: schoolRow.razorpay_customer_id,
+      billingCycle: schoolRow.billing_cycle as BillingCycle | null,
+      paymentStatus: schoolRow.payment_status as PaymentStatus,
       createdAt: schoolRow.created_at,
       updatedAt: schoolRow.updated_at,
     },
@@ -100,6 +123,13 @@ export async function getTenantDetail(schoolId: string): Promise<TenantDetail | 
     studentCount: students.length,
     aiUsageThisMonth,
     subscriptionStatus: deriveSubscriptionStatus(schoolRow.expires_at),
+    billingEvents: (billingEventRows ?? []).map((row) => ({
+      id: row.id,
+      eventType: row.event_type as BillingEventType,
+      amountCents: row.amount_cents,
+      currency: row.currency,
+      occurredAt: row.occurred_at,
+    })),
     students: students.map((row) => ({
       schoolMemberId: row.id,
       userId: row.user_id,

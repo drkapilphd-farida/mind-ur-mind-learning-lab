@@ -1355,42 +1355,83 @@ export type Database = {
         }
         Relationships: []
       }
-      partner_resources: {
+      parent_feedback: {
         Row: {
           created_at: string
-          description: string | null
-          display_order: number
+          feedback_text: string | null
           id: string
-          is_published: boolean
-          resource_type: string
-          scheduled_at: string | null
-          title: string
-          updated_at: string
-          url: string
+          nps_score: number
+          school_id: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
-          display_order?: number
+          feedback_text?: string | null
           id?: string
-          is_published?: boolean
-          resource_type: string
-          scheduled_at?: string | null
-          title: string
-          updated_at?: string
-          url: string
+          nps_score: number
+          school_id: string
+          user_id: string
         }
         Update: {
           created_at?: string
+          feedback_text?: string | null
+          id?: string
+          nps_score?: number
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_feedback_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_resources: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          file_type: string | null
+          file_url: string
+          id: string
+          is_published: boolean
+          scheduled_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
           description?: string | null
           display_order?: number
+          file_type?: string | null
+          file_url: string
           id?: string
           is_published?: boolean
-          resource_type?: string
+          scheduled_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          is_published?: boolean
           scheduled_at?: string | null
           title?: string
           updated_at?: string
-          url?: string
         }
         Relationships: []
       }
@@ -1949,6 +1990,50 @@ export type Database = {
           },
         ]
       }
+      school_billing_events: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          razorpay_payment_id: string | null
+          razorpay_subscription_id: string
+          school_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id: string
+          school_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_billing_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_members: {
         Row: {
           created_at: string
@@ -1995,6 +2080,7 @@ export type Database = {
       }
       schools: {
         Row: {
+          billing_cycle: string | null
           created_at: string
           expires_at: string | null
           id: string
@@ -2003,6 +2089,9 @@ export type Database = {
           monthly_ai_quota: number
           name: string
           owner_id: string
+          payment_status: string
+          razorpay_customer_id: string | null
+          razorpay_subscription_id: string | null
           slug: string
           status: string
           tier: string
@@ -2010,6 +2099,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_cycle?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -2018,6 +2108,9 @@ export type Database = {
           monthly_ai_quota?: number
           name: string
           owner_id: string
+          payment_status?: string
+          razorpay_customer_id?: string | null
+          razorpay_subscription_id?: string | null
           slug: string
           status?: string
           tier?: string
@@ -2025,6 +2118,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_cycle?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -2033,6 +2127,9 @@ export type Database = {
           monthly_ai_quota?: number
           name?: string
           owner_id?: string
+          payment_status?: string
+          razorpay_customer_id?: string | null
+          razorpay_subscription_id?: string | null
           slug?: string
           status?: string
           tier?: string
@@ -2292,6 +2389,7 @@ export type Database = {
         Args: { p_school_id: string }
         Returns: boolean
       }
+      is_active_student: { Args: { p_school_id: string }; Returns: boolean }
       is_class_student: { Args: { p_class_id: string }; Returns: boolean }
       is_class_teacher: { Args: { p_class_id: string }; Returns: boolean }
       is_franchise_partner: { Args: never; Returns: boolean }
@@ -2300,6 +2398,7 @@ export type Database = {
         Args: { p_class_id: string }
         Returns: boolean
       }
+      is_tenant_admin: { Args: never; Returns: boolean }
       shares_family_with: {
         Args: { p_target_user_id: string }
         Returns: boolean

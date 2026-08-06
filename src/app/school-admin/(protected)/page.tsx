@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getSchoolForUser } from '@/features/school-dashboard/queries/getSchoolForUser'
 import { getClassesForUser } from '@/features/school-dashboard/queries/getClassesForUser'
 import { getSchoolMembers } from '@/features/school-dashboard/queries/getSchoolMembers'
+import { getTenantRank } from '@/features/school-dashboard/queries/getTenantRank'
 import { TenantHomeContent } from '@/features/school-dashboard/components/TenantHomeContent'
 
 export const metadata: Metadata = { title: 'School Dashboard' }
@@ -19,8 +20,8 @@ export default async function SchoolAdminHomePage(): Promise<React.JSX.Element> 
 
   const { school } = membership
 
-  const [classes, members] = await Promise.all([getClassesForUser(school.id), getSchoolMembers(school.id)])
+  const [classes, members, rank] = await Promise.all([getClassesForUser(school.id), getSchoolMembers(school.id), getTenantRank(school.id, school.type)])
   const studentCount = members.filter((member) => member.role === 'student').length
 
-  return <TenantHomeContent school={school} classes={classes} studentCount={studentCount} />
+  return <TenantHomeContent school={school} classes={classes} studentCount={studentCount} rank={rank} />
 }

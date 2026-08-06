@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { deriveSubscriptionStatus, type SubscriptionStatus } from '../subscriptionStatus'
-import type { SchoolStatus, SchoolTier, SchoolType } from '../types'
+import type { PaymentStatus, SchoolStatus, SchoolTier, SchoolType } from '../types'
 
 export type TenantOverviewRow = {
   id: string
@@ -15,6 +15,7 @@ export type TenantOverviewRow = {
   aiUsageThisMonth: number
   monthlyAiQuota: number
   subscriptionStatus: SubscriptionStatus
+  paymentStatus: PaymentStatus
 }
 
 function startOfCurrentMonth(): Date {
@@ -36,7 +37,7 @@ export async function getTenantsOverviewRows(type?: SchoolType): Promise<TenantO
 
   let schoolsQuery = supabase
     .from('schools')
-    .select('id, name, slug, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, created_at')
+    .select('id, name, slug, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, payment_status, created_at')
     .order('created_at', { ascending: false })
   if (type !== undefined) {
     schoolsQuery = schoolsQuery.eq('type', type)
@@ -84,5 +85,6 @@ export async function getTenantsOverviewRows(type?: SchoolType): Promise<TenantO
     aiUsageThisMonth: aiUsageBySchoolId.get(school.id) ?? 0,
     monthlyAiQuota: school.monthly_ai_quota,
     subscriptionStatus: deriveSubscriptionStatus(school.expires_at),
+    paymentStatus: school.payment_status as PaymentStatus,
   }))
 }

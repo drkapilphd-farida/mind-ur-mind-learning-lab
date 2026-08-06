@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { getTenantDetail } from '@/features/school-dashboard/queries/getTenantDetail'
 import { TenantLimitsForm } from '@/features/school-dashboard/components/TenantLimitsForm'
+import { TenantBillingForm } from '@/features/school-dashboard/components/TenantBillingForm'
+import { BillingHistoryTable } from '@/features/school-dashboard/components/BillingHistoryTable'
 import { TENANT_COPY } from '@/features/school-dashboard/tenantCopy'
 import { SCHOOL_TIER_LABELS } from '@/features/school-dashboard/types'
 import { SUBSCRIPTION_STATUS_BADGE } from '@/features/school-dashboard/subscriptionStatus'
@@ -33,7 +35,7 @@ export default async function TenantDetailPage({ params }: TenantDetailPageProps
     notFound()
   }
 
-  const { school, ownerEmail, aiUsageThisMonth, subscriptionStatus, students } = detail
+  const { school, ownerEmail, aiUsageThisMonth, subscriptionStatus, students, billingEvents } = detail
   const copy = TENANT_COPY[school.type]
   const listHref = school.type === 'franchise_partner' ? '/admin/partners' : '/admin/schools'
   const subscriptionBadge = SUBSCRIPTION_STATUS_BADGE[subscriptionStatus]
@@ -80,6 +82,21 @@ export default async function TenantDetailPage({ params }: TenantDetailPageProps
         <div className="max-w-sm">
           <TenantLimitsForm schoolId={school.id} maxStudents={school.maxStudents} monthlyAiQuota={school.monthlyAiQuota} expiresAt={school.expiresAt} />
         </div>
+      </div>
+
+      <div className="rounded-xl border bg-card p-6">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Billing</h2>
+        <TenantBillingForm
+          schoolId={school.id}
+          razorpaySubscriptionId={school.razorpaySubscriptionId}
+          billingCycle={school.billingCycle}
+          paymentStatus={school.paymentStatus}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Billing history</h2>
+        <BillingHistoryTable events={billingEvents} />
       </div>
 
       <div className="space-y-3">

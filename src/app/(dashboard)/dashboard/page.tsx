@@ -27,6 +27,7 @@ import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJour
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
 import { getNextJourneyDay } from '@/features/quantum-journey/streakMotivation'
+import { ParentFeedbackPrompt } from '@/features/school-dashboard/components/ParentFeedbackPrompt'
 
 export const metadata: Metadata = {
   title: 'Transformation Dashboard',
@@ -170,6 +171,11 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         memoryScore={memoryScore}
         focusScore={focusScore}
       />
+
+      {/* Parent NPS™ — last on the page, deliberately low-priority
+          placement for a "non-intrusive" prompt; renders nothing for
+          the common case (no tenant membership) or for tenant staff. */}
+      <ParentFeedbackPrompt />
     </div>
   )
 }

@@ -10,6 +10,10 @@ export type TenantCopy = {
   portalPath: string
   nameFieldLabel: string
   namePlaceholder: string
+  // Leaderboard framing — a school competes "nationally," a franchise
+  // partner competes within its own franchise "network." Same ranking
+  // math (see leaderboard.ts), different words for what's being ranked.
+  rankLabel: string
 }
 
 // Every shared school-dashboard component (CreateClassForm, AddStudentForm,
@@ -29,6 +33,7 @@ export const TENANT_COPY: Record<SchoolType, TenantCopy> = {
     portalPath: '/school-admin',
     nameFieldLabel: 'School name',
     namePlaceholder: 'Greenwood International School',
+    rankLabel: 'National Rank',
   },
   franchise_partner: {
     entityLabel: 'Academy',
@@ -40,5 +45,6 @@ export const TENANT_COPY: Record<SchoolType, TenantCopy> = {
     portalPath: '/partner-admin',
     nameFieldLabel: 'Academy / brand name',
     namePlaceholder: 'Bright Minds Learning Academy',
+    rankLabel: 'Network Rank',
   },
 }

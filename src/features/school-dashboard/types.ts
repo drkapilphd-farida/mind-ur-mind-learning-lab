@@ -15,6 +15,15 @@ export type SchoolMemberStatus = 'active' | 'removed'
 // updateTenantBranding, ...) stays in sync with the SQL side.
 export const TENANT_ADMIN_ROLES: readonly SchoolMemberRole[] = ['school_admin', 'franchise_partner']
 
+// The Razorpay-driven payment lifecycle (see 20260807000001_add_tenant_billing.sql).
+// 'unlinked' is the default for every tenant today (no subscription
+// linked yet); 'created' means linked but not yet confirmed active by
+// Razorpay. Deliberately independent of SchoolStatus — a billing webhook
+// only ever writes paymentStatus/expiresAt, never status (see
+// billing.ts).
+export type PaymentStatus = 'unlinked' | 'created' | 'active' | 'past_due' | 'canceled'
+export type BillingCycle = 'monthly' | 'yearly'
+
 export type School = {
   id: string
   name: string
@@ -27,10 +36,14 @@ export type School = {
   status: SchoolStatus
   ownerId: string
   // Subscription/renewal — null means no expiry (the default for every
-  // tenant today; there's still no live billing integration). See
-  // subscriptionStatus.ts for how this becomes an Active/Expiring
+  // tenant today unless a Razorpay subscription is linked and charged).
+  // See subscriptionStatus.ts for how this becomes an Active/Expiring
   // Soon/Expired label.
   expiresAt: string | null
+  razorpaySubscriptionId: string | null
+  razorpayCustomerId: string | null
+  billingCycle: BillingCycle | null
+  paymentStatus: PaymentStatus
   createdAt: string
   updatedAt: string
 }
@@ -75,17 +88,22 @@ export const SCHOOL_TIER_LABELS: Record<SchoolTier, string> = {
   tier_500_plus: '500+ students',
 }
 
-export type PartnerResourceType = 'zoom_session' | 'marketing_material' | 'sales_guide'
+// Free-text, not a closed enum — an HQ admin can invent a new category
+// (e.g. "Onboarding Kits") without a schema change. This is a *suggested*
+// list for the upload form's dropdown, not an exhaustive/enforced set.
+export const SUGGESTED_PARTNER_RESOURCE_CATEGORIES: readonly string[] = ['Video Ads', 'Brochures', 'Sales Scripts', 'Live Training', 'Onboarding Kits']
 
 export type PartnerResource = {
   id: string
   title: string
   description: string | null
-  resourceType: PartnerResourceType
-  url: string
+  category: string
+  fileUrl: string
+  fileType: string | null
   scheduledAt: string | null
   displayOrder: number
   isPublished: boolean
+  createdBy: string | null
   createdAt: string
   updatedAt: string
 }

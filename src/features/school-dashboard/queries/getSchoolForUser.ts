@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { School, SchoolMember, SchoolMemberRole, SchoolMemberStatus, SchoolStatus, SchoolTier, SchoolType } from '../types'
+import type { BillingCycle, PaymentStatus, School, SchoolMember, SchoolMemberRole, SchoolMemberStatus, SchoolStatus, SchoolTier, SchoolType } from '../types'
 
 export type SchoolMembershipForUser = {
   member: SchoolMember
@@ -36,7 +36,9 @@ export async function getSchoolForUser(): Promise<SchoolMembershipForUser | null
 
   const { data: schoolRow } = await supabase
     .from('schools')
-    .select('id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, created_at, updated_at')
+    .select(
+      'id, name, slug, logo_url, type, tier, max_students, monthly_ai_quota, status, owner_id, expires_at, razorpay_subscription_id, razorpay_customer_id, billing_cycle, payment_status, created_at, updated_at',
+    )
     .eq('id', memberRow.school_id)
     .maybeSingle()
 
@@ -68,6 +70,10 @@ export async function getSchoolForUser(): Promise<SchoolMembershipForUser | null
       status: schoolRow.status as SchoolStatus,
       ownerId: schoolRow.owner_id,
       expiresAt: schoolRow.expires_at,
+      razorpaySubscriptionId: schoolRow.razorpay_subscription_id,
+      razorpayCustomerId: schoolRow.razorpay_customer_id,
+      billingCycle: schoolRow.billing_cycle as BillingCycle | null,
+      paymentStatus: schoolRow.payment_status as PaymentStatus,
       createdAt: schoolRow.created_at,
       updatedAt: schoolRow.updated_at,
     },

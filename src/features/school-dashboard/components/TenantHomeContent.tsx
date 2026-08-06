@@ -1,18 +1,21 @@
 import { CreateClassForm } from './CreateClassForm'
 import { AddStudentForm } from './AddStudentForm'
+import { RankSummaryCard } from './RankSummaryCard'
 import { TENANT_COPY } from '../tenantCopy'
 import { SCHOOL_TIER_LABELS, type School, type SchoolClass } from '../types'
+import type { TenantRankSummary } from '../queries/getTenantRank'
 
 type TenantHomeContentProps = {
   school: School
   classes: readonly SchoolClass[]
   studentCount: number
+  rank: TenantRankSummary | null
 }
 
 // Shared by /school-admin and /partner-admin — a franchise partner's
 // home page is structurally identical to a school's (same classes/
 // students sections), just relabeled via TENANT_COPY.
-export function TenantHomeContent({ school, classes, studentCount }: TenantHomeContentProps): React.JSX.Element {
+export function TenantHomeContent({ school, classes, studentCount, rank }: TenantHomeContentProps): React.JSX.Element {
   const copy = TENANT_COPY[school.type]
 
   return (
@@ -23,6 +26,8 @@ export function TenantHomeContent({ school, classes, studentCount }: TenantHomeC
           {SCHOOL_TIER_LABELS[school.tier]} · {studentCount} / {school.maxStudents} students
         </p>
       </div>
+
+      {rank !== null && <RankSummaryCard rank={rank} tier={school.tier} type={school.type} />}
 
       <div className="rounded-2xl border bg-card p-6">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{copy.groupLabelPlural}</h2>
