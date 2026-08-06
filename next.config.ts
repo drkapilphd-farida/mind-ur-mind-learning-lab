@@ -1,11 +1,73 @@
 import type { NextConfig } from 'next'
 
+// The Supabase project origin is read from the same env var the client
+// SDK itself uses, so the CSP always matches whichever project a given
+// deploy is actually wired to — never a hardcoded project ref that would
+// silently go stale after a project change. Falls back to a same-origin-
+// only policy (breaks nothing further than "no Supabase project
+// configured" already would) if the var is ever unset at build time.
+function supabaseOrigin(): string | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (url === undefined || url === '') return null
+  try {
+    return new URL(url).origin
+  } catch {
+    return null
+  }
+}
+
+// Content-Security-Policy — the one header this app didn't have.
+// script-src/style-src keep 'unsafe-inline' rather than the stricter
+// nonce-based pattern: a nonce has to be generated per-request in
+// middleware.ts and threaded through, which is a cross-cutting change to
+// a file with real, already-tested auth/redirect logic — out of scope
+// for "update next.config.ts," and not worth the regression risk on an
+// app this size without being asked for it specifically. Every other
+// directive here IS strict: no third-party script/frame/object
+// injection, connect-src pinned to real known origins only, no
+// framing by another site. object-src/base-uri/form-action close off
+// the classic CSP-bypass corners that 'unsafe-inline' alone doesn't
+// protect against.
+//
+// Razorpay: no script is loaded client-side today (Subscribe buttons are
+// plain <a> links to Razorpay's own hosted checkout — a full-page
+// navigation needs no CSP allowance at all). The checkout.razorpay.com /
+// api.razorpay.com / lumberjack.razorpay.com entries below are Razorpay's
+// own documented requirements for their embeddable Checkout.js widget,
+// added proactively so adopting that widget later doesn't require
+// another CSP change.
+function buildContentSecurityPolicy(): string {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const supabase = supabaseOrigin()
+
+  const directives: Record<string, string[]> = {
+    'default-src': ["'self'"],
+    // 'unsafe-eval' only in dev — Next.js's dev-mode HMR/source-map
+    // pipeline needs it; the production bundle does not.
+    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), 'https://checkout.razorpay.com'],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:', 'blob:', ...(supabase ? [supabase] : [])],
+    'font-src': ["'self'", 'data:'],
+    'connect-src': ["'self'", ...(supabase ? [supabase, supabase.replace('https://', 'wss://')] : []), 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
+    'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com'],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'self'"],
+  }
+
+  return Object.entries(directives)
+    .map(([directive, sources]) => `${directive} ${sources.join(' ')}`)
+    .join('; ')
+}
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Content-Security-Policy', value: buildContentSecurityPolicy() },
 ]
 
 const nextConfig: NextConfig = {

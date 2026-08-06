@@ -3,8 +3,11 @@
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { getSchoolForUser } from '../queries/getSchoolForUser'
 import type { SchoolType } from '../types'
+
+const TENANT_SIGN_IN_RATE_LIMIT = { max: 10, windowMs: 60_000 }
 
 const TenantSignInSchema = z
   .object({
@@ -40,6 +43,11 @@ export async function tenantSignIn(input: unknown, type: SchoolType, next?: stri
   const parsed = TenantSignInSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: 'Please enter a valid email and password.' }
+  }
+
+  const clientIp = await getClientIp()
+  if (!checkRateLimit(`tenant-sign-in:${type}:${clientIp}`, TENANT_SIGN_IN_RATE_LIMIT).allowed) {
+    return { success: false, error: 'Too many sign-in attempts. Please wait a moment and try again.' }
   }
 
   const supabase = await createClient()

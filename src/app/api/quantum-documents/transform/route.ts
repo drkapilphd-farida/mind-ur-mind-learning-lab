@@ -8,6 +8,7 @@ import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transforme
 import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
 import { formatFileSize } from '@/lib/formatFileSize'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { checkTransformRateLimit } from '@/features/quantum-document-transformer/transformRateLimiter'
 import { logSchoolAiUsage } from '@/features/school-dashboard/logSchoolAiUsage'
 import { DEFAULT_LANGUAGE, isSupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
@@ -71,6 +72,14 @@ export async function POST(request: Request): Promise<Response> {
 
     if (!user) {
       return NextResponse.json({ success: false, error: 'You must be signed in to use the AI Document Transformer.' }, { status: 401 })
+    }
+
+    const rateLimitDecision = checkTransformRateLimit(user.id)
+    if (!rateLimitDecision.allowed) {
+      return NextResponse.json(
+        { success: false, error: "You're uploading documents faster than we can process them — please wait a moment and try again." },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateLimitDecision.retryAfterMs / 1000)) } },
+      )
     }
 
     // Pro Paywall — the real enforcement boundary. The dashboard's own

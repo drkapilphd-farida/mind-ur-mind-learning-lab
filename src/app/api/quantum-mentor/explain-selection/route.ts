@@ -13,6 +13,21 @@ import { logger } from '@/lib/logger'
 // database mutation). One request in, one Claude call, one response out —
 // no persistence of the explanation itself; only its cost is logged.
 export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handleExplainSelection(request)
+  } catch (error) {
+    // Same "the catch that was missing" fix as /api/quantum-documents/
+    // transform and /api/razorpay/webhook — every path below already
+    // returns clean JSON; this only catches a genuinely unexpected throw.
+    logger.error('[QuantumMentorSelection] Unhandled exception', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return NextResponse.json({ success: false, error: 'Something went wrong. Please try again.' }, { status: 500 })
+  }
+}
+
+async function handleExplainSelection(request: Request): Promise<Response> {
   const supabase = await createClient()
   const {
     data: { user },

@@ -111,6 +111,18 @@ export function SignUpForm({ next, onSwitchToLogin }: SignUpFormProps): React.JS
             {isPending ? 'Creating account…' : 'Create account'}
           </Button>
 
+          <p className="text-muted-foreground text-center text-xs leading-relaxed">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-foreground hover:underline">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="text-foreground hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+
           <p className="text-muted-foreground text-center text-sm">
             Already have an account?{' '}
             {onSwitchToLogin ? (

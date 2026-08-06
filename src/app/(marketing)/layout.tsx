@@ -50,6 +50,15 @@ export default function MarketingLayout({
       <footer className="border-t border-border/60 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 text-center">
           <p className="text-sm font-medium text-foreground">Quantum Mind Learning Lab™</p>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <Link href="/privacy" className="transition-colors hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/terms" className="transition-colors hover:text-foreground">
+              Terms of Service
+            </Link>
+          </div>
           <p className="text-sm text-muted-foreground">
             © 2026 Quantum Mind Learning Lab™. All rights reserved.
           </p>

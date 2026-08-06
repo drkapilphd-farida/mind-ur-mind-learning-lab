@@ -2,7 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyRazorpayWebhookSignature } from '@/lib/razorpay/verifyWebhookSignature'
 import { createServiceClient } from '@/lib/supabase/service'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
+
+// Generous on purpose — Razorpay is a single external caller and real
+// traffic from it (even a busy tenant's worth of events) comes nowhere
+// close to this. This exists to blunt a flood of requests merely
+// claiming to be Razorpay, not to throttle Razorpay itself.
+const WEBHOOK_RATE_LIMIT = { max: 60, windowMs: 60_000 }
 
 const RazorpayWebhookPayloadSchema = z.object({
   event: z.string(),
@@ -36,6 +43,35 @@ const RazorpayWebhookPayloadSchema = z.object({
 const HANDLED_EVENTS = new Set(['subscription.activated', 'subscription.charged', 'subscription.halted', 'subscription.cancelled'])
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Checked before anything else — the cheapest possible rejection for a
+  // request flood, ahead of even reading the body.
+  const clientIp = await getClientIp()
+  const rateLimitDecision = checkRateLimit(`razorpay-webhook:${clientIp}`, WEBHOOK_RATE_LIMIT)
+  if (!rateLimitDecision.allowed) {
+    logger.warn('[razorpay-webhook] rate limit exceeded', { clientIp })
+    return NextResponse.json(
+      { error: 'Too many requests.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(rateLimitDecision.retryAfterMs / 1000)) } },
+    )
+  }
+
+  try {
+    return await handleRazorpayWebhook(request)
+  } catch (error) {
+    // The same "the catch that was missing" fix already applied to
+    // /api/quantum-documents/transform — every path below this line
+    // already returns clean JSON; this is only for a genuinely
+    // unexpected throw (e.g. createServiceClient() or a Supabase call
+    // failing in a way that throws rather than returning { error }).
+    logger.error('[razorpay-webhook] unhandled exception', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return NextResponse.json({ error: 'Internal error.' }, { status: 500 })
+  }
+}
+
+async function handleRazorpayWebhook(request: NextRequest): Promise<NextResponse> {
   const rawBody = await request.text()
   const signature = request.headers.get('x-razorpay-signature')
 

@@ -2,9 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import { SignUpSchema } from '../types'
 
 const ONBOARDING_ENTRY_PATH = '/welcome/choose-method'
+
+// Per-IP — blunts scripted mass account creation, not a real user
+// occasionally mistyping and retrying.
+const SIGN_UP_RATE_LIMIT = { max: 10, windowMs: 60_000 }
 
 export async function signUp(
   input: unknown,
@@ -14,6 +19,11 @@ export async function signUp(
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0]
     return { success: false, error: firstIssue?.message ?? 'Invalid input.' }
+  }
+
+  const clientIp = await getClientIp()
+  if (!checkRateLimit(`sign-up:${clientIp}`, SIGN_UP_RATE_LIMIT).allowed) {
+    return { success: false, error: 'Too many sign-up attempts. Please wait a moment and try again.' }
   }
 
   const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
