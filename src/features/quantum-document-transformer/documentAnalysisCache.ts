@@ -32,12 +32,21 @@ export function computeDocumentContentHash(promptText: string): string {
 // version) is treated as a cache miss, never surfaced as a crash.
 const CachedAnalysisRowSchema = z.object({
   ai_summary: z.string(),
+  one_sentence_summary: z.string(),
   spider_notes: SpiderNoteSchema,
+  // Mirrors quantum_documents' own storage split (see keywordIcons.ts /
+  // getQuantumDocumentById.ts): the cache table's `keywords` column stays
+  // a plain text[] of words, with the word->icon map cached alongside it
+  // in the separate `keyword_icons` jsonb column, joined back together
+  // below into the KeywordWithIcon[] shape the rest of the app expects.
   keywords: z.array(z.string()),
+  keyword_icons: z.record(z.string(), z.string()).nullable(),
   quiz_questions: z.array(McqQuizQuestionSchema),
   feynman_challenge: FeynmanChallengeSchema,
   mnemonics: z.array(MnemonicSchema),
   subject_lens: SubjectLensSchema,
+  short_story: z.string(),
+  recall_questions: z.array(z.string()),
   reading_text: z.string().nullable(),
 })
 
@@ -48,7 +57,9 @@ export async function getCachedAnalysis(contentHash: string, targetLanguage: Sup
     const supabase = createServiceClient()
     const { data, error } = await supabase
       .from('quantum_document_analysis_cache')
-      .select('ai_summary, spider_notes, keywords, quiz_questions, feynman_challenge, mnemonics, subject_lens, reading_text, model_id, hit_count')
+      .select(
+        'ai_summary, one_sentence_summary, spider_notes, keywords, keyword_icons, quiz_questions, feynman_challenge, mnemonics, subject_lens, short_story, recall_questions, reading_text, model_id, hit_count',
+      )
       .eq('content_hash', contentHash)
       .eq('target_language', targetLanguage)
       .maybeSingle()
@@ -73,14 +84,18 @@ export async function getCachedAnalysis(contentHash: string, targetLanguage: Sup
         if (updateError) logger.warn('quantum document analysis cache: hit-count update failed', { error: updateError.message })
       })
 
+    const keywordIcons = parsed.data.keyword_icons ?? {}
     const payload: QuantumDocumentPayload = {
       ai_summary: parsed.data.ai_summary,
+      one_sentence_summary: parsed.data.one_sentence_summary,
       spider_notes: parsed.data.spider_notes,
-      keywords: parsed.data.keywords,
+      keywords: parsed.data.keywords.map((word) => ({ word, icon: keywordIcons[word] ?? 'tag' })),
       quiz_questions: parsed.data.quiz_questions,
       feynman_challenge: parsed.data.feynman_challenge,
       mnemonics: parsed.data.mnemonics,
       subject_lens: parsed.data.subject_lens,
+      short_story: parsed.data.short_story,
+      recall_questions: parsed.data.recall_questions,
       ...(parsed.data.reading_text !== null ? { reading_text: parsed.data.reading_text } : {}),
     }
 
@@ -109,12 +124,16 @@ export async function saveCachedAnalysis(
         target_language: targetLanguage,
         model_id: modelId,
         ai_summary: payload.ai_summary,
+        one_sentence_summary: payload.one_sentence_summary,
         spider_notes: payload.spider_notes as unknown as Json,
-        keywords: payload.keywords,
+        keywords: payload.keywords.map((keyword) => keyword.word),
+        keyword_icons: Object.fromEntries(payload.keywords.map((keyword) => [keyword.word, keyword.icon])) as unknown as Json,
         quiz_questions: payload.quiz_questions as unknown as Json,
         feynman_challenge: payload.feynman_challenge as unknown as Json,
         mnemonics: payload.mnemonics as unknown as Json,
         subject_lens: payload.subject_lens as unknown as Json,
+        short_story: payload.short_story,
+        recall_questions: payload.recall_questions,
         reading_text: payload.reading_text ?? null,
       },
       { onConflict: 'content_hash,target_language' },

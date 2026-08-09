@@ -47,6 +47,14 @@ export async function getQuantumDocumentById(documentId: string): Promise<GetQua
     return { success: false, error: 'This document could not be found.' }
   }
 
+  // "Read less, remember more" — keyword_icons is a new, separate
+  // `word -> icon name` column (never null-checked against keywords'
+  // own length/order, since the two are matched by word, not index).
+  // A pre-upgrade row simply has keyword_icons = null, and every word
+  // falls back to a generic icon at render time (resolveKeywordIcon) —
+  // never a validation failure just because a row predates this column.
+  const keywordIcons = (row.keyword_icons ?? {}) as Record<string, string>
+
   const spiderNotesResult = SpiderNoteSchema.safeParse(row.spider_notes)
   const quizQuestionsResult = z.array(QuizQuestionSchema).safeParse(row.quiz_questions)
   const feynmanChallengeResult = FeynmanChallengeSchema.safeParse(row.feynman_challenge)
@@ -68,12 +76,15 @@ export async function getQuantumDocumentById(documentId: string): Promise<GetQua
     readingText: row.reading_text ?? row.raw_text,
     targetLanguage: isSupportedLanguage(row.target_language) ? row.target_language : DEFAULT_LANGUAGE,
     aiSummary: row.ai_summary ?? '',
+    oneSentenceSummary: row.one_sentence_summary,
     spiderNotes: spiderNotesResult.data,
-    keywords: row.keywords ?? [],
+    keywords: (row.keywords ?? []).map((word) => ({ word, icon: keywordIcons[word] ?? 'tag' })),
     quizQuestions: quizQuestionsResult.data,
     feynmanChallenge: feynmanChallengeResult.data,
     mnemonics: mnemonicsResult.data,
     subjectLens: subjectLensResult.data,
+    shortStory: row.short_story,
+    recallQuestions: row.recall_questions ?? [],
     createdAt: row.created_at,
   }
 

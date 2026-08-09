@@ -187,16 +187,24 @@ export async function POST(request: Request): Promise<Response> {
         title: documentTitle,
         raw_text: extraction.document.content,
         ai_summary: payload.ai_summary,
+        one_sentence_summary: payload.one_sentence_summary,
         // SpiderNote's `children` is `readonly SpiderNote[]` — a readonly
         // array isn't structurally assignable to `Json`'s mutable array
         // variant, even though the actual data is plain, serializable
         // JSON.
         spider_notes: payload.spider_notes as unknown as Json,
-        keywords: payload.keywords,
+        // "Read less, remember more" — keywords stays the plain word list
+        // the column already was (never a schema/type change to existing
+        // data); the icon each word maps to lives in the new,
+        // separate keyword_icons column instead. See keywordIcons.ts.
+        keywords: payload.keywords.map((keyword) => keyword.word),
+        keyword_icons: Object.fromEntries(payload.keywords.map((keyword) => [keyword.word, keyword.icon])) as unknown as Json,
         quiz_questions: payload.quiz_questions,
         feynman_challenge: payload.feynman_challenge,
         mnemonics: payload.mnemonics,
         subject_lens: payload.subject_lens,
+        short_story: payload.short_story,
+        recall_questions: payload.recall_questions,
         target_language: targetLanguage,
         reading_text: readingText,
       })
@@ -227,12 +235,15 @@ export async function POST(request: Request): Promise<Response> {
       readingText,
       targetLanguage,
       aiSummary: payload.ai_summary,
+      oneSentenceSummary: payload.one_sentence_summary,
       spiderNotes: payload.spider_notes,
       keywords: payload.keywords,
       quizQuestions: payload.quiz_questions,
       feynmanChallenge: payload.feynman_challenge,
       mnemonics: payload.mnemonics,
       subjectLens: payload.subject_lens,
+      shortStory: payload.short_story,
+      recallQuestions: payload.recall_questions,
       createdAt: row.created_at,
     }
 

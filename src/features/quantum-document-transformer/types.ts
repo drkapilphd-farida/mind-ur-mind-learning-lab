@@ -17,6 +17,21 @@ export const SpiderNoteSchema: z.ZodType<SpiderNote> = z.lazy(() =>
   }),
 )
 
+// "Read less, remember more" — a keyword paired with a Lucide icon name
+// chosen by the model. `icon` is validated only as a non-empty string
+// here, deliberately lenient (not a z.enum against KEYWORD_ICON_MAP) —
+// rejecting an entire otherwise-good document because the model picked
+// an icon name half a step outside the whitelist would be a worse
+// outcome than just falling back to a generic icon for that one
+// keyword. The whitelist/fallback resolution happens once, at render
+// time, in resolveKeywordIcon (keywordIcons.ts) — never at parse time.
+export const KeywordSchema = z.object({
+  word: z.string().trim().min(1).max(60),
+  icon: z.string().trim().min(1).max(40),
+})
+
+export type KeywordWithIcon = z.infer<typeof KeywordSchema>
+
 // Smart Dynamic MCQ Assessment™ — the model returns the correct option's
 // exact TEXT (`correct_answer`), never a hand-placed index. Mirroring
 // readingContent/types.ts's `buildQuestion()` discipline: a model- or
@@ -167,12 +182,15 @@ export type SubjectLens = z.infer<typeof SubjectLensSchema>
 // generateQuantumDocumentIntelligence.ts).
 export type QuantumDocumentPayload = {
   ai_summary: string
+  one_sentence_summary: string
   spider_notes: SpiderNote
-  keywords: string[]
+  keywords: KeywordWithIcon[]
   quiz_questions: McqQuizQuestion[]
   feynman_challenge: FeynmanChallenge
   mnemonics: Mnemonic[]
   subject_lens: SubjectLens
+  short_story: string
+  recall_questions: string[]
   reading_text?: string | undefined
 }
 
@@ -204,12 +222,15 @@ export function buildQuantumDocumentPayloadSchema(targetLanguage: SupportedLangu
   return z
     .object({
       ai_summary: z.string().trim().min(1).max(1000),
+      one_sentence_summary: z.string().trim().min(1).max(240),
       spider_notes: SpiderNoteSchema,
-      keywords: z.array(z.string().trim().min(1).max(60)).min(1).max(20),
+      keywords: z.array(KeywordSchema).min(1).max(20),
       quiz_questions: z.array(McqQuestionDraftSchema).min(3).max(20),
       feynman_challenge: FeynmanChallengeSchema,
       mnemonics: z.array(MnemonicSchema).max(10),
       subject_lens: SubjectLensSchema,
+      short_story: z.string().trim().min(1).max(1200),
+      recall_questions: z.array(z.string().trim().min(1).max(300)).min(3).max(6),
       reading_text: z.string().trim().min(1).optional(),
     })
     .refine((data) => targetLanguage === 'en' || (typeof data.reading_text === 'string' && data.reading_text.length > 0), {
@@ -225,11 +246,16 @@ export type QuantumDocument = {
   readingText: string
   targetLanguage: SupportedLanguage
   aiSummary: string
+  // Null for a document generated before this field existed —
+  // getQuantumDocumentById.ts never fabricates one for an old row.
+  oneSentenceSummary: string | null
   spiderNotes: SpiderNote
-  keywords: readonly string[]
+  keywords: readonly KeywordWithIcon[]
   quizQuestions: readonly QuizQuestion[]
   feynmanChallenge: FeynmanChallenge
   mnemonics: readonly Mnemonic[]
   subjectLens: SubjectLens
+  shortStory: string | null
+  recallQuestions: readonly string[]
   createdAt: string
 }

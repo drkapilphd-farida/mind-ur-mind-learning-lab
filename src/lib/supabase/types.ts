@@ -1671,12 +1671,16 @@ export type Database = {
           created_at: string
           feynman_challenge: Json
           hit_count: number
+          keyword_icons: Json | null
           keywords: string[]
           last_hit_at: string | null
           mnemonics: Json
           model_id: string
+          one_sentence_summary: string | null
           quiz_questions: Json
           reading_text: string | null
+          recall_questions: string[] | null
+          short_story: string | null
           spider_notes: Json
           subject_lens: Json
           target_language: string
@@ -1687,12 +1691,16 @@ export type Database = {
           created_at?: string
           feynman_challenge: Json
           hit_count?: number
+          keyword_icons?: Json | null
           keywords: string[]
           last_hit_at?: string | null
           mnemonics: Json
           model_id: string
+          one_sentence_summary?: string | null
           quiz_questions: Json
           reading_text?: string | null
+          recall_questions?: string[] | null
+          short_story?: string | null
           spider_notes: Json
           subject_lens: Json
           target_language: string
@@ -1703,12 +1711,16 @@ export type Database = {
           created_at?: string
           feynman_challenge?: Json
           hit_count?: number
+          keyword_icons?: Json | null
           keywords?: string[]
           last_hit_at?: string | null
           mnemonics?: Json
           model_id?: string
+          one_sentence_summary?: string | null
           quiz_questions?: Json
           reading_text?: string | null
+          recall_questions?: string[] | null
+          short_story?: string | null
           spider_notes?: Json
           subject_lens?: Json
           target_language?: string
@@ -1759,11 +1771,15 @@ export type Database = {
           created_at: string
           feynman_challenge: Json | null
           id: string
+          keyword_icons: Json | null
           keywords: string[] | null
           mnemonics: Json | null
+          one_sentence_summary: string | null
           quiz_questions: Json | null
           raw_text: string
           reading_text: string | null
+          recall_questions: string[] | null
+          short_story: string | null
           spider_notes: Json | null
           subject_lens: Json | null
           target_language: string
@@ -1775,11 +1791,15 @@ export type Database = {
           created_at?: string
           feynman_challenge?: Json | null
           id?: string
+          keyword_icons?: Json | null
           keywords?: string[] | null
           mnemonics?: Json | null
+          one_sentence_summary?: string | null
           quiz_questions?: Json | null
           raw_text: string
           reading_text?: string | null
+          recall_questions?: string[] | null
+          short_story?: string | null
           spider_notes?: Json | null
           subject_lens?: Json | null
           target_language?: string
@@ -1791,11 +1811,15 @@ export type Database = {
           created_at?: string
           feynman_challenge?: Json | null
           id?: string
+          keyword_icons?: Json | null
           keywords?: string[] | null
           mnemonics?: Json | null
+          one_sentence_summary?: string | null
           quiz_questions?: Json | null
           raw_text?: string
           reading_text?: string | null
+          recall_questions?: string[] | null
+          short_story?: string | null
           spider_notes?: Json | null
           subject_lens?: Json | null
           target_language?: string

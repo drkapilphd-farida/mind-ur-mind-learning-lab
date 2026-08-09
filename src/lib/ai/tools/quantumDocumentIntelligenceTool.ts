@@ -1,7 +1,19 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { SupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
+import { KEYWORD_ICON_NAMES } from '@/features/quantum-document-transformer/keywordIcons'
 
-const BASE_REQUIRED_FIELDS = ['ai_summary', 'spider_notes', 'keywords', 'quiz_questions', 'feynman_challenge', 'mnemonics', 'subject_lens'] as const
+const BASE_REQUIRED_FIELDS = [
+  'ai_summary',
+  'one_sentence_summary',
+  'spider_notes',
+  'keywords',
+  'quiz_questions',
+  'feynman_challenge',
+  'mnemonics',
+  'subject_lens',
+  'short_story',
+  'recall_questions',
+] as const
 
 // Anthropic tool-use `input_schema` (JSON Schema, not a Zod schema) — forcing
 // the model to call this tool is what makes the response format strict, per
@@ -51,11 +63,22 @@ export function buildQuantumDocumentIntelligenceTool(targetLanguage: SupportedLa
           type: 'string',
           description: 'A concise 3-line core summary of the document.',
         },
+        one_sentence_summary: {
+          type: 'string',
+          description: 'A single, powerful sentence capturing the core essence of the whole document — the one thing to remember if nothing else.',
+        },
         spider_notes: { $ref: '#/definitions/spiderNote' },
         keywords: {
           type: 'array',
-          items: { type: 'string' },
-          description: 'Key anchor terms from the document, ordered by importance.',
+          items: {
+            type: 'object',
+            properties: {
+              word: { type: 'string' },
+              icon: { type: 'string', enum: [...KEYWORD_ICON_NAMES], description: 'The single best-matching icon name from the enum for this specific keyword — not a default/repeated choice.' },
+            },
+            required: ['word', 'icon'],
+          },
+          description: 'Key anchor terms from the document, ordered by importance, each paired with the icon that best represents it.',
         },
         quiz_questions: {
           type: 'array',
@@ -109,6 +132,15 @@ export function buildQuantumDocumentIntelligenceTool(targetLanguage: SupportedLa
           },
           required: ['subject', 'insights'],
           description: 'Subject-Specific Lens — structured insights whose vocabulary is tailored to the document’s real subject.',
+        },
+        short_story: {
+          type: 'string',
+          description: 'A short, engaging 5-6 line mnemonic narrative story that weaves the document’s core concepts together so they stick in memory effortlessly — a character, a journey, or a scenario, not a dry restatement of facts.',
+        },
+        recall_questions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '3-6 open-ended active-recall questions for self-testing (no options, no single correct answer to check against) — distinct from quiz_questions, meant for quick, low-pressure self-reflection rather than scoring.',
         },
         reading_text: {
           type: 'string',

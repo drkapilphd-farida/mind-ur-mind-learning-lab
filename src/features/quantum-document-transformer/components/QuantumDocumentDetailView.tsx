@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Flame, Sparkles, Tags } from 'lucide-react'
+import { BookOpen, Flame, Quote, Sparkles, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
@@ -12,6 +11,7 @@ import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { cn } from '@/lib/utils'
 import { isMcqQuizQuestion, type LegacyQuizQuestion, type QuantumDocument } from '../types'
+import { resolveKeywordIcon } from '../keywordIcons'
 import { QuantumDocumentSpeedReadingView } from './QuantumDocumentSpeedReadingView'
 import { QuantumDocumentRecallQuizView } from './QuantumDocumentRecallQuizView'
 import { QuantumDocumentMcqQuizView } from './QuantumDocumentMcqQuizView'
@@ -19,6 +19,8 @@ import { SpiderNotesTreeView } from './SpiderNotesTreeView'
 import { FeynmanChallengeCard } from './FeynmanChallengeCard'
 import { MnemonicsListView } from './MnemonicsListView'
 import { SubjectLensView } from './SubjectLensView'
+import { ShortStoryCard } from './ShortStoryCard'
+import { RecallQuestionsCard } from './RecallQuestionsCard'
 import { DocumentOutcomeProfileCard } from './DocumentOutcomeProfileCard'
 import { SelectionTooltip } from '@/features/quantum-mentor/components/SelectionTooltip'
 import { saveQuantumDocumentSession } from '../actions/saveQuantumDocumentSession'
@@ -166,7 +168,25 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                 <TabsTrigger value="practice">Practice</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="summary" className="mt-6">
+              <TabsContent value="summary" className="mt-6 space-y-4">
+                {/* One-Sentence Summary™ — the single powerful line a
+                    learner should walk away with, given its own
+                    eye-catching card ahead of the fuller ai_summary
+                    below rather than folded into it. Null for a document
+                    generated before this field existed — never fabricated
+                    for an old row, the card simply doesn't render. */}
+                {document.oneSentenceSummary && (
+                  <div className="quantum-section-card border-primary/25 bg-primary/[0.05] p-5">
+                    <div className="flex items-center gap-2">
+                      <div className="quantum-icon-chip" aria-hidden="true">
+                        <Quote className="size-3.5 text-primary" />
+                      </div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">In One Sentence</p>
+                    </div>
+                    <p className="mt-2 text-base font-semibold leading-snug text-foreground">{document.oneSentenceSummary}</p>
+                  </div>
+                )}
+
                 <div className="quantum-section-card p-4">
                   <div className="flex items-center gap-2">
                     <div className="quantum-icon-chip" aria-hidden="true">
@@ -190,15 +210,32 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                     </div>
                     <p className="text-sm font-semibold tracking-wide text-foreground">Keywords</p>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {document.keywords.map((keyword) => (
-                      <Badge key={keyword} variant="outline">{keyword}</Badge>
-                    ))}
+                  <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {document.keywords.map((keyword) => {
+                      const KeywordIcon = resolveKeywordIcon(keyword.icon)
+                      return (
+                        <div
+                          key={keyword.word}
+                          className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm"
+                        >
+                          <div className="quantum-icon-chip shrink-0" aria-hidden="true">
+                            <KeywordIcon className="size-3.5 text-orange-500" />
+                          </div>
+                          <span className="truncate text-sm font-medium text-foreground">{keyword.word}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="memory-techniques" className="mt-6 space-y-4">
+                {/* Short Story Method is a separate technique from
+                    Feynman/mnemonics, not a replacement — shown first
+                    since it's the newest, most "read less" way in.
+                    Null for a document generated before this field
+                    existed. */}
+                {document.shortStory && <ShortStoryCard story={document.shortStory} />}
                 <FeynmanChallengeCard challenge={document.feynmanChallenge} />
                 <MnemonicsListView mnemonics={document.mnemonics} />
                 <SubjectLensView lens={document.subjectLens} />
@@ -214,6 +251,8 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                 </Button>
 
                 <DocumentOutcomeProfileCard profile={outcomeProfile} />
+
+                <RecallQuestionsCard questions={document.recallQuestions} />
 
                 <ReadingTextSection readingText={document.readingText} />
               </TabsContent>
