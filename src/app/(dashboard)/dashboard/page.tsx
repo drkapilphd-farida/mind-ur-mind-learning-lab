@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
@@ -24,8 +23,10 @@ import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-tr
 import { getFixationSessions } from '@/features/visual-intelligence/fixation/queries/getFixationSessions'
 import { getFixationStats } from '@/features/visual-intelligence/fixation/queries/getFixationStats'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
+import { LiveMasterclassBannerCard } from '@/components/dashboard/LiveMasterclassBannerCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
+import { getLiveMasterclassWaitlistStatus } from '@/app/unified-quantum-session-preview/actions/getLiveMasterclassWaitlistStatus'
 import { getNextJourneyDay } from '@/features/quantum-journey/streakMotivation'
 import { ParentFeedbackPrompt } from '@/features/school-dashboard/components/ParentFeedbackPrompt'
 
@@ -62,6 +63,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     recentQuantumDocuments,
     quantumDocumentSessionHistory,
     fixationSessions,
+    hasJoinedLiveMasterclassWaitlist,
   ] = await Promise.all([
     getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
     getPracticeSessions('quantum-speed-reading'),
@@ -72,6 +74,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     getQuantumDocumentHistory(),
     getQuantumDocumentSessionHistory(),
     getFixationSessions(),
+    getLiveMasterclassWaitlistStatus(),
   ])
 
   // The next real 21-Day Journey day (1-21) — daily_quantum_sessions has
@@ -140,14 +143,18 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
             />
           </Suspense>
         </div>
-
-        <Link
-          href="/unified-quantum-session-preview"
-          className="brand-gradient glass-premium-lift mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          🚀 Start Today&rsquo;s QSR Pro Circuit (12–15 Mins)
-        </Link>
       </div>
+
+      {/* Live Masterclass™ — a premium upsell banner, deliberately its own
+          standalone card rather than a second competing CTA crammed into
+          the Hero — the Hero's own daily-practice momentum (AI Mentor,
+          streak) stays uninterrupted, and the dashboard's one daily-habit
+          CTA is the 21-Day Journey card below, not this. Reuses the exact
+          same real waitlist mechanism the QSR Pro Circuit's completion
+          screen already uses (joinLiveMasterclassWaitlist/
+          getLiveMasterclassWaitlistStatus, live_masterclass_waitlist
+          table) — no new backend, no fake registration flow. */}
+      <LiveMasterclassBannerCard initialHasJoined={hasJoinedLiveMasterclassWaitlist} />
 
       {/* AI Document Transformer™ — anchor target for Choose Your Path™'s
           "Upload & Learn™" card (/dashboard#upload-document), the direct,
