@@ -65,6 +65,19 @@ export function getMindScoreLabel(score: number): MindScoreLabel {
   return { label: 'Activate Your Mind', description: 'Complete your first session to begin scoring' }
 }
 
+// QSR Pro Circuit™ — a gamified rank name on the exact same 0-1000 Mind
+// Score, additive alongside getMindScoreLabel above (never replacing
+// it — that function is used in ~10 places today and must not change
+// shape). Deliberately reuses the same real, already-computed score
+// rather than inventing a second parallel "mastery" number.
+export type MindScoreRank = { rank: string; description: string }
+
+export function getMindScoreRank(score: number): MindScoreRank {
+  if (score >= 800) return { rank: 'Quantum Master', description: 'Elite mastery across every dimension' }
+  if (score >= 400) return { rank: 'Speed Reader', description: 'Consistent, confident real progress' }
+  return { rank: 'Novice Reader', description: 'Every rank starts here' }
+}
+
 // ── Weekly trend ─────────────────────────────────────────────────────────
 
 // Returns the percentage change in practice time between the first half

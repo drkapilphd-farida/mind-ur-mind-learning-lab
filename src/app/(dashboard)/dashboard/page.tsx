@@ -145,7 +145,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           href="/unified-quantum-session-preview"
           className="brand-gradient glass-premium-lift mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          🚀 Start Today&rsquo;s 4-Level Quantum Session
+          🚀 Start Today&rsquo;s QSR Pro Circuit (12–15 Mins)
         </Link>
       </div>
 

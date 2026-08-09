@@ -38,6 +38,13 @@ const TOTAL_WORDS_ALL_BLOCKS = GUIDED_PARAGRAPH_READING_MODE_UNITS.reduce((sum, 
 
 type ExperiencePhase = 'settings' | 'block-reading' | 'comprehension-check' | 'complete'
 
+type GuidedParagraphReadingModeExperienceProps = {
+  // QSR Pro Circuit™ — additive, optional. See
+  // SchulteGridDrillExperience.tsx's identical seam for the full
+  // rationale. Standalone usage (this prop omitted) is unchanged.
+  onComplete?: (result: ReadingSessionResult) => void
+}
+
 // Top-level orchestrator for Guided Paragraph Reading Mode™ — the Master
 // Reading Engine's fifth and final mode. Same block-based flow every
 // other Comprehension Checkpoint mode uses: Settings (asked once) → N ×
@@ -51,7 +58,7 @@ type ExperiencePhase = 'settings' | 'block-reading' | 'comprehension-check' | 'c
 // on a session the learner explicitly ended. What's unique to this mode
 // is entirely presentational (the guided line-sweep pacing bar) — see
 // GuidedParagraphReadingModeCanvas.tsx.
-export function GuidedParagraphReadingModeExperience(): React.JSX.Element {
+export function GuidedParagraphReadingModeExperience({ onComplete }: GuidedParagraphReadingModeExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'guided-paragraph-reading-mode' })
   const readingSession = useReadingSession(session)
@@ -189,6 +196,7 @@ export function GuidedParagraphReadingModeExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
+        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
       />
     )
   }

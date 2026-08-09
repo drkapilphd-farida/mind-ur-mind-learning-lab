@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { ReadingStatTile } from './ReadingStatTile'
 import type { ReadingSessionResult } from '../types'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
@@ -12,6 +13,14 @@ type ReadingSessionCompleteScreenProps = {
   bestWpm: number
   onReadAgain: () => void
   backHref?: string
+  // QSR Pro Circuit™ — additive, optional. Mirrors
+  // SchulteGridDrillExperience.tsx's identical onComplete-driven
+  // "Continue Session →" button: when provided (by an embedding caller
+  // like RotatingQuantumReadingSprintPhase.tsx), an extra button appears
+  // so the caller regains control after the learner has seen their real
+  // result — never an automatic skip past it. Undefined by default, so
+  // every existing standalone caller of this screen is unaffected.
+  onContinue?: () => void
 }
 
 // Sprint 3.2A — the one shared completion screen every Reading Mode
@@ -29,6 +38,7 @@ export function ReadingSessionCompleteScreen({
   bestWpm,
   onReadAgain,
   backHref = '/labs/quantum-speed-reading',
+  onContinue,
 }: ReadingSessionCompleteScreenProps): React.JSX.Element {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-10 px-6 py-16 text-center">
@@ -60,6 +70,14 @@ export function ReadingSessionCompleteScreen({
           Back to Lab
         </Link>
       </div>
+
+      {onContinue && (
+        <div className="w-full max-w-xs">
+          <Button type="button" size="lg" className="w-full rounded-full" onClick={onContinue}>
+            Continue Session →
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

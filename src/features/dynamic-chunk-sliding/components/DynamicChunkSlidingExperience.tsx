@@ -17,6 +17,13 @@ const BEST_WPM_STORAGE_KEY = 'qsr-dynamic-chunk-sliding-best'
 
 const UNIT_TEXTS = DYNAMIC_CHUNK_SLIDING_UNITS.map((unit) => unit.text)
 
+type DynamicChunkSlidingExperienceProps = {
+  // QSR Pro Circuit™ — additive, optional. See
+  // SchulteGridDrillExperience.tsx's identical seam for the full
+  // rationale. Standalone usage (this prop omitted) is unchanged.
+  onComplete?: (result: ReadingSessionResult) => void
+}
+
 // Top-level orchestrator for Dynamic Chunk Sliding™ — the third advanced
 // training exercise. Structurally mirrors PhraseReadingModeExperience.tsx
 // (same UNCHANGED Master Reading Engine, same session pipeline, same
@@ -24,7 +31,7 @@ const UNIT_TEXTS = DYNAMIC_CHUNK_SLIDING_UNITS.map((unit) => unit.text)
 // the whole chunked dataset, no comprehension/MCQ phase at all — purely a
 // continuous sliding read-through, exactly as this exercise's own spec
 // calls for (pure speed-and-flow training, not a recall check).
-export function DynamicChunkSlidingExperience(): React.JSX.Element {
+export function DynamicChunkSlidingExperience({ onComplete }: DynamicChunkSlidingExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const runtime = useReadingRuntime(UNIT_TEXTS)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'dynamic-chunk-sliding' })
@@ -101,6 +108,7 @@ export function DynamicChunkSlidingExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
+        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
       />
     )
   }

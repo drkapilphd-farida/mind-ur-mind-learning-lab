@@ -21,6 +21,13 @@ const BEST_WPM_STORAGE_KEY = 'qsr-vertical-word-reading-best'
 
 const UNIT_TEXTS = VERTICAL_WORD_READING_UNITS.map((unit) => unit.text)
 
+type VerticalWordReadingExperienceProps = {
+  // QSR Pro Circuit™ — additive, optional. See
+  // SchulteGridDrillExperience.tsx's identical seam for the full
+  // rationale. Standalone usage (this prop omitted) is unchanged.
+  onComplete?: (result: ReadingSessionResult) => void
+}
+
 // Top-level orchestrator for Vertical Word Reading Engine™. Sprint 3.1B —
 // migrated onto the Master Reading Engine™: the runtime, WPM/progress math,
 // pause discipline, session-save decision, and Best Record persistence all
@@ -29,7 +36,7 @@ const UNIT_TEXTS = VERTICAL_WORD_READING_UNITS.map((unit) => unit.text)
 // ReadingSessionResult snapshot the instant the runtime completes, since
 // runtime.restart() (for "Read Again") zeroes the runtime's live fields
 // immediately and the Complete screen needs the frozen values.
-export function VerticalWordReadingExperience(): React.JSX.Element {
+export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadingExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const runtime = useReadingRuntime(UNIT_TEXTS)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'vertical-word-reading' })
@@ -101,7 +108,13 @@ export function VerticalWordReadingExperience(): React.JSX.Element {
 
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
-      <ReadingSessionCompleteScreen subtitle="Nice, steady reading." result={completedResult} bestWpm={bestWpm} onReadAgain={handleReadAgain} />
+      <ReadingSessionCompleteScreen
+        subtitle="Nice, steady reading."
+        result={completedResult}
+        bestWpm={bestWpm}
+        onReadAgain={handleReadAgain}
+        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+      />
     )
   }
 

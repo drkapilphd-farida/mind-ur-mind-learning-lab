@@ -1230,6 +1230,24 @@ export type Database = {
           },
         ]
       }
+      live_masterclass_waitlist: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       memory_discovery_sessions: {
         Row: {
           completed: boolean

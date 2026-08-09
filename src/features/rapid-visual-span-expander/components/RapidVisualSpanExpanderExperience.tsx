@@ -41,6 +41,18 @@ type RoundData = {
   positions: RapidVisualSpanPosition[]
 }
 
+type RapidVisualSpanExpanderExperienceProps = {
+  // QSR Pro Circuit™ — additive, optional. See
+  // SchulteGridDrillExperience.tsx's identical seam for the full
+  // rationale. Fires when the learner taps "Continue Session →" on the
+  // real completion screen — never automatically — so
+  // RotatingQuantumReadingSprintPhase.tsx regains control only after they
+  // have actually seen their result. Standalone usage (this prop
+  // omitted) is unchanged; useReadingSession's own recordResult still
+  // fires unconditionally in finalizeSession below.
+  onComplete?: (result: ReadingSessionResult) => void
+}
+
 function buildRoundData(targetWpm: number): RoundData {
   const wordCount = computeRoundWordCount(targetWpm, ROUND_DURATION_SECONDS)
   const tokens = [...pickRandomTokens(wordCount)]
@@ -59,7 +71,7 @@ function buildRoundData(targetWpm: number): RoundData {
 // same shared ReadingSessionCompleteScreen once every round is done. An
 // honest early Finish inside any round still skips straight to the final
 // completion screen (marked wasFinishedEarly), unchanged from before.
-export function RapidVisualSpanExpanderExperience(): React.JSX.Element {
+export function RapidVisualSpanExpanderExperience({ onComplete }: RapidVisualSpanExpanderExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'rapid-visual-span-expander' })
   const readingSession = useReadingSession(session)
@@ -200,6 +212,7 @@ export function RapidVisualSpanExpanderExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
+        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
       />
     )
   }

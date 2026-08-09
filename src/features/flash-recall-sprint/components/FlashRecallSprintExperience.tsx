@@ -25,6 +25,13 @@ const PASS_THRESHOLD = 1
 
 type ExperiencePhase = 'settings' | 'flashing' | 'recall-check' | 'complete'
 
+type FlashRecallSprintExperienceProps = {
+  // QSR Pro Circuit™ — additive, optional. See
+  // SchulteGridDrillExperience.tsx's identical seam for the full
+  // rationale. Standalone usage (this prop omitted) is unchanged.
+  onComplete?: (result: ReadingSessionResult) => void
+}
+
 // Top-level orchestrator for Flash Recall & Retention Sprint™ — the fourth
 // and final advanced training exercise. Structurally mirrors
 // SentenceReadingModeExperience.tsx's block + comprehension-check flow
@@ -37,7 +44,7 @@ type ExperiencePhase = 'settings' | 'flashing' | 'recall-check' | 'complete'
 // second window (see FlashRecallSprintSettings.tsx); incrementing WPM
 // round over round would eventually push later rounds' flash duration
 // below 3 seconds, breaking that requirement.
-export function FlashRecallSprintExperience(): React.JSX.Element {
+export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'flash-recall-sprint' })
   const readingSession = useReadingSession(session)
@@ -169,6 +176,7 @@ export function FlashRecallSprintExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
+        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
       />
     )
   }
