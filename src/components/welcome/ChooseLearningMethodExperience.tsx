@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
@@ -18,16 +19,6 @@ const FUTURE_LEARNING_SOURCES = [
   { emoji: '🌐', label: 'Website & Learn' },
 ] as const
 
-// Sprint LW-1C.1 — learning materials, not technical file formats
-// ("show 📚 Books, not PDF/DOC/DOCX").
-const UPLOAD_MATERIALS = [
-  { emoji: '📚', label: 'Books' },
-  { emoji: '📄', label: 'Study PDFs' },
-  { emoji: '📝', label: 'Notes' },
-  { emoji: '📷', label: 'Notebook Photos' },
-  { emoji: '📃', label: 'Text' },
-] as const
-
 // One-Click Entry™ — this is now the app's real front door: `/welcome`
 // redirects straight here (see welcome/page.tsx) and signUp.ts sends
 // brand-new users here directly too. Arrival Experience™, Learning Goal™,
@@ -36,8 +27,8 @@ const UPLOAD_MATERIALS = [
 // /welcome/learning-goal, /discover-learning-potential) but unlinked from
 // here, per the "hide from V1 UI, do not delete" precedent already used
 // for Record & Learn™ (/welcome/record). Exactly two direct-action paths
-// remain — Quantum Speed Reading™ and Upload & Learn™ — each one click
-// from a fresh signup to real content.
+// remain — Reading Training and Upload & Learn — each one click from a
+// fresh signup to real content.
 //
 // Glass Premium™ — this screen now shares the exact glass/gradient/glow
 // system built for /dashboard (globals.css's `.glass-premium*` classes,
@@ -62,40 +53,43 @@ type PathCardProps = {
   emoji: string
   title: string
   description: string
-  formats?: readonly { emoji: string; label: string }[]
+  points: readonly string[]
   ctaLabel: string
   onSelect: () => void
+  // Visually distinguishes the Upload & Learn card as the hero of the two
+  // — tokens only (border/shadow/type-scale), no new colors and no
+  // permanent transform/scale (which would overlap its grid neighbor;
+  // glass-premium-lift's own hover lift already covers motion).
+  emphasized?: boolean
 }
 
-function PathCard({ emoji, title, description, formats, ctaLabel, onSelect }: PathCardProps): React.JSX.Element {
+function PathCard({ emoji, title, description, points, ctaLabel, onSelect, emphasized = false }: PathCardProps): React.JSX.Element {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="glass-premium-card glass-premium-lift group flex h-full flex-col items-center gap-5 px-10 py-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className={cn(
+        'glass-premium-card glass-premium-lift group flex h-full flex-col items-center gap-5 px-10 py-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        emphasized && 'glass-premium-card--emphasized',
+      )}
     >
-      <span className="text-6xl" aria-hidden="true">
+      <span className={cn(emphasized ? 'text-7xl' : 'text-6xl')} aria-hidden="true">
         {emoji}
       </span>
 
       <div>
-        <p className={TYPOGRAPHY.h2}>{title}</p>
+        <p className={cn(emphasized ? 'text-xl font-bold tracking-tight sm:text-2xl' : TYPOGRAPHY.h2)}>{title}</p>
         <p className={cn(TYPOGRAPHY.bodyLarge, 'mt-3 text-muted-foreground')}>{description}</p>
       </div>
 
-      {formats !== undefined && (
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
-          {formats.map((format) => (
-            <span
-              key={format.label}
-              className={cn(TYPOGRAPHY.caption, 'flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-4 py-1.5')}
-            >
-              <span aria-hidden="true">{format.emoji}</span>
-              {format.label}
-            </span>
-          ))}
-        </div>
-      )}
+      <ul className="w-full max-w-xs space-y-2 text-left">
+        {points.map((point) => (
+          <li key={point} className="flex items-start gap-2.5">
+            <Check className="mt-0.5 size-4 shrink-0 text-primary/70" aria-hidden="true" />
+            <span className={cn(TYPOGRAPHY.body, 'text-foreground/90')}>{point}</span>
+          </li>
+        ))}
+      </ul>
 
       <p className="brand-gradient-text mt-auto pt-3 text-sm font-semibold">{ctaLabel}</p>
     </button>
@@ -144,25 +138,29 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
         </div>
 
         <div>
-          <h1 className={TYPOGRAPHY.display}>Choose Your Path</h1>
+          <h1 className={TYPOGRAPHY.display}>Smart Reading &amp; Memory Trainer</h1>
           <HeroPromise className="mt-6" startDelayMs={200} />
         </div>
 
+        <p className={TYPOGRAPHY.label}>Choose how you&rsquo;d like to start</p>
+
         <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
           <PathCard
-            emoji="⚡"
-            title="Quantum Speed Reading™"
-            description="Unlock elite reading speed, razor-sharp focus, and permanent memory in just 10 mins a day for 21 days."
-            ctaLabel="Start Quantum Speed Reading →"
+            emoji="🎯"
+            title="Reading Training"
+            description="Improve speed, focus and comprehension with 10-15 minutes of daily visual and reading exercises."
+            points={['Schulte Grid, Word Flash, Chunk Reading', 'Guided Reading + Comprehension Test', '21-Day Progressive Program']}
+            ctaLabel="Start Training →"
             onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
           />
           <PathCard
             emoji="📄"
-            title="Upload & Learn™"
-            description="Stop reading blindly. Turn any book, note, or PDF into Quantum-accelerated insights, Spider Notes, and smart quizzes to read and remember 10x faster."
-            formats={UPLOAD_MATERIALS}
-            ctaLabel="Upload & Transform Instantly →"
+            title="Upload & Learn"
+            description="Upload any PDF, notes or book. AI converts it into a clear summary, keywords, spider notes and practice questions."
+            points={['Summary + Keywords', 'Spider Notes (Mind Map)', 'Recall Questions']}
+            ctaLabel="Upload Document →"
             onSelect={() => handleSelect('/dashboard#upload-document')}
+            emphasized
           />
         </div>
 

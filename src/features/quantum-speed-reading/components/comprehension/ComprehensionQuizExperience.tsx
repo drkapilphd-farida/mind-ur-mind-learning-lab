@@ -19,7 +19,6 @@ import { OrderingQuestionCard } from './OrderingQuestionCard'
 import { QuestionExplanationPanel } from './QuestionExplanationPanel'
 import { ComprehensionResultsScreen } from './ComprehensionResultsScreen'
 
-const LAB_HREF = '/labs/quantum-speed-reading'
 const EXPLANATION_DELAY_MS = 400
 
 type QuizPhase = 'intro' | 'question' | 'results'
@@ -171,8 +170,6 @@ export function ComprehensionQuizExperience({ passage, questionSet, mode, readin
   }
 
   if (phase === 'results') {
-    const modeQuery = mode ? `mode=${mode}&` : ''
-
     return (
       <ComprehensionResultsScreen
         correctCount={correctCount}
@@ -181,8 +178,6 @@ export function ComprehensionQuizExperience({ passage, questionSet, mode, readin
         readingTimeMs={readingTimeMs}
         readingWpm={readingWpm}
         readingIntelligenceScore={readingIntelligenceScore}
-        labHref={LAB_HREF}
-        continueHref={`/labs/quantum-speed-reading/start/read/quiz/next-coming-soon?${modeQuery}passage=${passage.id}`}
       />
     )
   }

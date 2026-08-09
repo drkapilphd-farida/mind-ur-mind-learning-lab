@@ -14,8 +14,15 @@ type ComprehensionResultsScreenProps = {
   readingTimeMs: number
   readingWpm: number
   readingIntelligenceScore: number
-  labHref: string
-  continueHref: string
+}
+
+// A calm, tiered summary line rather than a single fixed caption — no
+// hype language, just an honest read on this specific attempt.
+function getPerformanceMessage(accuracyPercent: number): string {
+  if (accuracyPercent >= 85) return 'Excellent comprehension — you understood the passage deeply.'
+  if (accuracyPercent >= 70) return 'Solid comprehension. Keep practicing to build on this.'
+  if (accuracyPercent >= 50) return 'Good effort. A slower, more careful read next time may help.'
+  return "Let's revisit this one — comprehension matters more than speed."
 }
 
 // Purpose-built rather than reusing RuntimeResultScreen — its metrics
@@ -23,6 +30,12 @@ type ComprehensionResultsScreenProps = {
 // and have no honest equivalent for an untimed comprehension quiz. This
 // reuses only the same staggered fade/zoom visual language already
 // established by ReadingSessionComplete (Sprint-2) and ActivationCard.
+//
+// Redesigned around two headline numbers (Reading Speed, Comprehension)
+// rather than six competing tiles — Correct/Incorrect/Time/Category still
+// exist, just one tap away via "View Details" (the session report page,
+// which defaults to this just-completed session) instead of crowding
+// the first screen a student sees after finishing.
 export function ComprehensionResultsScreen({
   correctCount,
   totalQuestions,
@@ -30,18 +43,15 @@ export function ComprehensionResultsScreen({
   readingTimeMs,
   readingWpm,
   readingIntelligenceScore,
-  labHref,
-  continueHref,
 }: ComprehensionResultsScreenProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
-  const incorrectCount = totalQuestions - correctCount
 
   const fadeClass = !prefersReducedMotion ? 'animate-in fade-in slide-in-from-bottom-2 duration-500' : ''
   const fadeStyle = (delayMs: number): React.CSSProperties | undefined =>
     !prefersReducedMotion ? { animationDelay: `${delayMs}ms`, animationFillMode: 'backwards' } : undefined
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+    <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center gap-10 px-6 py-16 text-center">
       <div
         className={cn('flex size-20 items-center justify-center rounded-full bg-primary/[0.07]', !prefersReducedMotion && 'animate-in zoom-in-75 duration-500')}
         aria-hidden="true"
@@ -53,50 +63,36 @@ export function ComprehensionResultsScreen({
 
       <div className={fadeClass} style={fadeStyle(120)}>
         <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">Reading Completed</p>
-        <h1 className="mt-2 font-heading text-2xl font-bold tracking-tight text-foreground">Reading Intelligence Report</h1>
+        <h1 className="mt-2 font-heading text-2xl font-bold tracking-tight text-foreground">Your Results</h1>
       </div>
 
-      <div className={cn('flex flex-col items-center gap-1', fadeClass)} style={fadeStyle(200)}>
-        <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Reading Intelligence Score</p>
-        <p className="text-5xl font-bold tabular-nums text-foreground">{readingIntelligenceScore}<span className="text-lg text-muted-foreground">/100</span></p>
+      <div className={cn('grid w-full grid-cols-2 gap-4', fadeClass)} style={fadeStyle(220)}>
+        <div className="rounded-2xl bg-muted/40 px-4 py-6">
+          <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Reading Speed</p>
+          <p className="mt-1 text-4xl font-bold tabular-nums text-foreground">{readingWpm}</p>
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">WPM · {formatElapsedTime(readingTimeMs)}</p>
+        </div>
+        <div className="rounded-2xl bg-muted/40 px-4 py-6">
+          <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Comprehension</p>
+          <p className="mt-1 text-4xl font-bold tabular-nums text-foreground">{accuracyPercent}%</p>
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">{correctCount} of {totalQuestions} correct</p>
+        </div>
       </div>
 
-      <dl className={cn('grid w-full grid-cols-2 gap-3', fadeClass)} style={fadeStyle(280)}>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Comprehension Score</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{correctCount}/{totalQuestions}</dd>
-        </div>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Accuracy</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{accuracyPercent}%</dd>
-        </div>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Correct Answers</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-success">{correctCount}</dd>
-        </div>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Incorrect Answers</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-destructive">{incorrectCount}</dd>
-        </div>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Time Taken</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{formatElapsedTime(readingTimeMs)}</dd>
-        </div>
-        <div className="rounded-xl bg-muted/40 px-3 py-4">
-          <dt className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Reading Speed</dt>
-          <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{readingWpm} <span className="text-xs font-medium text-muted-foreground">WPM</span></dd>
-        </div>
-      </dl>
+      <div className={cn('flex flex-col items-center gap-2', fadeClass)} style={fadeStyle(300)}>
+        <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">{getPerformanceMessage(accuracyPercent)}</p>
+        <p className="text-xs font-medium text-muted-foreground/70">Reading Intelligence Score: {readingIntelligenceScore}/100</p>
+      </div>
 
-      <div className={cn('flex w-full flex-col gap-2', fadeClass)} style={fadeStyle(360)}>
+      <div className={cn('flex w-full flex-col gap-2', fadeClass)} style={fadeStyle(380)}>
         <Button asChild size="lg" className="w-full gap-2 rounded-full">
-          <Link href={continueHref}>
-            Continue
-            <ArrowRight className="size-4" />
-          </Link>
+          <Link href="/dashboard">Back to Dashboard</Link>
         </Button>
-        <Button asChild variant="ghost" size="sm" className="rounded-full">
-          <Link href={labHref}>Back to Lab</Link>
+        <Button asChild variant="ghost" size="sm" className="gap-1.5 rounded-full">
+          <Link href="/labs/quantum-speed-reading/reports/session">
+            View Details
+            <ArrowRight className="size-3.5" />
+          </Link>
         </Button>
       </div>
     </div>

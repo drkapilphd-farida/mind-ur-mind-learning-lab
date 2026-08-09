@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Parents Dashboard',
 }
 
-// Parents Dashboard™ — the child/weekly-stats data is still mock (see
-// src/features/parent-dashboard/mockData.ts: there is no parent account
-// role or parent-child relationship table in this app yet — that's a
-// separate, larger project). Auth itself, though, is real: this route
-// is in middleware.ts's PROTECTED_PATHS (redirects a signed-out visitor
+// Parents Dashboard™ — wired to the signed-in account's own real
+// activity now (see ParentDashboard.tsx's own comment for why there's
+// no per-child selection: no parent↔child relationship table exists in
+// this schema yet). Auth itself was already real: this route is in
+// middleware.ts's PROTECTED_PATHS (redirects a signed-out visitor
 // before this page ever renders), and this explicit getUser() check is
 // the same defense-in-depth backstop every other authenticated page in
 // this app already has (see (dashboard)/layout.tsx and
@@ -25,5 +25,5 @@ export default async function ParentDashboardPage(): Promise<React.JSX.Element> 
 
   if (!user) redirect('/login?next=/parent-dashboard')
 
-  return <ParentDashboard />
+  return <ParentDashboard userId={user.id} />
 }

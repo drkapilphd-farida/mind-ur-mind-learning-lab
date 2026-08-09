@@ -6,6 +6,7 @@ import { BookOpen, Flame, Sparkles, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
@@ -151,48 +152,72 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
         <QuantumSessionCompleteCard reward={sessionReward} />
       ) : (
         <SelectionTooltip documentContext={`${document.title}\n\n${document.aiSummary}`} documentLanguage={document.targetLanguage}>
-          <div className="space-y-4">
-            <div className="quantum-section-card p-4">
-              <div className="flex items-center gap-2">
-                <div className="quantum-icon-chip" aria-hidden="true">
-                  <Sparkles className="size-3.5 text-indigo-500" />
+          <div className="space-y-6">
+            {/* Segmented into tabs rather than one long scroll — Summary,
+                Spider Notes, Keywords, Memory Techniques, and Practice
+                each get their own space instead of competing for
+                attention in a single stacked column. */}
+            <Tabs defaultValue="summary">
+              <TabsList className="w-full">
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="spider-notes">Spider Notes</TabsTrigger>
+                <TabsTrigger value="keywords">Keywords</TabsTrigger>
+                <TabsTrigger value="memory-techniques">Memory Techniques</TabsTrigger>
+                <TabsTrigger value="practice">Practice</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="summary" className="mt-6">
+                <div className="quantum-section-card p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="quantum-icon-chip" aria-hidden="true">
+                      <Sparkles className="size-3.5 text-indigo-500" />
+                    </div>
+                    <p className="text-sm font-semibold tracking-wide text-foreground">Summary</p>
+                  </div>
+                  <p className="mt-2 whitespace-pre-line text-sm text-foreground">{document.aiSummary}</p>
                 </div>
-                <p className="text-sm font-semibold tracking-wide text-foreground">Summary</p>
-              </div>
-              <p className="mt-2 whitespace-pre-line text-sm text-foreground">{document.aiSummary}</p>
-            </div>
+              </TabsContent>
 
-            {/* Quantum Speed Reading First™ — the primary action now sits
-                right below the summary overview, not buried at the bottom
-                after every deep-dive section, so a learner can launch
-                straight into reading. */}
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
-              🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
-            </Button>
+              <TabsContent value="spider-notes" className="mt-6">
+                <SpiderNotesTreeView root={document.spiderNotes} />
+              </TabsContent>
 
-            <DocumentOutcomeProfileCard profile={outcomeProfile} />
-
-            <SpiderNotesTreeView root={document.spiderNotes} />
-
-            <ReadingTextSection readingText={document.readingText} />
-
-            <FeynmanChallengeCard challenge={document.feynmanChallenge} />
-            <MnemonicsListView mnemonics={document.mnemonics} />
-            <SubjectLensView lens={document.subjectLens} />
-
-            <div className="quantum-section-card p-4">
-              <div className="flex items-center gap-2">
-                <div className="quantum-icon-chip" aria-hidden="true">
-                  <Tags className="size-3.5 text-orange-500" />
+              <TabsContent value="keywords" className="mt-6">
+                <div className="quantum-section-card p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="quantum-icon-chip" aria-hidden="true">
+                      <Tags className="size-3.5 text-orange-500" />
+                    </div>
+                    <p className="text-sm font-semibold tracking-wide text-foreground">Keywords</p>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {document.keywords.map((keyword) => (
+                      <Badge key={keyword} variant="outline">{keyword}</Badge>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-sm font-semibold tracking-wide text-foreground">Keywords</p>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {document.keywords.map((keyword) => (
-                  <Badge key={keyword} variant="outline">{keyword}</Badge>
-                ))}
-              </div>
-            </div>
+              </TabsContent>
+
+              <TabsContent value="memory-techniques" className="mt-6 space-y-4">
+                <FeynmanChallengeCard challenge={document.feynmanChallenge} />
+                <MnemonicsListView mnemonics={document.mnemonics} />
+                <SubjectLensView lens={document.subjectLens} />
+              </TabsContent>
+
+              <TabsContent value="practice" className="mt-6 space-y-4">
+                {/* Quantum Speed Reading First™ — the primary action sits
+                    at the top of this tab, not buried after every
+                    deep-dive section, so a learner can launch straight
+                    into reading. */}
+                <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
+                  🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
+                </Button>
+
+                <DocumentOutcomeProfileCard profile={outcomeProfile} />
+
+                <ReadingTextSection readingText={document.readingText} />
+              </TabsContent>
+            </Tabs>
 
             <Button type="button" variant="ghost" className="w-full" asChild>
               <Link href="/dashboard#upload-document">Transform another document</Link>

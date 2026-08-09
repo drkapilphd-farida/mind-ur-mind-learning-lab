@@ -258,6 +258,20 @@
   border-radius: var(--radius-3xl);
 }
 
+/* Choose Method™'s "make one card the hero" treatment (the Upload &
+   Learn card) — a named modifier rather than Tailwind border/shadow
+   utilities: .glass-premium-card above already sets border/box-shadow as
+   plain properties later in this file, so a same-specificity Tailwind
+   utility on the element loses that cascade fight regardless of class
+   order in the JSX. Uses --ambient-a (the brand blue already used for
+   the "Quantum Mind" wordmark and CTA gradient text on this same screen)
+   rather than --primary, which resolves to a plain near-black/near-white
+   grayscale token here and wouldn't read as an accent at all. */
+.glass-premium-card--emphasized {
+  border: 1.5px solid color-mix(in srgb, var(--ambient-a) 45%, transparent);
+  box-shadow: var(--glass-shadow-hover), 0 0 32px -8px color-mix(in srgb, var(--ambient-a) 35%, transparent);
+}
+
 .glass-premium-lift {
   transition: transform var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1), box-shadow var(--duration-base) cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -1,108 +1,69 @@
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
-import { toast } from 'sonner'
-import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
-import { CHILDREN, PARENT_NAME, getWeeklySnapshot } from '../mockData'
-import { ChildSwitcher } from './ChildSwitcher'
-import { NotificationBanner } from './NotificationBanner'
-import { QuickStatsGrid } from './QuickStatsGrid'
-import { AIInsightsCard } from './AIInsightsCard'
-import { ShareToWhatsAppButton } from './ShareToWhatsAppButton'
+import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
+import { computeDailyStreak, computeTodaysProgress } from '@/lib/exercises/practiceHistory'
+import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
+import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
+import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
+import { computeComprehensionSummary, computeDocumentMasterySummary } from '../comprehensionStats'
+import { TodaysStatusCard } from './TodaysStatusCard'
+import { ReadingSpeedTrendCard } from './ReadingSpeedTrendCard'
+import { ComprehensionScoreCard } from './ComprehensionScoreCard'
+import { ConsistencyCard } from './ConsistencyCard'
+import { DocumentMasteryCard } from './DocumentMasteryCard'
 import { PremiumUpsellCard } from './PremiumUpsellCard'
 
-// Parents Dashboard™ — the single client component that owns which
-// child is currently selected (`useState`, not URL state — a page
-// reload always lands back on the first child, matching the simple
-// "pick a kid, look at their week" mental model this dashboard is for).
-// Every child component below is a pure, presentational function of
-// `snapshot` — swapping mockData.ts for a real Server Action later
-// means changing only this one file, not the components themselves.
-export function ParentDashboard(): React.JSX.Element {
-  const router = useRouter()
-  const [selectedChildId, setSelectedChildId] = useState<string>(CHILDREN[0]!.id)
-  const selectedChild = CHILDREN.find((child) => child.id === selectedChildId) ?? CHILDREN[0]!
-  const snapshot = getWeeklySnapshot(selectedChildId)
-  const prefersReducedMotion = usePrefersReducedMotion()
+type ParentDashboardProps = {
+  userId: string
+}
+
+// Parents Dashboard™ — real data now. Wired to the signed-in account's
+// own activity (practice_sessions, daily_quantum_sessions,
+// quantum_document_sessions, quantum_documents) rather than a specific
+// linked child: there is no parent↔child relationship anywhere in this
+// schema yet (families/family_members exist but every function that
+// would create a family or link a child throws NotImplementedError —
+// a separate, larger project), so "whose data" can only honestly mean
+// the signed-in account's own, not a chosen child's. The multi-child
+// switcher this page used to show over mock data is gone for the same
+// reason — it can't work without that missing feature.
+//
+// A Server Component (not 'use client') — the only interactive piece
+// left is the 7/14/30-day toggle inside ReadingSpeedTrendCard, which is
+// its own small client island.
+export async function ParentDashboard({ userId }: ParentDashboardProps): Promise<React.JSX.Element> {
+  const [practiceSessions, dailyQuantumSessions, documentSessions, documentCount] = await Promise.all([
+    getPracticeSessions('quantum-speed-reading'),
+    getDailyQuantumSessionHistory(90),
+    getQuantumDocumentSessionHistory(500),
+    getQuantumDocumentCount(userId),
+  ])
+
+  const todaysProgress = computeTodaysProgress(practiceSessions)
+  const streak = computeDailyStreak(practiceSessions)
+  const comprehensionSummary = computeComprehensionSummary(documentSessions)
+  const masterySummary = computeDocumentMasterySummary(documentCount, documentSessions)
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header & Multi-Child Profile Switcher — English throughout,
-            matching every other string on this dashboard. Subtitle
-            names whichever child is currently selected, so it stays
-            accurate across a switch rather than reading as a generic
-            leftover greeting. */}
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <p className="text-2xl font-bold tracking-tight text-slate-900">
-              Hello, {PARENT_NAME} 👋
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-500">
-              Here&rsquo;s how {selectedChild.name}&rsquo;s progress looks this week
-            </p>
-          </div>
-          <ChildSwitcher childProfiles={CHILDREN} selectedChildId={selectedChildId} onSelectChild={setSelectedChildId} />
+        <div>
+          <p className="text-2xl font-bold tracking-tight text-foreground">Your Progress</p>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">A weekly view of reading practice, comprehension, and consistency.</p>
         </div>
 
-        {/* In-App Notification Card */}
-        <NotificationBanner
-          childName={selectedChild.name}
-          onViewReport={() => toast.info(`Opening ${selectedChild.name}'s full weekly report…`)}
-        />
+        {/* Strict 1-5 order per spec — only adjacent items (3 and 4) are
+            paired side by side; nothing is reordered to fit a grid. */}
+        <TodaysStatusCard practicedToday={todaysProgress.exercisesCompletedToday > 0} minutesSpentMs={todaysProgress.totalDurationMsToday} />
 
-        {/* Smooth Transition on Child Switch — everything below is a
-            function of `snapshot`, so keying this one wrapper on
-            `selectedChildId` is enough to fade the whole block out/in
-            on every switch instead of an abrupt data jump.
-            `mode="wait"` holds the exit animation until it finishes
-            before the next child's content enters, so the two never
-            cross-fade into a jumbled mess. Skips straight to the end
-            state for prefers-reduced-motion, matching this app's
-            existing convention (usePrefersReducedMotion) everywhere
-            else motion is used. */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={selectedChildId}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="space-y-6"
-          >
-            {/* Visual Quick Stats & Metrics Grid */}
-            <QuickStatsGrid snapshot={snapshot} />
+        <ReadingSpeedTrendCard sessions={dailyQuantumSessions} />
 
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="space-y-6 lg:col-span-2">
-                {/* AI Weakness & Strength Analyzer */}
-                <AIInsightsCard snapshot={snapshot} />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ComprehensionScoreCard averagePercent={comprehensionSummary.averagePercent} trendDelta={comprehensionSummary.trendDelta} />
+          <ConsistencyCard currentStreak={streak.currentStreak} bestStreak={streak.bestStreak} />
+        </div>
 
-                {/* Share to WhatsApp */}
-                <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">Share This Week&rsquo;s Progress</h3>
-                    <p className="mt-1 text-xs text-slate-500">Send {selectedChild.name}&rsquo;s report straight to family on WhatsApp.</p>
-                  </div>
-                  <ShareToWhatsAppButton childName={selectedChild.name} snapshot={snapshot} />
-                </div>
-              </div>
+        <DocumentMasteryCard documentsCompleted={masterySummary.documentsCompleted} averageComprehensionPercent={masterySummary.averageComprehensionPercent} />
 
-              {/* Premium Conversion Upsell — content is identical
-                  regardless of which child is selected, but stays
-                  inside the same grid/fade wrapper as the stats so the
-                  whole row transitions as one unit rather than the
-                  upsell card visibly holding still while everything
-                  beside it fades. Routes to the pricing page's real
-                  Family/Pro card (a live Razorpay "Subscribe" button
-                  lives there — see PricingPlansGrid.tsx) rather than a
-                  no-op toast. */}
-              <PremiumUpsellCard onUpgrade={() => router.push('/pricing#family-pro')} />
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        <PremiumUpsellCard href="/pricing#family-pro" />
       </div>
     </div>
   )
