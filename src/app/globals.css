@@ -345,6 +345,34 @@
 }
 
 /*
+ * Quantum Mind Map Glass™ — a self-contained glass surface for the Spider
+ * Notes radial mind-map only. Deliberately does NOT reuse
+ * `.glass-premium-card` above: that class reads `--glass-bg`/
+ * `--glass-border`/`--glass-shadow`, which are only ever defined inside
+ * the page-scoped `.glass-premium` ancestor (currently /dashboard and
+ * /welcome/choose-method) — outside that scope those vars are undefined
+ * and the declarations that reference them (with no fallback) resolve to
+ * nothing, silently losing the background/border/shadow entirely. The
+ * document library page never opts into `.glass-premium`, so this class
+ * carries its own light/dark oklch tokens instead, safe to use anywhere.
+ */
+.quantum-mindmap-glass {
+  position: relative;
+  background: oklch(1 0 0 / 55%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid oklch(1 0 0 / 65%);
+  box-shadow: 0 8px 30px oklch(0.45 0.04 75 / 10%);
+  border-radius: var(--radius-2xl);
+}
+
+.dark .quantum-mindmap-glass {
+  background: oklch(1 0 0 / 5%);
+  border: 1px solid oklch(1 0 0 / 10%);
+  box-shadow: 0 8px 30px oklch(0 0 0 / 45%);
+}
+
+/*
  * Brand Logo Warmth™ — the persistent sidebar logo (AppSidebar.tsx). Two
  * independent effects, both real-data-driven (missedDays, computed
  * server-side in (dashboard)/layout.tsx from actual practice history —

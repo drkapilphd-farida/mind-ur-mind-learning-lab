@@ -130,6 +130,24 @@ export const FeynmanChallengeSchema = z.object({
 
 export type FeynmanChallenge = z.infer<typeof FeynmanChallengeSchema>
 
+// Interactive Feynman Challenge™ — the on-demand evaluation request a
+// learner triggers by typing their own explanation and clicking
+// "Evaluate with AI". Deliberately NOT part of QuantumDocumentPayload or
+// buildQuantumDocumentPayloadSchema above: this is a separate,
+// user-initiated call (see /api/quantum-document-transformer/
+// feynman-evaluate), not a field the main document-generation call ever
+// produces — `topic`/`prompt` here are just the ALREADY-generated
+// challenge echoed back for grounding, never re-generated.
+export const FeynmanEvaluationRequestSchema = z.object({
+  topic: z.string().trim().min(1).max(120),
+  prompt: z.string().trim().min(1).max(500),
+  learner_explanation: z.string().trim().min(1).max(1500),
+})
+
+export type FeynmanEvaluationRequest = z.infer<typeof FeynmanEvaluationRequestSchema>
+
+export type FeynmanEvaluationResponse = { success: true; score: number; feedback: string } | { success: false; error: string }
+
 // Smart Mnemonics™ — one real memory hook per genuinely difficult
 // term/formula/date the model found in the document. `min(0)`, not
 // `min(1)`: a short or simple document may honestly have nothing worth a

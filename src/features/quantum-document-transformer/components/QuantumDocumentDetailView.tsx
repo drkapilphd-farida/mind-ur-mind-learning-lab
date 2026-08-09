@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Flame, Quote, Sparkles, Tags } from 'lucide-react'
+import { BookOpen, Flame, Quote, Rocket, Sparkles, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -114,6 +114,18 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
   const [sessionPhase, setSessionPhase] = useState<SessionPhase>('results')
   const [sessionReward, setSessionReward] = useState<SessionReward | null>(null)
   const [outcomeProfile, setOutcomeProfile] = useState(initialOutcomeProfile)
+  // QSR Bridge™ — a separate, standalone dialog, deliberately NOT wired
+  // into `sessionPhase`/`sessionDialogOpen` below: that state machine
+  // drives the real, tracked full-document reading+quiz session (XP,
+  // streak, quantum_document_sessions). Practicing just the one-sentence
+  // summary is a quick, untracked speed-reading rep — reusing
+  // QuantumDocumentSpeedReadingView's own lightweight, no-tracking reader
+  // (same "never pollute the tracked system with something that isn't
+  // really it" discipline that component's own doc comment already
+  // states), but with its own isolated open/close state so it can never
+  // accidentally fall through into the quiz phase or an XP award.
+  const [isSummaryPracticeOpen, setIsSummaryPracticeOpen] = useState(false)
+  const summaryPracticeText = document.oneSentenceSummary ?? document.aiSummary
 
   // Gamification & XP Sync — fires once, when the learner finishes BOTH
   // real halves of the session (speed reading + recall quiz). The XP
@@ -169,6 +181,19 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
               </TabsList>
 
               <TabsContent value="summary" className="mt-6 space-y-4">
+                {/* QSR Bridge™ — seamlessly hands the summary off to the
+                    speed-reading reader, right at the top of the tab
+                    where the summary itself lives. */}
+                <Button
+                  type="button"
+                  size="lg"
+                  className="brand-gradient w-full rounded-full text-white shadow-md hover:opacity-90"
+                  onClick={() => setIsSummaryPracticeOpen(true)}
+                >
+                  <Rocket className="size-4" aria-hidden="true" />
+                  Practice this summary in Quantum Speed Reading Mode
+                </Button>
+
                 {/* One-Sentence Summary™ — the single powerful line a
                     learner should walk away with, given its own
                     eye-catching card ahead of the fuller ai_summary
@@ -235,7 +260,7 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                     since it's the newest, most "read less" way in.
                     Null for a document generated before this field
                     existed. */}
-                {document.shortStory && <ShortStoryCard story={document.shortStory} />}
+                {document.shortStory && <ShortStoryCard story={document.shortStory} keywords={document.keywords} memoryAnchor={document.oneSentenceSummary} />}
                 <FeynmanChallengeCard challenge={document.feynmanChallenge} />
                 <MnemonicsListView mnemonics={document.mnemonics} />
                 <SubjectLensView lens={document.subjectLens} />
@@ -292,6 +317,26 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                 onExit={() => setSessionPhase('results')}
               />
             )
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSummaryPracticeOpen} onOpenChange={setIsSummaryPracticeOpen}>
+        <DialogContent className="flex h-[85vh] max-w-3xl flex-col p-6 sm:max-w-3xl" showCloseButton={false}>
+          <DialogTitle className="sr-only">{document.title} — Summary Practice</DialogTitle>
+          {isSummaryPracticeOpen && (
+            <QuantumDocumentSpeedReadingView
+              title={`${document.title} — Summary Practice`}
+              readingText={summaryPracticeText}
+              onComplete={() => setIsSummaryPracticeOpen(false)}
+              onExit={() => setIsSummaryPracticeOpen(false)}
+              completionCopy={{
+                finishedHeadline: 'Nice work — you read the summary.',
+                finishedSubtext: 'Head back to explore the rest of the document whenever you’re ready.',
+                skipLabel: 'Done',
+                continueLabel: 'Done',
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>

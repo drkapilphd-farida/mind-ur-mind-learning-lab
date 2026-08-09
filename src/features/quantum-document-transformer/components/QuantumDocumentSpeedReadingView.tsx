@@ -14,11 +14,26 @@ const SPEED_MS: Record<SpeedPreset, number> = { slow: 480, normal: 320, fast: 20
 const SPEED_LABEL: Record<SpeedPreset, string> = { slow: 'Slow', normal: 'Normal', fast: 'Fast' }
 const NEXT_SPEED: Record<SpeedPreset, SpeedPreset> = { slow: 'normal', normal: 'fast', fast: 'slow' }
 
+type CompletionCopy = { finishedHeadline: string; finishedSubtext: string; skipLabel: string; continueLabel: string }
+
+const DEFAULT_COMPLETION_COPY: CompletionCopy = {
+  finishedHeadline: 'Nice work — you read the whole document.',
+  finishedSubtext: 'Ready to lock it in with a quick recall quiz?',
+  skipLabel: 'Skip to quiz →',
+  continueLabel: 'Continue to recall quiz →',
+}
+
 type QuantumDocumentSpeedReadingViewProps = {
   title: string
   readingText: string
   onComplete: () => void
   onExit: () => void
+  // QSR Bridge™ — the full-document reading flow always leads into a
+  // real recall quiz next, so that copy is baked in as the default. The
+  // Summary Practice bridge (QuantumDocumentDetailView.tsx) reuses this
+  // exact reader for just the one-sentence summary, with no quiz after
+  // it — overriding this prop avoids promising a quiz that never comes.
+  completionCopy?: CompletionCopy
 }
 
 // AI Document Transformer™ — Quantum Speed Reading (RSVP) over the
@@ -34,7 +49,7 @@ type QuantumDocumentSpeedReadingViewProps = {
 // inventing a fake exerciseId for content that isn't really a Lab
 // exercise — the same "never pollute the tracked system with something
 // that isn't really it" discipline this app already applies elsewhere.
-export function QuantumDocumentSpeedReadingView({ title, readingText, onComplete, onExit }: QuantumDocumentSpeedReadingViewProps): React.JSX.Element {
+export function QuantumDocumentSpeedReadingView({ title, readingText, onComplete, onExit, completionCopy = DEFAULT_COMPLETION_COPY }: QuantumDocumentSpeedReadingViewProps): React.JSX.Element {
   const words = useMemo(() => readingText.split(/\s+/).filter((word) => word.length > 0), [readingText])
   const [index, setIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
@@ -77,8 +92,8 @@ export function QuantumDocumentSpeedReadingView({ title, readingText, onComplete
           </p>
         ) : (
           <div className="flex flex-col items-center gap-3 text-center">
-            <p className={TYPOGRAPHY.h2}>Nice work — you read the whole document.</p>
-            <p className={TYPOGRAPHY.small}>Ready to lock it in with a quick recall quiz?</p>
+            <p className={TYPOGRAPHY.h2}>{completionCopy.finishedHeadline}</p>
+            {completionCopy.finishedSubtext && <p className={TYPOGRAPHY.small}>{completionCopy.finishedSubtext}</p>}
           </div>
         )}
       </div>
@@ -93,12 +108,12 @@ export function QuantumDocumentSpeedReadingView({ title, readingText, onComplete
               {isPlaying ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
             </Button>
             <Button type="button" variant="ghost" onClick={onComplete}>
-              Skip to quiz →
+              {completionCopy.skipLabel}
             </Button>
           </>
         ) : (
           <Button type="button" size="lg" className="rounded-full" onClick={onComplete}>
-            Continue to recall quiz →
+            {completionCopy.continueLabel}
           </Button>
         )}
       </div>

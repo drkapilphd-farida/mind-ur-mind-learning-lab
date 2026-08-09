@@ -1,45 +1,66 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, GitBranch } from 'lucide-react'
+import { ChevronRight, Compass, Flame, GitBranch, Heart, Leaf, Sparkles, type LucideIcon } from 'lucide-react'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { cn } from '@/lib/utils'
 import type { SpiderNote } from '../types'
 
-// Depth-based tinting (token opacity, not new colors) is what actually
-// carries the "mind map" read at a glance — the root node anchors the
-// whole tree in solid brand color, first-level branches get a soft
-// tint, everything deeper stays neutral so the tree doesn't turn into a
-// wall of color as it gets wide.
-function nodeToneClassName(depth: number): string {
-  if (depth === 0) return 'border-primary bg-primary text-primary-foreground'
-  if (depth === 1) return 'border-primary/25 bg-primary/[0.06] text-foreground'
-  return 'border-border bg-card text-foreground/90'
+// Vibrant Mind Map™ — a fixed 5-color rotation for major (depth-1)
+// branches, cycled by index rather than tied to branch content (the
+// model never returns a color/category — this is purely a visual
+// parsing aid, "which branch is which" at a glance, in both the radial
+// map and the mobile list). Every class below is a static, literal
+// Tailwind class name (never built via string interpolation) so
+// Tailwind's build-time scanner can actually find and generate it.
+type BranchAccent = { border: string; bg: string; text: string; dot: string; stroke: string; icon: LucideIcon }
+
+// `dot` is its own literal class (not derived from `text` at runtime via
+// string replacement) — Tailwind's build-time scanner only generates CSS
+// for class names it can find as literal strings in source, so a
+// runtime-computed `"text-blue-600".replace('text-', 'bg-')` would
+// silently produce an un-styled, invisible class in the actual build.
+const BRANCH_ACCENTS: readonly BranchAccent[] = [
+  { border: 'border-blue-400/50', bg: 'bg-blue-500/[0.08]', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500', stroke: 'stroke-blue-500', icon: Compass },
+  { border: 'border-emerald-400/50', bg: 'bg-emerald-500/[0.08]', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500', stroke: 'stroke-emerald-500', icon: Leaf },
+  { border: 'border-amber-400/50', bg: 'bg-amber-500/[0.08]', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500', stroke: 'stroke-amber-500', icon: Flame },
+  { border: 'border-violet-400/50', bg: 'bg-violet-500/[0.08]', text: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500', stroke: 'stroke-violet-500', icon: Sparkles },
+  { border: 'border-rose-400/50', bg: 'bg-rose-500/[0.08]', text: 'text-rose-600 dark:text-rose-400', dot: 'bg-rose-500', stroke: 'stroke-rose-500', icon: Heart },
+]
+
+function branchAccentFor(index: number): BranchAccent {
+  return BRANCH_ACCENTS[index % BRANCH_ACCENTS.length]!
 }
 
 type TreeNodeProps = {
   node: SpiderNote
   depth: number
+  // Only ever set for depth-1 nodes (this branch's own color, carried
+  // down so a depth-2+ descendant can still show a faint tint of which
+  // branch it belongs to instead of going flat neutral).
+  accent: BranchAccent | null
 }
 
 // Root and its direct branches (depth 0/1) start expanded so the main
 // shape of the mind map is visible at a glance; anything deeper starts
 // collapsed to keep the initial view scannable, per the "clean, not
 // exhaustive" brief — a chevron always lets a learner go deeper.
-function TreeNode({ node, depth }: TreeNodeProps): React.JSX.Element {
+function TreeNode({ node, depth, accent }: TreeNodeProps): React.JSX.Element {
   const hasChildren = node.children.length > 0
   const [isExpanded, setIsExpanded] = useState(depth < 2)
   const prefersReducedMotion = usePrefersReducedMotion()
+  const BranchIcon = accent?.icon
 
   const nodeContent = (
     <span
       className={cn(
-        'rounded-xl border px-4 py-2.5 text-sm leading-snug shadow-sm transition-colors',
-        nodeToneClassName(depth),
-        depth === 0 && 'text-base font-bold',
-        depth === 1 && 'font-semibold',
+        'inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm leading-snug shadow-sm transition-colors',
+        depth === 0 && 'border-primary bg-primary text-primary-foreground text-base font-bold',
+        depth === 1 && accent && cn(accent.border, accent.bg, 'font-semibold text-foreground'),
+        depth > 1 && 'border-border bg-card text-foreground/90',
       )}
     >
+      {depth === 1 && BranchIcon && <BranchIcon className={cn('size-3.5 shrink-0', accent?.text)} aria-hidden="true" />}
       {node.label}
     </span>
   )
@@ -62,7 +83,7 @@ function TreeNode({ node, depth }: TreeNodeProps): React.JSX.Element {
       ) : (
         <div className="flex items-start gap-2">
           <span aria-hidden="true" className="mt-3 flex size-5 shrink-0 items-center justify-center">
-            <span className="size-1.5 rounded-full bg-muted-foreground/40" />
+            <span className={cn('size-1.5 rounded-full', accent ? accent.dot : 'bg-muted-foreground/40')} />
           </span>
           {nodeContent}
         </div>
@@ -71,12 +92,13 @@ function TreeNode({ node, depth }: TreeNodeProps): React.JSX.Element {
       {hasChildren && isExpanded && (
         <ul
           className={cn(
-            'mt-2.5 ml-2.5 space-y-2.5 border-l-2 border-primary/15 pl-5',
+            'mt-2.5 ml-2.5 space-y-2.5 border-l-2 pl-5',
+            accent ? accent.border : 'border-primary/15',
             !prefersReducedMotion && 'animate-in fade-in slide-in-from-top-1 duration-200',
           )}
         >
           {node.children.map((child, index) => (
-            <TreeNode key={`${depth}-${index}-${child.label}`} node={child} depth={depth + 1} />
+            <TreeNode key={`${depth}-${index}-${child.label}`} node={child} depth={depth + 1} accent={depth === 0 ? branchAccentFor(index) : accent} />
           ))}
         </ul>
       )}
@@ -137,13 +159,22 @@ function computeBranchPosition(index: number, count: number): { x: number; y: nu
 // list. Shown at sm+ widths only (see SpiderNotesTreeView below) — a
 // true radial layout doesn't have room to breathe on a phone screen, so
 // narrow viewports get the plain hierarchical list instead, same data
-// either way.
+// either way. Wrapped in `.quantum-mindmap-glass` (globals.css) with a
+// couple of soft, static color blobs behind it for real depth — purely
+// decorative, so they're skipped under prefers-reduced-motion by simply
+// never being animated in the first place (nothing here moves).
 function MindMapRadial({ root }: { root: SpiderNote }): React.JSX.Element {
   const branches = root.children
   const prefersReducedMotion = usePrefersReducedMotion()
 
   return (
-    <div className="relative min-h-[480px] w-full overflow-visible">
+    <div className="quantum-mindmap-glass relative min-h-[500px] w-full overflow-hidden p-4">
+      {/* Soft depth-tinting — two blurred color blobs echoing the first
+          two branch accents, anchored behind the map content (z-0) so
+          the glass surface reads as more than a flat tinted rectangle. */}
+      <div className="pointer-events-none absolute -left-16 -top-16 size-64 rounded-full bg-blue-400/20 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-20 -right-10 size-72 rounded-full bg-rose-400/20 blur-3xl" aria-hidden="true" />
+
       {branches.length > 0 && (
         <svg
           viewBox="0 0 100 100"
@@ -153,6 +184,7 @@ function MindMapRadial({ root }: { root: SpiderNote }): React.JSX.Element {
         >
           {branches.map((branch, index) => {
             const { x, y } = computeBranchPosition(index, branches.length)
+            const accent = branchAccentFor(index)
             return (
               <line
                 key={`line-${index}-${branch.label}`}
@@ -160,9 +192,9 @@ function MindMapRadial({ root }: { root: SpiderNote }): React.JSX.Element {
                 y1={50}
                 x2={x}
                 y2={y}
-                className="stroke-primary"
-                strokeOpacity={0.3}
-                strokeWidth={0.5}
+                className={accent.stroke}
+                strokeOpacity={0.45}
+                strokeWidth={0.6}
                 strokeLinecap="round"
               />
             )
@@ -172,27 +204,37 @@ function MindMapRadial({ root }: { root: SpiderNote }): React.JSX.Element {
 
       <div
         className={cn(
-          'absolute left-1/2 top-1/2 z-10 w-[176px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-primary bg-primary px-4 py-3 text-center shadow-lg',
+          'brand-gradient absolute left-1/2 top-1/2 z-10 w-[176px] -translate-x-1/2 -translate-y-1/2 rounded-2xl px-4 py-3 text-center shadow-lg ring-1 ring-white/20',
           !prefersReducedMotion && 'animate-in zoom-in-95 fade-in duration-300',
         )}
       >
-        <p className="line-clamp-4 text-sm font-bold leading-snug text-primary-foreground">{root.label}</p>
+        <div className="flex items-center justify-center gap-1.5">
+          <Sparkles className="size-3.5 shrink-0 text-white/90" aria-hidden="true" />
+          <p className="line-clamp-4 text-sm font-bold leading-snug text-white">{root.label}</p>
+        </div>
       </div>
 
       {branches.map((branch, index) => {
         const { x, y } = computeBranchPosition(index, branches.length)
+        const accent = branchAccentFor(index)
+        const BranchIcon = accent.icon
         return (
           <div
             key={`branch-${index}-${branch.label}`}
             className={cn(
-              'absolute z-10 w-[188px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-primary/25 bg-primary/[0.06] p-3 shadow-sm',
+              'absolute z-10 w-[192px] -translate-x-1/2 -translate-y-1/2 rounded-xl border p-3 shadow-sm backdrop-blur-sm',
+              accent.border,
+              accent.bg,
               !prefersReducedMotion && 'animate-in zoom-in-95 fade-in duration-300',
             )}
             style={{ left: `${x}%`, top: `${y}%` }}
           >
-            <p className="line-clamp-3 text-xs font-semibold leading-snug text-foreground">{branch.label}</p>
+            <div className="flex items-start gap-1.5">
+              <BranchIcon className={cn('mt-0.5 size-3.5 shrink-0', accent.text)} aria-hidden="true" />
+              <p className="line-clamp-3 text-xs font-semibold leading-snug text-foreground">{branch.label}</p>
+            </div>
             {branch.children.length > 0 && (
-              <div className="mt-2 max-h-28 overflow-y-auto border-t border-primary/10 pt-2">
+              <div className={cn('mt-2 max-h-28 overflow-y-auto border-t pt-2', accent.border)}>
                 <MindMapNestedList nodes={branch.children} depth={2} />
               </div>
             )}
@@ -210,12 +252,17 @@ type SpiderNotesTreeViewProps = {
 // AI Document Transformer™ — Spider Notes visualization. Renders the
 // real, already-generated spider_notes tree (see
 // src/lib/ai/tools/quantumDocumentIntelligenceTool.ts's own recursive
-// JSON Schema) two ways from the exact same data: a true radial
-// mind-map (central node + connecting branch lines, sm+ widths) and a
-// plain expandable hierarchy list (all widths, primary on mobile) — never
-// a fabricated diagram, always exactly the hierarchy the model returned.
-// No graph/canvas library — both views are plain DOM/CSS/SVG and stay
-// fully performant and keyboard/screen-reader accessible at any depth.
+// JSON Schema) two ways from the exact same data: a vibrant, color-coded
+// radial mind-map (central node + connecting branch lines, sm+ widths)
+// and a plain expandable hierarchy list (all widths, primary on mobile)
+// — never a fabricated diagram, always exactly the hierarchy the model
+// returned. No graph/canvas library — both views are plain DOM/CSS/SVG
+// and stay fully performant and keyboard/screen-reader accessible at any
+// depth. Per-branch color (see BRANCH_ACCENTS above) is a deliberate,
+// scoped exception to this app's usual "color is reserved, not default"
+// rule — the same kind of named, scoped exception `.glass-premium`
+// already is elsewhere in globals.css — because instant visual parsing
+// of "which branch is which" is the whole point of a mind map.
 export function SpiderNotesTreeView({ root }: SpiderNotesTreeViewProps): React.JSX.Element {
   return (
     <div className="quantum-section-card p-5">
@@ -228,11 +275,11 @@ export function SpiderNotesTreeView({ root }: SpiderNotesTreeViewProps): React.J
 
       <div className="mt-4 sm:hidden">
         <ul>
-          <TreeNode node={root} depth={0} />
+          <TreeNode node={root} depth={0} accent={null} />
         </ul>
       </div>
 
-      <div className="mt-2 hidden sm:block">
+      <div className="mt-3 hidden sm:block">
         <MindMapRadial root={root} />
       </div>
     </div>
