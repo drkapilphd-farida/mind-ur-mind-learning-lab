@@ -26,7 +26,7 @@ const SECTIONS: LibrarySection[] = [
     note: 'Optional — you can also skip straight to Core Reading Journey™ below.',
     items: [
       { label: 'Reading Preparation™ (guided 6-step sequence)', href: '/labs/quantum-speed-reading/preparation' },
-      { label: 'Breath Awareness (part of Visual Activation™)', href: '/labs/visual-intelligence/visual-activation' },
+      { label: 'Theta Breathing & Focal Anchor (part of Visual Activation™)', href: '/labs/visual-intelligence/visual-activation' },
       { label: 'Eye Warm-up', href: '/labs/quantum-speed-reading/eye-warm-up' },
       { label: 'Eye Stretch', href: '/labs/quantum-speed-reading/eye-stretch' },
       { label: 'Eye Span', href: '/labs/quantum-speed-reading/eye-span' },

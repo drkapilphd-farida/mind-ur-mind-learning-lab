@@ -1,46 +1,29 @@
 import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
 
-// Visual Activation™ — the guided sequence that replaces the old Foundation
-// Journey™ + Advanced Journeys split. Single source of truth for order and
-// exerciseId, reused for both progress tracking (getModuleProgress) and
-// gating Reading Preparation™ behind full completion.
+// Visual Activation Suite™ — rebuilt as a modern, oculomotor/neural-
+// activation-focused suite (see src/components/qsr/visual-activation/),
+// replacing the old breath/eye-relaxation/Tratak-persistence sequence
+// this file used to define.
+//
+// Only the exercises that actually exist and are completable are listed
+// here, since this export drives REAL paywall gating —
+// getModuleProgress('visual-intelligence', VISUAL_ACTIVATION_EXERCISE_IDS)
+// decides whether Reading Preparation™/Core Reading Journey™ unlock
+// (see quantum-speed-reading/page.tsx, phrase-reading/page.tsx,
+// preparation/page.tsx). A stub exercise with no real completion path
+// must never appear here, or the gate would become permanently
+// impossible to satisfy. Extend this list as more of the suite's 7
+// exercises ship. The full planned roster (including not-yet-built ones,
+// for the suite's own "coming next" display) lives separately in
+// src/components/qsr/visual-activation/visualActivationSuite.ts, which
+// is never imported by anything gating-related.
 export const VISUAL_ACTIVATION_SEQUENCE: readonly ExerciseSequenceItem[] = [
   {
-    exerciseId: 'breath-awareness',
-    title: 'Breath Awareness',
-    summary: 'A calm breathing rhythm to begin your visual training.',
+    exerciseId: 'theta-breathing-anchor',
+    title: 'Theta Breathing & Focal Anchor',
+    summary: 'A calming alpha/theta breathing warm-up with a synchronized glowing focal anchor.',
     href: '/labs/visual-intelligence/visual-activation',
   },
-  {
-    exerciseId: 'eye-relaxation',
-    title: 'Eye Relaxation',
-    summary: 'Gentle guided eye movements to release tension.',
-    href: '/labs/visual-intelligence/visual-activation',
-  },
-  {
-    exerciseId: 'mandala-persistence',
-    title: 'Mandala Persistence™',
-    summary: 'Train your visual fixation using beautiful symmetrical mandalas.',
-    href: '/labs/visual-intelligence/visual-activation',
-  },
-  {
-    exerciseId: 'image-persistence-challenge',
-    title: 'Image Persistence Challenge™',
-    summary: 'A daily adaptive challenge across mandalas, sacred geometry, flowers, animals, objects and faces.',
-    href: '/labs/visual-intelligence/visual-activation',
-  },
-  {
-    exerciseId: 'candle-tratak',
-    title: 'Candle Tratak™',
-    summary: 'Train steady gaze using a realistic candle flame.',
-    href: '/labs/visual-intelligence/visual-activation',
-  },
-  {
-    exerciseId: 'advanced-tratak',
-    title: 'Advanced Tratak™',
-    summary: 'A longer, harder round of steady-gaze training.',
-    href: '/labs/visual-intelligence/visual-activation',
-  },
-] as const
+]
 
 export const VISUAL_ACTIVATION_EXERCISE_IDS = VISUAL_ACTIVATION_SEQUENCE.map((item) => item.exerciseId)

@@ -22,7 +22,10 @@ export type StageCopy = {
 export const STAGE_COPY: Record<string, StageCopy> = {
   'visual-activation': {
     icon: '👁',
-    estimatedTime: '10–15 Minutes',
+    // Rebuilt as a modular suite (see visualActivationSequence.ts) —
+    // this is honestly just Exercise 1's real length today, not the old
+    // 6-step sequence's total; update as more exercises ship.
+    estimatedTime: '1–2 Minutes',
     benefits: ['Improve Focus', 'Improve Visual Stability', 'Prepare for Faster Reading'],
     missionSupportingLine: 'A calm start that wakes up your visual system.',
     expectedOutcome: 'By the end, your eyes and focus will feel calmer and more prepared to train.',
