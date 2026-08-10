@@ -10,11 +10,11 @@ import type { VisualActivationExerciseProps } from './types'
 // Suite. An alpha/theta-state warm-up: a slow, paced breath cycle with
 // three synchronized channels — a scaling, richly-lit glass-morphism glow
 // orb (visual), a gentle rhythmic vibration strictly on inhale (haptic),
-// and a multi-layered Web Audio harmonic drone — a singing-bowl-style
-// stack of tuned partials with a soft algorithmic reverb tail — that
-// glides up in pitch on inhale and back down on exhale (audio) — so the
-// whole nervous system settles into the same pace before the eyes ever
-// start working.
+// and a fixed-pitch, multi-layered Web Audio harmonic drone — a
+// singing-bowl-style stack of tuned partials with a soft algorithmic
+// reverb tail — that gently swells louder on inhale and settles quieter
+// on exhale (audio) — so the whole nervous system settles into the same
+// pace before the eyes ever start working.
 const INHALE_MS = 4_000
 const EXHALE_MS = 4_000
 const CYCLE_MS = INHALE_MS + EXHALE_MS
@@ -25,18 +25,20 @@ const EXERCISE_DURATION_MS = 90_000
 // declared once, interpolated off the JS thread for real 60fps).
 const PHASE_TICK_MS = 200
 
-// A gentle, consonant glide (a perfect fifth) rather than a jarring pitch
-// sweep — genuinely calming, not an alarm. Every harmonic layer below
-// glides in lockstep with this base frequency, so the whole chord moves
-// together.
-const LOW_FREQ_HZ = 220 // A3
-const HIGH_FREQ_HZ = 330 // E4
-const PEAK_GAIN = 0.055 // deliberately quiet — an ambient tone, not music
-// Exponential-approach time constants (setTargetAtTime), not linear
-// ramps — a linear fade has a perceptible "mechanical" edge; an
+// A single, fixed grounding fundamental (A3) — every harmonic layer below
+// is set once at start and NEVER re-pitched. An earlier version glided
+// this up and down a perfect fifth on every breath; four detuned/octaved
+// partials all sweeping in lockstep, repeated every 4s for 90s straight,
+// reads as a two-tone siren, not a drone. Only loudness now tracks the
+// breath — pitch stays completely still.
+const FUNDAMENTAL_HZ = 220 // A3
+const RESTING_GAIN = 0.04 // settled exhale level
+const SWELL_GAIN = 0.062 // gentle inhale peak — loudness only, never pitch
+// Exponential-approach time constant (setTargetAtTime), not a linear
+// ramp — a linear fade has a perceptible "mechanical" edge; an
 // exponential one breathes in and settles out the way a struck bowl
-// actually does. ~5 time constants is a full, click-free settle.
-const ATTACK_TIME_CONSTANT_S = 1.1
+// actually does.
+const SWELL_TIME_CONSTANT_S = 1.3
 const RELEASE_TIME_CONSTANT_S = 0.6
 const RELEASE_SETTLE_MS = RELEASE_TIME_CONSTANT_S * 5 * 1000
 // Warms the tone and, more importantly, shapes the reverb tail below —
@@ -48,17 +50,14 @@ const LOWPASS_CUTOFF_HZ = 2_600
 const REVERB_WET_LEVEL = 0.32
 const REVERB_DURATION_S = 2.2
 const REVERB_DECAY = 2.8
-// A slow shimmer synced to exactly one breath cycle (not an independent
-// rhythm) — the ear reinforces the same pacing the eyes and haptics
-// already carry. Kept well under PEAK_GAIN so it can never push the
-// master gain negative during the attack swell.
-const TREMOLO_DEPTH = PEAK_GAIN * 0.1
 
 // A singing-bowl-style partial stack: the fundamental, a few-cents-sharp
 // unison for warm natural beating, and two upper partials (an octave and
 // an octave-plus-fifth) at falling gain — the same overtone relationships
 // a real struck bowl produces. Panned slightly apart so the chord has
-// width instead of collapsing into one point source.
+// width instead of collapsing into one point source. Every multiplier
+// here is applied exactly once, at start — nothing in this stack ever
+// moves again.
 const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: number }[] = [
   { multiplier: 1, weight: 1, pan: 0 },
   { multiplier: 2 ** (7 / 1200), weight: 0.85, pan: 0 },
@@ -68,15 +67,17 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 
 // A soothing pulse-rest pattern (never a continuous buzz), sized to
 // exactly span one inhale — computed from INHALE_MS so the two can never
-// drift out of sync if the timing constants above ever change.
-const HAPTIC_PULSE_ON_MS = 180
-const HAPTIC_PULSE_OFF_MS = 320
+// drift out of sync if the timing constants above ever change. Fine
+// (100ms on / 150ms off) rather than chunky, so it reads as a smooth
+// tremor rather than discrete taps.
+const HAPTIC_PULSE_ON_MS = 100
+const HAPTIC_PULSE_OFF_MS = 150
 const HAPTIC_PULSE_COUNT = Math.floor(INHALE_MS / (HAPTIC_PULSE_ON_MS + HAPTIC_PULSE_OFF_MS))
 const HAPTIC_PATTERN: readonly number[] = Array.from({ length: HAPTIC_PULSE_COUNT }, () => [HAPTIC_PULSE_ON_MS, HAPTIC_PULSE_OFF_MS]).flat()
 
 type ExercisePhase = 'intro' | 'breathing' | 'complete'
 type BreathPhase = 'inhale' | 'exhale'
-type HarmonicVoice = { oscillator: OscillatorNode; multiplier: number }
+type HarmonicVoice = { oscillator: OscillatorNode }
 
 function computeBreathPhase(elapsedMs: number): BreathPhase {
   return elapsedMs % CYCLE_MS < INHALE_MS ? 'inhale' : 'exhale'
@@ -109,15 +110,6 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
   const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
-  const lfoRef = useRef<OscillatorNode | null>(null)
-  // The tone's own current target BASE frequency (before each harmonic
-  // layer's multiplier is applied), tracked ourselves rather than read
-  // back via oscillator.frequency.value — that getter isn't guaranteed to
-  // reflect a just-scheduled setValueAtTime call before at least one
-  // audio-rendering quantum has actually processed, which silently
-  // pinned the wrong starting value (the AudioParam's built-in 440Hz
-  // default, not our own 220Hz) the first time this was tried.
-  const currentFreqTargetRef = useRef(LOW_FREQ_HZ)
   // Real elapsed wall-clock time (performance.now()-based), not an
   // accumulated `+= PHASE_TICK_MS` counter — setInterval only guarantees
   // "at least" its delay, so accumulating a fixed increment per tick can
@@ -178,10 +170,10 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
     setBreathPhase(nextBreathPhase)
 
     if (nextBreathPhase === 'inhale') {
-      scheduleTone(HIGH_FREQ_HZ, INHALE_MS)
+      scheduleBreathSwell('inhale')
       triggerInhaleHaptics()
     } else {
-      scheduleTone(LOW_FREQ_HZ, EXHALE_MS)
+      scheduleBreathSwell('exhale')
       stopHaptics()
     }
   }, [phase, elapsedMs])
@@ -199,7 +191,6 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
 
     const audioContext = new AudioContext()
     const now = audioContext.currentTime
-    currentFreqTargetRef.current = LOW_FREQ_HZ
 
     const masterGain = audioContext.createGain()
     masterGain.gain.setValueAtTime(0, now)
@@ -226,7 +217,10 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
     const voices: HarmonicVoice[] = HARMONIC_LAYERS.map(({ multiplier, weight, pan }) => {
       const oscillator = audioContext.createOscillator()
       oscillator.type = 'sine'
-      oscillator.frequency.setValueAtTime(LOW_FREQ_HZ * multiplier, now)
+      // Set once, here, and never scheduled again — this is the fixed,
+      // stable drone the exercise now relies on entirely for its
+      // "breathing" cue via loudness (see scheduleBreathSwell), not pitch.
+      oscillator.frequency.setValueAtTime(FUNDAMENTAL_HZ * multiplier, now)
 
       const voiceGain = audioContext.createGain()
       voiceGain.gain.setValueAtTime(weight, now)
@@ -239,51 +233,39 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
       panner.connect(masterGain)
       oscillator.start()
 
-      return { oscillator, multiplier }
+      return { oscillator }
     })
-
-    // A slow tremolo synced exactly to one breath cycle — a living
-    // shimmer, not a separate rhythm, so the ear reinforces the same
-    // pacing the eyes and haptics already carry.
-    const lfo = audioContext.createOscillator()
-    lfo.type = 'sine'
-    lfo.frequency.setValueAtTime(1000 / CYCLE_MS, now)
-    const lfoDepth = audioContext.createGain()
-    lfoDepth.gain.setValueAtTime(TREMOLO_DEPTH, now)
-    lfo.connect(lfoDepth)
-    lfoDepth.connect(masterGain.gain)
-    lfo.start()
-
-    // A gentle, artifact-free swell — an exponential approach, never a
-    // hard linear ramp, so the tone breathes in rather than fading up
-    // mechanically.
-    masterGain.gain.setTargetAtTime(PEAK_GAIN, now, ATTACK_TIME_CONSTANT_S)
 
     audioContextRef.current = audioContext
     masterGainRef.current = masterGain
     harmonicVoicesRef.current = voices
-    lfoRef.current = lfo
+    // masterGain starts and stays at 0 here — the very first phase
+    // transition (always 'inhale', fired immediately after this by the
+    // phase-transition effect) is what performs the actual swell-in via
+    // scheduleBreathSwell, so there's exactly one place that ever moves
+    // this gain, not two competing ramps.
   }
 
-  function scheduleTone(targetHz: number, durationMs: number): void {
+  // The breath's only audible signature now: a gentle loudness swell,
+  // never a pitch change. An exponential approach (setTargetAtTime), not
+  // a linear ramp — a linear fade has a perceptible "mechanical" edge; an
+  // exponential one breathes in and settles out the way a struck bowl
+  // actually does.
+  function scheduleBreathSwell(nextBreathPhase: BreathPhase): void {
     const audioContext = audioContextRef.current
-    const voices = harmonicVoicesRef.current
-    if (!audioContext || voices.length === 0) return
+    const masterGain = masterGainRef.current
+    if (!audioContext || !masterGain) return
     const now = audioContext.currentTime
-    const fromHz = currentFreqTargetRef.current
-    for (const voice of voices) {
-      voice.oscillator.frequency.cancelScheduledValues(now)
-      voice.oscillator.frequency.setValueAtTime(fromHz * voice.multiplier, now)
-      voice.oscillator.frequency.linearRampToValueAtTime(targetHz * voice.multiplier, now + durationMs / 1000)
-    }
-    currentFreqTargetRef.current = targetHz
+    const target = nextBreathPhase === 'inhale' ? SWELL_GAIN : RESTING_GAIN
+    masterGain.gain.cancelScheduledValues(now)
+    masterGain.gain.setValueAtTime(masterGain.gain.value, now)
+    masterGain.gain.setTargetAtTime(target, now, SWELL_TIME_CONSTANT_S)
   }
 
   function teardownAudio(): void {
     const audioContext = audioContextRef.current
     const masterGain = masterGainRef.current
     const voices = harmonicVoicesRef.current
-    const lfo = lfoRef.current
     if (audioContext && masterGain) {
       const now = audioContext.currentTime
       masterGain.gain.cancelScheduledValues(now)
@@ -295,13 +277,11 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
     // is exactly what produces an audible click.
     setTimeout(() => {
       for (const voice of voices) voice.oscillator.stop()
-      lfo?.stop()
       void audioContext?.close().catch(() => undefined)
     }, RELEASE_SETTLE_MS)
     audioContextRef.current = null
     masterGainRef.current = null
     harmonicVoicesRef.current = []
-    lfoRef.current = null
   }
 
   function triggerInhaleHaptics(): void {
@@ -319,6 +299,10 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
 
   function handleStart(): void {
     initAudio()
+    // Guarantees a clean slate — cancels any vibration a previous run
+    // (or a fast restart) might have left running before this one's own
+    // first inhale pulse fires.
+    stopHaptics()
     lastBreathPhaseRef.current = null
     startedAtRef.current = performance.now()
     setElapsedMs(0)
