@@ -23,40 +23,148 @@ type HarmonicVoice = { oscillator: OscillatorNode }
 type FlashEvent = { text: string; displayMs: number; startMs: number; round: number }
 type RoundConfig = { displayMs: number; minWords: number; maxWords: number }
 
-// A curated bank of real, short phrases (2-4 words) — never lorem ipsum.
-// Filtered by word count per round below, so each round only draws from
-// chunks sized appropriately for its own display speed.
+// A large, curated bank of real phrases (2-4 words each) — never lorem
+// ipsum — spanning 12 distinct themes so a single session (or even many
+// back-to-back sessions) never feels like it's looping. 120 phrases
+// total: 36 two-word, 48 three-word, 36 four-word, giving every round's
+// word-count filter below a deep, varied pool to draw from. Filtered by
+// word count per round, so each round only draws from chunks sized
+// appropriately for its own display speed; buildFlashSchedule further
+// excludes anything already shown earlier in the same run, so one run
+// never repeats a phrase across its 4 rounds either.
 const WORD_CHUNKS: readonly string[] = [
+  // Cognitive Speed
+  'think faster',
+  'quick thinking',
+  'sharp mind',
+  'speed up thinking',
+  'thoughts move quickly',
+  'mental speed rises',
+  'quick decisive mind',
+  'your thinking speed grows',
+  'fast thoughts feel natural',
+  'mental quickness builds daily',
+  // Perception & Awareness
+  'see clearly',
+  'notice more',
+  'aware now',
+  'awareness expands now',
+  'perception grows sharper',
+  'notice small details',
+  'senses feel sharper',
+  'your awareness keeps expanding',
+  'perception sharpens every day',
+  'notice what others miss',
+  // Quantum Focus
+  'focus locks',
+  'deep focus',
+  'focus anchors',
+  'focus goes deeper',
+  'attention stays sharp',
+  'quantum focus builds',
+  'focus holds steady',
+  'your focus keeps deepening',
+  'quantum stillness meets clarity',
+  'focus becomes second nature',
+  // Speed Reading
   'read faster',
-  'stay calm',
-  'focus expands',
-  'mind opens',
-  'eyes relax',
-  'vision sharpens',
-  'words flow',
-  'attention holds',
-  'clarity grows',
-  'flow deepens',
-  'the quiet mind',
-  'read without sound',
-  'capture whole words',
+  'eyes glide',
+  'pages fly',
+  'reading speed grows',
   'eyes move smoothly',
-  'focus stays steady',
-  'widen your gaze',
-  'trust your eyes',
-  'speed builds calm',
-  'notice every word',
+  'words flow easily',
+  'pages turn quickly',
+  'your reading speed doubles',
+  'eyes glide across pages',
+  'reading feels effortless now',
+  // Rapid Comprehension
+  'grasp quickly',
+  'understand instantly',
+  'meaning clicks',
+  'meaning arrives instantly',
+  'comprehension feels effortless',
+  'ideas click quickly',
+  'understanding comes fast',
+  'meaning lands in seconds',
+  'comprehension grows without effort',
+  'ideas connect almost instantly',
+  // Memory Anchors
+  'memory sticks',
+  'recall easily',
+  'details stick',
+  'memory holds firm',
+  'recall feels effortless',
+  'details stay clear',
+  'memory anchors deepen',
+  'memories form more easily',
+  'recall becomes almost automatic',
+  'your memory keeps strengthening',
+  // Visual Clarity
+  'vision sharpens',
+  'eyes relax',
+  'clarity grows',
+  'vision feels sharper',
+  'eyes stay relaxed',
+  'clarity keeps growing',
+  'sight feels effortless',
+  'your vision grows sharper',
+  'eyes relax and focus',
+  'visual clarity keeps improving',
+  // Mental Stillness
+  'mind quiets',
+  'stay calm',
+  'inner silence',
+  'the quiet mind',
+  'mind grows still',
   'silence inner speech',
-  'read without saying words',
-  'let your eyes lead',
-  'words arrive all together',
-  'train your visual span',
-  'calm mind reads faster',
-  'trust the whole picture',
-  'silent reading feels natural',
-  'your eyes already know',
-  'chunk words into meaning',
+  'calm settles in',
+  'your mind grows quieter',
+  'inner silence feels natural',
+  'stillness supports real speed',
+  // Flow State
+  'flow begins',
+  'flow deepens',
+  'rhythm builds',
+  'flow feels natural',
+  'rhythm carries you',
+  'flow state deepens',
+  'momentum builds steadily',
+  'you settle into flow',
+  'flow carries your focus',
+  'rhythm and speed align',
+  // Neural Activation
+  'neurons fire',
+  'mind activates',
+  'brain wakes',
+  'neural pathways strengthen',
+  'your brain activates',
+  'connections form quickly',
+  'neurons fire faster',
+  'neural pathways grow stronger',
+  'your brain wires faster',
+  'activation spreads through mind',
+  // Confidence & Calm
+  'stay confident',
+  'trust yourself',
+  'calm confidence',
+  'trust your eyes',
+  'confidence feels natural',
+  'calm confidence grows',
+  'trust the process',
+  'trust your own pace',
+  'confidence grows with practice',
+  'calm confidence carries you',
+  // Growth & Mastery
+  'skill grows',
+  'mastery builds',
+  'practice compounds',
+  'practice builds mastery',
+  'skill grows daily',
+  'small gains compound',
+  'mastery feels earned',
   'practice builds real speed',
+  'mastery comes with repetition',
+  'small steps build mastery',
 ]
 
 const FLASHES_PER_ROUND = 5
@@ -147,18 +255,25 @@ function shuffle<T>(items: readonly T[], random: () => number): T[] {
 // The full flash timeline for one run — deterministic once built, so
 // both the rAF loop (audio/haptics/motion/text) and the cheap display
 // tick can independently derive "what's happening at elapsed time X"
-// from the exact same source of truth.
+// from the exact same source of truth. `usedTexts` is tracked across ALL
+// rounds (not reset per round) — rounds 1 & 2 share the same [3,4]-word
+// filter, so without this a phrase could otherwise resurface later in
+// the very same run; excluding anything already shown guarantees zero
+// repeats for the whole 20-flash session.
 function buildFlashSchedule(seed: number): { events: readonly FlashEvent[]; totalMs: number } {
   const random = mulberry32(seed)
   const events: FlashEvent[] = []
+  const usedTexts = new Set<string>()
   let cursorMs = LEAD_IN_MS
   ROUND_CONFIGS.forEach(({ displayMs, minWords, maxWords }, round) => {
     const pool = WORD_CHUNKS.filter((chunk) => {
+      if (usedTexts.has(chunk)) return false
       const count = wordCount(chunk)
       return count >= minWords && count <= maxWords
     })
     const order = shuffle(pool, random).slice(0, FLASHES_PER_ROUND)
     for (const text of order) {
+      usedTexts.add(text)
       events.push({ text, displayMs, startMs: cursorMs, round })
       cursorMs += displayMs + GAP_MS
     }
