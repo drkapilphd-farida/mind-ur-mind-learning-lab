@@ -32,7 +32,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'A smooth figure-8 tracking path that trains both eyes to move together as one.',
     trains: 'Binocular coordination',
     icon: Infinity,
-    isImplemented: false,
+    isImplemented: true,
   },
   {
     id: 'peripheral-flash-expander',
