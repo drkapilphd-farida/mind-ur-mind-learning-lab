@@ -50,7 +50,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'Rapid multi-word flashes that train your eyes to take in whole chunks at once.',
     trains: 'Multi-word chunking',
     icon: Sparkles,
-    isImplemented: false,
+    isImplemented: true,
   },
   {
     id: 'aura-edge-color-pulsing',

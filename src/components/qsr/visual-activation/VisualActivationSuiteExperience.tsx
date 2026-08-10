@@ -8,6 +8,7 @@ import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession
 import { CardinalOculomotorStretches } from './CardinalOculomotorStretches'
 import { InfinityFigureEightGliding } from './InfinityFigureEightGliding'
 import { PeripheralFlashExpander } from './PeripheralFlashExpander'
+import { QuantumTachistoscopeMultiWordBlast } from './QuantumTachistoscopeMultiWordBlast'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
 
@@ -18,12 +19,13 @@ type SuitePhase =
   | 'cardinal-oculomotor-stretches'
   | 'infinity-figure-eight-gliding'
   | 'peripheral-flash-expander'
+  | 'quantum-tachistoscope-multi-word-blast'
   | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
 // Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx).
-// Exercises 1 through 4 are real today; rather than force learners through
-// 3 fake blocking screens, completing them leads straight to an honest
+// Exercises 1 through 5 are real today; rather than force learners through
+// 2 fake blocking screens, completing them leads straight to an honest
 // roadmap of what's coming next. Progress is recorded the same way it
 // always was — one savePracticeSession call per completed exercise,
 // `labId: 'visual-intelligence'` — kept unchanged so no already-saved
@@ -82,6 +84,18 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('quantum-tachistoscope-multi-word-blast')
+  }
+
+  function handleQuantumTachistoscopeComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'quantum-tachistoscope-multi-word-blast',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -101,6 +115,10 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
     return <PeripheralFlashExpander onComplete={handlePeripheralFlashComplete} onExit={handleExit} />
   }
 
+  if (phase === 'quantum-tachistoscope-multi-word-blast') {
+    return <QuantumTachistoscopeMultiWordBlast onComplete={handleQuantumTachistoscopeComplete} onExit={handleExit} />
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -114,8 +132,8 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       <div>
         <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Visual Activation Started</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Theta Breathing &amp; Focal Anchor, Cardinal Oculomotor Stretches, Infinity Figure-8 Gliding, and Peripheral Flash Expander are
-          complete. The rest of the suite is on its way.
+          Theta Breathing &amp; Focal Anchor, Cardinal Oculomotor Stretches, Infinity Figure-8 Gliding, Peripheral Flash Expander, and Quantum
+          Tachistoscope Multi-Word Blast are complete. The rest of the suite is on its way.
         </p>
       </div>
 
