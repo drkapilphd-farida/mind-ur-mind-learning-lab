@@ -68,6 +68,6 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'A word appears for a single blink-length instant — then you recall it from memory.',
     trains: 'Rapid visual-to-memory transfer',
     icon: Timer,
-    isImplemented: false,
+    isImplemented: true,
   },
 ]

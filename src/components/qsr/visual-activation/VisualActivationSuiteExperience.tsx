@@ -8,6 +8,7 @@ import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession
 import { CardinalOculomotorStretches } from './CardinalOculomotorStretches'
 import { InfinityFigureEightGliding } from './InfinityFigureEightGliding'
 import { AuraEdgeColorPulsing } from './AuraEdgeColorPulsing'
+import { BlinkTriggerMicroRecall } from './BlinkTriggerMicroRecall'
 import { PeripheralFlashExpander } from './PeripheralFlashExpander'
 import { QuantumTachistoscopeMultiWordBlast } from './QuantumTachistoscopeMultiWordBlast'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
@@ -22,17 +23,19 @@ type SuitePhase =
   | 'peripheral-flash-expander'
   | 'quantum-tachistoscope-multi-word-blast'
   | 'aura-edge-color-pulsing'
+  | 'blink-trigger-micro-recall'
   | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
-// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx).
-// Exercises 1 through 6 are real today; rather than force learners through
-// 1 fake blocking screen, completing them leads straight to an honest
-// roadmap of what's coming next. Progress is recorded the same way it
-// always was — one savePracticeSession call per completed exercise,
-// `labId: 'visual-intelligence'` — kept unchanged so no already-saved
-// progress data is orphaned; purely cosmetic/analytics now that no
-// paywall gate depends on it.
+// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx). All 7
+// exercises are real as of this build — completing the last one no longer
+// leads to a "roadmap of what's coming next" screen, since nothing is
+// coming next; see the dynamic `allImplemented` copy below for that final
+// state. Progress is recorded the same way it always was — one
+// savePracticeSession call per completed exercise, `labId:
+// 'visual-intelligence'` — kept unchanged so no already-saved progress data
+// is orphaned; purely cosmetic/analytics now that no paywall gate depends
+// on it.
 export function VisualActivationSuiteExperience(): React.JSX.Element {
   const router = useRouter()
   const [phase, setPhase] = useState<SuitePhase>('theta-breathing-anchor')
@@ -110,6 +113,18 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('blink-trigger-micro-recall')
+  }
+
+  function handleBlinkTriggerMicroRecallComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'blink-trigger-micro-recall',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -137,6 +152,13 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
     return <AuraEdgeColorPulsing onComplete={handleAuraEdgeColorPulsingComplete} onExit={handleExit} />
   }
 
+  if (phase === 'blink-trigger-micro-recall') {
+    return <BlinkTriggerMicroRecall onComplete={handleBlinkTriggerMicroRecallComplete} onExit={handleExit} />
+  }
+
+  const doneCount = VISUAL_ACTIVATION_SUITE.filter((exercise) => exercise.isImplemented).length
+  const allDone = doneCount === VISUAL_ACTIVATION_SUITE.length
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -148,8 +170,14 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
         <PartyPopper className="size-7" aria-hidden="true" />
       </div>
       <div>
-        <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Visual Activation Started</h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">The first 6 exercises below are complete. The last one is on its way.</p>
+        <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {allDone ? 'Visual Activation Complete' : 'Visual Activation Started'}
+        </h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {allDone
+            ? 'All 7 exercises below are complete — the whole suite is warmed up.'
+            : `The first ${doneCount} exercises below are complete. The rest are on their way.`}
+        </p>
       </div>
 
       <ul className="w-full space-y-2 text-left">
