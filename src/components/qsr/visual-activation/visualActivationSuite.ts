@@ -59,7 +59,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'Pulsing color cues at the very edge of your vision, trained without ever looking directly at them.',
     trains: 'Side-vision sensitivity',
     icon: EyeOff,
-    isImplemented: false,
+    isImplemented: true,
   },
   {
     id: 'blink-trigger-micro-recall',

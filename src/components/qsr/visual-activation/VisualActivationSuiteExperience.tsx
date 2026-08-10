@@ -7,6 +7,7 @@ import { CheckCircle2, PartyPopper } from 'lucide-react'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
 import { CardinalOculomotorStretches } from './CardinalOculomotorStretches'
 import { InfinityFigureEightGliding } from './InfinityFigureEightGliding'
+import { AuraEdgeColorPulsing } from './AuraEdgeColorPulsing'
 import { PeripheralFlashExpander } from './PeripheralFlashExpander'
 import { QuantumTachistoscopeMultiWordBlast } from './QuantumTachistoscopeMultiWordBlast'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
@@ -20,12 +21,13 @@ type SuitePhase =
   | 'infinity-figure-eight-gliding'
   | 'peripheral-flash-expander'
   | 'quantum-tachistoscope-multi-word-blast'
+  | 'aura-edge-color-pulsing'
   | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
 // Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx).
-// Exercises 1 through 5 are real today; rather than force learners through
-// 2 fake blocking screens, completing them leads straight to an honest
+// Exercises 1 through 6 are real today; rather than force learners through
+// 1 fake blocking screen, completing them leads straight to an honest
 // roadmap of what's coming next. Progress is recorded the same way it
 // always was — one savePracticeSession call per completed exercise,
 // `labId: 'visual-intelligence'` — kept unchanged so no already-saved
@@ -96,6 +98,18 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('aura-edge-color-pulsing')
+  }
+
+  function handleAuraEdgeColorPulsingComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'aura-edge-color-pulsing',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -119,6 +133,10 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
     return <QuantumTachistoscopeMultiWordBlast onComplete={handleQuantumTachistoscopeComplete} onExit={handleExit} />
   }
 
+  if (phase === 'aura-edge-color-pulsing') {
+    return <AuraEdgeColorPulsing onComplete={handleAuraEdgeColorPulsingComplete} onExit={handleExit} />
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -131,10 +149,7 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       </div>
       <div>
         <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Visual Activation Started</h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Theta Breathing &amp; Focal Anchor, Cardinal Oculomotor Stretches, Infinity Figure-8 Gliding, Peripheral Flash Expander, and Quantum
-          Tachistoscope Multi-Word Blast are complete. The rest of the suite is on its way.
-        </p>
+        <p className="mt-1.5 text-sm text-muted-foreground">The first 6 exercises below are complete. The last one is on its way.</p>
       </div>
 
       <ul className="w-full space-y-2 text-left">
