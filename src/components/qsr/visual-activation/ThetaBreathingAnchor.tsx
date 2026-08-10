@@ -8,11 +8,13 @@ import type { VisualActivationExerciseProps } from './types'
 
 // Theta Breathing & Focal Anchor™ — Exercise 1 of the Visual Activation
 // Suite. An alpha/theta-state warm-up: a slow, paced breath cycle with
-// three synchronized channels — a scaling glass-morphism glow orb
-// (visual), a gentle rhythmic vibration strictly on inhale (haptic), and
-// a native Web Audio tone that glides up in pitch on inhale and back
-// down on exhale (audio) — so the whole nervous system settles into the
-// same pace before the eyes ever start working.
+// three synchronized channels — a scaling, richly-lit glass-morphism glow
+// orb (visual), a gentle rhythmic vibration strictly on inhale (haptic),
+// and a multi-layered Web Audio harmonic drone — a singing-bowl-style
+// stack of tuned partials with a soft algorithmic reverb tail — that
+// glides up in pitch on inhale and back down on exhale (audio) — so the
+// whole nervous system settles into the same pace before the eyes ever
+// start working.
 const INHALE_MS = 4_000
 const EXHALE_MS = 4_000
 const CYCLE_MS = INHALE_MS + EXHALE_MS
@@ -24,11 +26,45 @@ const EXERCISE_DURATION_MS = 90_000
 const PHASE_TICK_MS = 200
 
 // A gentle, consonant glide (a perfect fifth) rather than a jarring pitch
-// sweep — genuinely calming, not an alarm.
+// sweep — genuinely calming, not an alarm. Every harmonic layer below
+// glides in lockstep with this base frequency, so the whole chord moves
+// together.
 const LOW_FREQ_HZ = 220 // A3
 const HIGH_FREQ_HZ = 330 // E4
-const PEAK_GAIN = 0.05 // deliberately quiet — an ambient tone, not music
-const AUDIO_FADE_IN_S = 1.5
+const PEAK_GAIN = 0.055 // deliberately quiet — an ambient tone, not music
+// Exponential-approach time constants (setTargetAtTime), not linear
+// ramps — a linear fade has a perceptible "mechanical" edge; an
+// exponential one breathes in and settles out the way a struck bowl
+// actually does. ~5 time constants is a full, click-free settle.
+const ATTACK_TIME_CONSTANT_S = 1.1
+const RELEASE_TIME_CONSTANT_S = 0.6
+const RELEASE_SETTLE_MS = RELEASE_TIME_CONSTANT_S * 5 * 1000
+// Warms the tone and, more importantly, shapes the reverb tail below —
+// the convolver's impulse response is broadband noise, and without this
+// its tail would read as a soft hiss rather than a resonant bloom.
+const LOWPASS_CUTOFF_HZ = 2_600
+// A short, gentle bloom (not a cathedral) — just enough decaying tail to
+// read as "resonance" rather than a dry, flat tone.
+const REVERB_WET_LEVEL = 0.32
+const REVERB_DURATION_S = 2.2
+const REVERB_DECAY = 2.8
+// A slow shimmer synced to exactly one breath cycle (not an independent
+// rhythm) — the ear reinforces the same pacing the eyes and haptics
+// already carry. Kept well under PEAK_GAIN so it can never push the
+// master gain negative during the attack swell.
+const TREMOLO_DEPTH = PEAK_GAIN * 0.1
+
+// A singing-bowl-style partial stack: the fundamental, a few-cents-sharp
+// unison for warm natural beating, and two upper partials (an octave and
+// an octave-plus-fifth) at falling gain — the same overtone relationships
+// a real struck bowl produces. Panned slightly apart so the chord has
+// width instead of collapsing into one point source.
+const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: number }[] = [
+  { multiplier: 1, weight: 1, pan: 0 },
+  { multiplier: 2 ** (7 / 1200), weight: 0.85, pan: 0 },
+  { multiplier: 2, weight: 0.3, pan: 0.2 },
+  { multiplier: 3, weight: 0.15, pan: -0.2 },
+]
 
 // A soothing pulse-rest pattern (never a continuous buzz), sized to
 // exactly span one inhale — computed from INHALE_MS so the two can never
@@ -40,9 +76,27 @@ const HAPTIC_PATTERN: readonly number[] = Array.from({ length: HAPTIC_PULSE_COUN
 
 type ExercisePhase = 'intro' | 'breathing' | 'complete'
 type BreathPhase = 'inhale' | 'exhale'
+type HarmonicVoice = { oscillator: OscillatorNode; multiplier: number }
 
 function computeBreathPhase(elapsedMs: number): BreathPhase {
   return elapsedMs % CYCLE_MS < INHALE_MS ? 'inhale' : 'exhale'
+}
+
+// A short, softly-decaying stereo noise tail — the cheapest way to get a
+// real convolution-reverb "bloom" (the shimmering resonance a struck bowl
+// actually has) without shipping an audio sample. Regenerated once per
+// AudioContext, since a ConvolverNode's buffer can't be reused across
+// contexts.
+function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
+  const length = Math.floor(audioContext.sampleRate * REVERB_DURATION_S)
+  const impulse = audioContext.createBuffer(2, length, audioContext.sampleRate)
+  for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+    const channelData = impulse.getChannelData(channel)
+    for (let i = 0; i < length; i++) {
+      channelData[i] = (Math.random() * 2 - 1) * (1 - i / length) ** REVERB_DECAY
+    }
+  }
+  return impulse
 }
 
 export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExerciseProps): React.JSX.Element {
@@ -53,14 +107,16 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   const isMountedRef = useRef(true)
   const lastBreathPhaseRef = useRef<BreathPhase | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
-  const oscillatorRef = useRef<OscillatorNode | null>(null)
-  const gainRef = useRef<GainNode | null>(null)
-  // The tone's own current target frequency, tracked ourselves rather
-  // than read back via oscillator.frequency.value — that getter isn't
-  // guaranteed to reflect a just-scheduled setValueAtTime call before at
-  // least one audio-rendering quantum has actually processed, which
-  // silently pinned the wrong starting value (the AudioParam's built-in
-  // 440Hz default, not our own 220Hz) the first time this was tried.
+  const masterGainRef = useRef<GainNode | null>(null)
+  const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
+  const lfoRef = useRef<OscillatorNode | null>(null)
+  // The tone's own current target BASE frequency (before each harmonic
+  // layer's multiplier is applied), tracked ourselves rather than read
+  // back via oscillator.frequency.value — that getter isn't guaranteed to
+  // reflect a just-scheduled setValueAtTime call before at least one
+  // audio-rendering quantum has actually processed, which silently
+  // pinned the wrong starting value (the AudioParam's built-in 440Hz
+  // default, not our own 220Hz) the first time this was tried.
   const currentFreqTargetRef = useRef(LOW_FREQ_HZ)
   // Real elapsed wall-clock time (performance.now()-based), not an
   // accumulated `+= PHASE_TICK_MS` counter — setInterval only guarantees
@@ -86,12 +142,9 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   // phase we're transitioning to: the very first instance is registered
   // while phase is still 'intro', and without this guard its cleanup
   // (firing the instant phase flips to 'breathing') would immediately
-  // null out the refs initAudio() just populated and stop the oscillator
-  // ~350ms after it starts — which is exactly what happened before this
-  // guard existed: haptics fired correctly (they don't depend on these
-  // refs) while every scheduleTone() call silently no-op'd on an
-  // already-null oscillatorRef, leaving the tone frozen at its starting
-  // pitch for the whole exercise.
+  // null out the refs initAudio() just populated and stop every
+  // oscillator ~350ms after they start — which is exactly what happened
+  // before this guard existed.
   useEffect(() => {
     return () => {
       if (phase !== 'breathing') return
@@ -145,52 +198,110 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
     if (audioContextRef.current) return
 
     const audioContext = new AudioContext()
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(LOW_FREQ_HZ, audioContext.currentTime)
+    const now = audioContext.currentTime
     currentFreqTargetRef.current = LOW_FREQ_HZ
-    gain.gain.setValueAtTime(0, audioContext.currentTime)
-    gain.gain.linearRampToValueAtTime(PEAK_GAIN, audioContext.currentTime + AUDIO_FADE_IN_S)
 
-    oscillator.connect(gain)
-    gain.connect(audioContext.destination)
-    oscillator.start()
+    const masterGain = audioContext.createGain()
+    masterGain.gain.setValueAtTime(0, now)
+
+    const filter = audioContext.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(LOWPASS_CUTOFF_HZ, now)
+    filter.Q.setValueAtTime(0.7, now)
+
+    const dryGain = audioContext.createGain()
+    dryGain.gain.setValueAtTime(1, now)
+    const wetGain = audioContext.createGain()
+    wetGain.gain.setValueAtTime(REVERB_WET_LEVEL, now)
+    const convolver = audioContext.createConvolver()
+    convolver.buffer = createBowlResonanceImpulse(audioContext)
+
+    masterGain.connect(filter)
+    filter.connect(dryGain)
+    dryGain.connect(audioContext.destination)
+    filter.connect(convolver)
+    convolver.connect(wetGain)
+    wetGain.connect(audioContext.destination)
+
+    const voices: HarmonicVoice[] = HARMONIC_LAYERS.map(({ multiplier, weight, pan }) => {
+      const oscillator = audioContext.createOscillator()
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(LOW_FREQ_HZ * multiplier, now)
+
+      const voiceGain = audioContext.createGain()
+      voiceGain.gain.setValueAtTime(weight, now)
+
+      const panner = audioContext.createStereoPanner()
+      panner.pan.setValueAtTime(pan, now)
+
+      oscillator.connect(voiceGain)
+      voiceGain.connect(panner)
+      panner.connect(masterGain)
+      oscillator.start()
+
+      return { oscillator, multiplier }
+    })
+
+    // A slow tremolo synced exactly to one breath cycle — a living
+    // shimmer, not a separate rhythm, so the ear reinforces the same
+    // pacing the eyes and haptics already carry.
+    const lfo = audioContext.createOscillator()
+    lfo.type = 'sine'
+    lfo.frequency.setValueAtTime(1000 / CYCLE_MS, now)
+    const lfoDepth = audioContext.createGain()
+    lfoDepth.gain.setValueAtTime(TREMOLO_DEPTH, now)
+    lfo.connect(lfoDepth)
+    lfoDepth.connect(masterGain.gain)
+    lfo.start()
+
+    // A gentle, artifact-free swell — an exponential approach, never a
+    // hard linear ramp, so the tone breathes in rather than fading up
+    // mechanically.
+    masterGain.gain.setTargetAtTime(PEAK_GAIN, now, ATTACK_TIME_CONSTANT_S)
 
     audioContextRef.current = audioContext
-    oscillatorRef.current = oscillator
-    gainRef.current = gain
+    masterGainRef.current = masterGain
+    harmonicVoicesRef.current = voices
+    lfoRef.current = lfo
   }
 
   function scheduleTone(targetHz: number, durationMs: number): void {
     const audioContext = audioContextRef.current
-    const oscillator = oscillatorRef.current
-    if (!audioContext || !oscillator) return
+    const voices = harmonicVoicesRef.current
+    if (!audioContext || voices.length === 0) return
     const now = audioContext.currentTime
-    oscillator.frequency.cancelScheduledValues(now)
-    oscillator.frequency.setValueAtTime(currentFreqTargetRef.current, now)
-    oscillator.frequency.linearRampToValueAtTime(targetHz, now + durationMs / 1000)
+    const fromHz = currentFreqTargetRef.current
+    for (const voice of voices) {
+      voice.oscillator.frequency.cancelScheduledValues(now)
+      voice.oscillator.frequency.setValueAtTime(fromHz * voice.multiplier, now)
+      voice.oscillator.frequency.linearRampToValueAtTime(targetHz * voice.multiplier, now + durationMs / 1000)
+    }
     currentFreqTargetRef.current = targetHz
   }
 
   function teardownAudio(): void {
     const audioContext = audioContextRef.current
-    const oscillator = oscillatorRef.current
-    const gain = gainRef.current
-    if (audioContext && gain) {
+    const masterGain = masterGainRef.current
+    const voices = harmonicVoicesRef.current
+    const lfo = lfoRef.current
+    if (audioContext && masterGain) {
       const now = audioContext.currentTime
-      gain.gain.cancelScheduledValues(now)
-      gain.gain.setValueAtTime(gain.gain.value, now)
-      gain.gain.linearRampToValueAtTime(0, now + 0.3)
+      masterGain.gain.cancelScheduledValues(now)
+      masterGain.gain.setValueAtTime(masterGain.gain.value, now)
+      masterGain.gain.setTargetAtTime(0, now, RELEASE_TIME_CONSTANT_S)
     }
+    // Stop only after the release has fully settled (~5 time constants)
+    // so the oscillators never cut off mid-decay — stopping any earlier
+    // is exactly what produces an audible click.
     setTimeout(() => {
-      oscillator?.stop()
+      for (const voice of voices) voice.oscillator.stop()
+      lfo?.stop()
       void audioContext?.close().catch(() => undefined)
-    }, 350)
+    }, RELEASE_SETTLE_MS)
     audioContextRef.current = null
-    oscillatorRef.current = null
-    gainRef.current = null
+    masterGainRef.current = null
+    harmonicVoicesRef.current = []
+    lfoRef.current = null
   }
 
   function triggerInhaleHaptics(): void {
@@ -232,11 +343,21 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
-      {/* Soft depth-tinting background — static blurred color washes, not
-          animated (only the orb itself carries motion), fully token-based
-          so it reads correctly in both themes without hardcoded lightness. */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-teal-500/10 blur-3xl" />
+      {/* Rich, layered ambient wash — deep indigo bleeding into electric
+          violet and a luminous cyan core, static (only the orb itself
+          carries motion) but saturated enough to read as premium in both
+          themes rather than a faint tint. */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div
+          className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle at 35% 30%, rgba(103,232,249,0.35) 0%, rgba(139,92,246,0.32) 38%, rgba(67,56,202,0.4) 68%, transparent 100%)',
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+          style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.35) 0%, transparent 70%)' }}
+        />
       </div>
 
       <p className="text-xs font-semibold tracking-widest text-primary uppercase">Theta Breathing &amp; Focal Anchor</p>
@@ -248,7 +369,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex max-w-sm flex-col items-center gap-5"
         >
-          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-teal-500/20 text-indigo-500">
+          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/25 via-violet-500/20 to-cyan-400/25 text-violet-600 shadow-lg shadow-violet-500/20 dark:text-violet-300">
             <Wind className="size-7" aria-hidden="true" />
           </div>
           <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground">Settle In. Just Breathe.</h2>
@@ -272,27 +393,38 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
       {phase === 'breathing' && (
         <div className="flex flex-col items-center gap-10">
           {/* Glass-morphism fluid glow orb — one continuous framer-motion
-              loop declared once (never re-created per render), so the
-              actual scale interpolation runs off the JS thread at a real
-              60fps regardless of what the phase-scheduler effects above
-              are doing. */}
+              loop declared once per layer (never re-created per render),
+              so the actual scale interpolation runs off the JS thread at
+              a real 60fps regardless of what the phase-scheduler effects
+              above are doing. Three layers give it real depth: a wide
+              soft bloom, a tighter hot core, and the glass ring itself. */}
           <div className="relative flex size-64 items-center justify-center">
             <motion.div
               aria-hidden="true"
-              animate={{ scale: [0.72, 1.18, 0.72], opacity: [0.4, 0.85, 0.4] }}
+              animate={{ scale: [0.72, 1.18, 0.72], opacity: [0.55, 1, 0.55] }}
               transition={{ duration: CYCLE_MS / 1000, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-400/40 via-violet-400/30 to-teal-400/40 blur-2xl"
+              className="absolute inset-[-24px] rounded-full blur-2xl"
+              style={{
+                background: 'radial-gradient(circle at 50% 45%, rgba(165,243,252,0.9) 0%, rgba(139,92,246,0.85) 40%, rgba(67,56,202,0.85) 72%, transparent 100%)',
+              }}
+            />
+            <motion.div
+              aria-hidden="true"
+              animate={{ scale: [0.8, 1.1, 0.8], opacity: [0.6, 0.95, 0.6] }}
+              transition={{ duration: CYCLE_MS / 1000, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute inset-8 rounded-full blur-xl"
+              style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.8) 0%, rgba(129,140,248,0.7) 55%, transparent 100%)' }}
             />
             <motion.div
               aria-hidden="true"
               animate={{ scale: [0.78, 1.12, 0.78] }}
               transition={{ duration: CYCLE_MS / 1000, repeat: Infinity, ease: 'easeInOut' }}
               className={cn(
-                'absolute inset-6 rounded-full border border-white/40 bg-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] backdrop-blur-xl',
-                'dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]',
+                'absolute inset-6 rounded-full border border-white/50 bg-white/15 shadow-[0_0_70px_-8px_rgba(139,92,246,0.75),inset_0_1px_1px_rgba(255,255,255,0.7)] backdrop-blur-xl',
+                'dark:border-white/15 dark:bg-white/[0.07] dark:shadow-[0_0_90px_-8px_rgba(129,140,248,0.85),inset_0_1px_1px_rgba(255,255,255,0.1)]',
               )}
             />
-            <span className="relative font-heading text-lg font-semibold text-foreground">{isInhale ? 'Breathe In' : 'Breathe Out'}</span>
+            <span className="relative font-heading text-lg font-semibold text-foreground drop-shadow-sm">{isInhale ? 'Breathe In' : 'Breathe Out'}</span>
           </div>
 
           <p className="text-sm font-medium tabular-nums text-muted-foreground">{remainingSeconds}s remaining</p>
@@ -315,7 +447,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="flex max-w-sm flex-col items-center gap-5"
         >
-          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-teal-500/20 text-indigo-500">
+          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/25 via-violet-500/20 to-cyan-400/25 text-violet-600 shadow-lg shadow-violet-500/20 dark:text-violet-300">
             <Wind className="size-7" aria-hidden="true" />
           </div>
           <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground">Mind Settled</h2>
