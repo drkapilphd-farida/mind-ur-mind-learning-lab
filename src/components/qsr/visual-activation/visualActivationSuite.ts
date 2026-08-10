@@ -1,7 +1,7 @@
-import { Eye, EyeOff, Infinity, Sparkles, Timer, Wind, Zap } from 'lucide-react'
+import { Eye, EyeOff, Flame, Infinity, Sparkles, Timer, Wind, Zap } from 'lucide-react'
 import type { VisualActivationExerciseMeta } from './types'
 
-// Visual Activation Suite™ — the full, ordered 7-exercise roadmap. This
+// Visual Activation Suite™ — the full, ordered 8-exercise roadmap. This
 // is the SUITE's own internal registry, used only for the "what's coming
 // next" display inside VisualActivationSuiteExperience.tsx. Now mounted
 // as the standalone, ungated "Brain Gym" pillar (see LabPillarsGrid.tsx)
@@ -68,6 +68,15 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'A word appears for a single blink-length instant — then you recall it from memory.',
     trains: 'Rapid visual-to-memory transfer',
     icon: Timer,
+    isImplemented: true,
+  },
+  {
+    id: 'tratak-afterimage-stretches',
+    order: 8,
+    title: 'Tratak Afterimage Stretches',
+    summary: 'A classic steady-gaze practice — hold your gaze on a vivid target, then close your eyes and hold its afterimage.',
+    trains: 'Sustained fixation, visual retention',
+    icon: Flame,
     isImplemented: true,
   },
 ]

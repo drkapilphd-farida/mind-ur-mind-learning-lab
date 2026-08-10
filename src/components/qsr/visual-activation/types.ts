@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 
-// Visual Activation Suite™ — the 7 foundational eye-span/neural-
+// Visual Activation Suite™ — the 8 foundational eye-span/neural-
 // activation exercises that warm up a learner before Quantum Speed
 // Reading. Each exercise's own component takes exactly this shape, so
 // the suite orchestrator (VisualActivationSuiteExperience.tsx) can render
@@ -18,6 +18,7 @@ export type VisualActivationExerciseId =
   | 'quantum-tachistoscope-multi-word-blast'
   | 'aura-edge-color-pulsing'
   | 'blink-trigger-micro-recall'
+  | 'tratak-afterimage-stretches'
 
 export type VisualActivationExerciseMeta = {
   id: VisualActivationExerciseId

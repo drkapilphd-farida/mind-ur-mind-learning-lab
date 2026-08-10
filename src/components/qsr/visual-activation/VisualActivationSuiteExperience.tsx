@@ -12,6 +12,7 @@ import { BlinkTriggerMicroRecall } from './BlinkTriggerMicroRecall'
 import { PeripheralFlashExpander } from './PeripheralFlashExpander'
 import { QuantumTachistoscopeMultiWordBlast } from './QuantumTachistoscopeMultiWordBlast'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
+import { TratakAfterimageStretches } from './TratakAfterimageStretches'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
@@ -24,18 +25,19 @@ type SuitePhase =
   | 'quantum-tachistoscope-multi-word-blast'
   | 'aura-edge-color-pulsing'
   | 'blink-trigger-micro-recall'
+  | 'tratak-afterimage-stretches'
   | 'complete'
 
-// Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
-// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx). All 7
-// exercises are real as of this build — completing the last one no longer
-// leads to a "roadmap of what's coming next" screen, since nothing is
-// coming next; see the dynamic `allImplemented` copy below for that final
-// state. Progress is recorded the same way it always was — one
-// savePracticeSession call per completed exercise, `labId:
-// 'visual-intelligence'` — kept unchanged so no already-saved progress data
-// is orphaned; purely cosmetic/analytics now that no paywall gate depends
-// on it.
+// Brain Gym™ — the orchestrator for the whole Visual Activation Suite,
+// mounted as its own ungated pillar (see LabPillarsGrid.tsx). Every
+// exercise in VISUAL_ACTIVATION_SUITE is real as of this build —
+// completing the last one no longer leads to a "roadmap of what's coming
+// next" screen, since nothing is coming next; see the dynamic `allDone`
+// copy below for that final state. Progress is recorded the same way it
+// always was — one savePracticeSession call per completed exercise,
+// `labId: 'visual-intelligence'` — kept unchanged so no already-saved
+// progress data is orphaned; purely cosmetic/analytics now that no
+// paywall gate depends on it.
 export function VisualActivationSuiteExperience(): React.JSX.Element {
   const router = useRouter()
   const [phase, setPhase] = useState<SuitePhase>('theta-breathing-anchor')
@@ -125,6 +127,18 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('tratak-afterimage-stretches')
+  }
+
+  function handleTratakAfterimageComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'tratak-afterimage-stretches',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -156,6 +170,10 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
     return <BlinkTriggerMicroRecall onComplete={handleBlinkTriggerMicroRecallComplete} onExit={handleExit} />
   }
 
+  if (phase === 'tratak-afterimage-stretches') {
+    return <TratakAfterimageStretches onComplete={handleTratakAfterimageComplete} onExit={handleExit} />
+  }
+
   const doneCount = VISUAL_ACTIVATION_SUITE.filter((exercise) => exercise.isImplemented).length
   const allDone = doneCount === VISUAL_ACTIVATION_SUITE.length
 
@@ -175,7 +193,7 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
         </h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {allDone
-            ? 'All 7 exercises below are complete — the whole suite is warmed up.'
+            ? `All ${VISUAL_ACTIVATION_SUITE.length} exercises below are complete — the whole suite is warmed up.`
             : `The first ${doneCount} exercises below are complete. The rest are on their way.`}
         </p>
       </div>

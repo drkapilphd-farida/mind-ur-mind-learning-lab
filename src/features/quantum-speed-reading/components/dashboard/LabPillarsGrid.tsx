@@ -42,7 +42,7 @@ const LAB_PILLARS: readonly LabPillar[] = [
   {
     icon: '💪',
     title: 'Brain Gym',
-    description: '7 guided visual-activation warm-ups — breathing, eye tracking, peripheral vision, rapid word capture, color pulsing, and micro-recall — with haptics and audio.',
+    description: '8 guided visual-activation warm-ups — breathing, eye tracking, peripheral vision, rapid word capture, color pulsing, micro-recall, and steady-gaze afterimage practice — with haptics and audio.',
     href: '/labs/quantum-speed-reading/brain-gym',
   },
 ] as const
