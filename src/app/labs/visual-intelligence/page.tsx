@@ -1,56 +1,57 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
-import { VISUAL_ACTIVATION_EXERCISE_IDS } from '@/features/visual-intelligence/visualActivationSequence'
 
 export const metadata: Metadata = {
-  title: 'Visual Activation™ — Visual Intelligence Lab™',
-  description: 'Activate your visual system before high-speed reading.',
+  title: 'Visual Intelligence Lab™',
+  description: 'Visual fixation training and Tratak intelligence missions.',
 }
 
-export default async function VisualIntelligenceLabPage(): Promise<React.JSX.Element> {
-  const progress = await getModuleProgress('visual-intelligence', VISUAL_ACTIVATION_EXERCISE_IDS)
-  const isComplete = progress.totalCount > 0 && progress.completedCount === progress.totalCount
+// Visual Activation™ (rebuilt as "Brain Gym") moved to its own pillar at
+// /labs/quantum-speed-reading/brain-gym and is no longer part of this hub
+// — this route stays alive since FixationHub/TratakJourneyLanding/
+// TratakJourneyLocked all still link back here as their own "back to hub"
+// destination, but its content is now real links to the two sibling
+// features that still live under this hub, not a dead Visual Activation
+// card.
+const HUB_LINKS = [
+  {
+    title: 'Visual Fixation Engine™',
+    description: 'Steady-gaze fixation drills that build visual stability and focus.',
+    href: '/labs/visual-intelligence/fixation',
+  },
+  {
+    title: 'Tratak Intelligence Journey™',
+    description: 'Progressive guided practice that develops stable visual attention and persistence.',
+    href: '/labs/visual-intelligence/tratak',
+  },
+] as const
 
+export default function VisualIntelligenceLabPage(): React.JSX.Element {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Intelligence Journey</p>
       <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Visual Intelligence Lab™</h1>
       <p className="mt-3 max-w-md text-base leading-relaxed text-foreground/80">
-        Activate your visual system before beginning high-speed reading — one guided journey through breathing, eye relaxation, and steady-gaze training.
+        Build visual stability and steady attention through guided fixation and Tratak practice.
       </p>
 
-      <Card className="mt-10 transition-shadow duration-200 hover:shadow-md">
-        <CardContent className="flex items-center gap-4">
-          <div
-            aria-hidden="true"
-            className={cn(
-              'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
-              isComplete ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
-            )}
-          >
-            {isComplete ? <Check className="size-4" /> : 1}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate text-sm font-medium text-foreground">Visual Activation™</h2>
-              <Badge variant={isComplete ? 'default' : 'secondary'}>{isComplete ? 'Completed' : 'Ready'}</Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">Prepare your eyes and brain for high-speed reading.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Estimated Time: 10–15 Minutes</p>
-          </div>
-
-          <Button asChild size="sm" className="shrink-0">
-            <Link href="/labs/visual-intelligence/visual-activation">Start Visual Activation</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="mt-10 space-y-4">
+        {HUB_LINKS.map((link) => (
+          <Link key={link.href} href={link.href} className="block">
+            <Card className="transition-shadow duration-200 hover:shadow-md">
+              <CardContent className="flex items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-sm font-medium text-foreground">{link.title}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{link.description}</p>
+                </div>
+                <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { createReadingIntelligenceExperience } from '@/features/reading-intelligence'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
-import { VISUAL_ACTIVATION_SEQUENCE } from '@/features/visual-intelligence/visualActivationSequence'
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 import { READING_EXPANSION_MODULE } from '@/features/quantum-speed-reading/readingExpansionModule'
 import { STAGE_COPY } from '@/features/quantum-speed-reading/stageCopy'
@@ -15,13 +14,11 @@ import { LabPillarsGrid } from '@/features/quantum-speed-reading/components/dash
 import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
 import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
 
-// Quantum Speed Reading Paywall™ — every stage except Visual Activation™
-// requires Pro. Kept as an explicit allowlist of the one free stage
-// (rather than a denylist of the three gated ones) so a future 5th stage
-// defaults to gated, never accidentally free.
-const FREE_STAGE_ID = 'visual-activation'
-
-const ALL_SEQUENCES: readonly ExerciseSequenceItem[] = [...VISUAL_ACTIVATION_SEQUENCE, ...EYE_FOUNDATION_MODULE, ...READING_EXPANSION_MODULE]
+// Quantum Speed Reading Paywall™ — Visual Activation™ was the one free
+// stage; it's no longer part of this journey (rebuilt as the standalone,
+// ungated "Brain Gym" pillar — see LabPillarsGrid.tsx). Every remaining
+// journey stage requires Pro, with no free-stage exception.
+const ALL_SEQUENCES: readonly ExerciseSequenceItem[] = [...EYE_FOUNDATION_MODULE, ...READING_EXPANSION_MODULE]
 
 // SPRINT-2A — Quantum Speed Reading Library Cleanup™. Core Reading
 // Journey™'s own first exercise is always the "skip Reading Preparation™"
@@ -40,8 +37,7 @@ function formatLastSessionLabel(occurredAt: string, exerciseTitle: string): stri
 
 export const metadata: Metadata = {
   title: 'Quantum Speed Reading Lab™',
-  description:
-    'Your Brain Transformation Experience™ — Visual Activation™, Reading Preparation™ (optional), Core Reading Journey™, and Reading Intelligence™.',
+  description: 'Your Brain Transformation Experience™ — Reading Preparation™ (optional), Core Reading Journey™, and Reading Intelligence™.',
 }
 
 function getGreeting(): string {
@@ -88,18 +84,9 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
     lastSession !== null && lastSessionExerciseTitle !== null ? formatLastSessionLabel(lastSession.occurredAt, lastSessionExerciseTitle) : null
 
   const stageSequences: Record<string, readonly ExerciseSequenceItem[]> = {
-    'visual-activation': VISUAL_ACTIVATION_SEQUENCE,
     'reading-preparation': EYE_FOUNDATION_MODULE,
     'core-reading-journey': READING_EXPANSION_MODULE,
   }
-
-  // SPRINT-2A — Reading Preparation™ is optional: Core Reading Journey™ only
-  // requires Visual Activation™, the same requirement Reading Preparation™
-  // itself already has (see preparation/page.tsx and phrase-reading/page.tsx's
-  // matching gate). Real data, not a duplicated check — reads the same
-  // progress snapshot the timeline/hero already receive.
-  const visualActivationStage = experience.progressSnapshot.stages.find((stage) => stage.stageId === 'visual-activation')?.progress ?? null
-  const isVisualActivationComplete = visualActivationStage !== null && visualActivationStage.totalCount > 0 && visualActivationStage.completedCount === visualActivationStage.totalCount
 
   const currentStage = journey.stages.find((stage) => stage.status === 'current') ?? null
   const currentStageCopy = currentStage !== null ? (STAGE_COPY[currentStage.id] ?? null) : null
@@ -116,14 +103,15 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
   const currentExercisePosition =
     currentStageSequence !== undefined ? findExercisePosition(currentStageSequence, currentStageSummary?.currentExercise?.exerciseId) : null
 
-  // Quantum Speed Reading Paywall™ — a free user sees every non-Visual-
-  // Activation™ stage as locked here, regardless of what its real
-  // sequential progress would otherwise say (even a stage with real
-  // completed exercises from before a subscription lapsed reads as
-  // locked again) — the exact same rule the underlying pages themselves
-  // now enforce for real via hasQuantumSpeedReadingProAccess.
+  // Quantum Speed Reading Paywall™ — a free user sees every stage as
+  // locked here, regardless of what its real sequential progress would
+  // otherwise say (even a stage with real completed exercises from
+  // before a subscription lapsed reads as locked again) — the exact same
+  // rule the underlying pages themselves now enforce for real via
+  // hasQuantumSpeedReadingProAccess. No free stage — Brain Gym is the
+  // ungated touchpoint instead (see LabPillarsGrid.tsx).
   const timelineStages: JourneyTimelineStage[] = journey.stages.map((stage) => {
-    const isProGatedStage = stage.id !== FREE_STAGE_ID && !hasProAccess
+    const isProGatedStage = !hasProAccess
     return {
       id: stage.id,
       icon: STAGE_COPY[stage.id]?.icon ?? '',
@@ -135,7 +123,7 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
   })
 
   const nextStageTeaser = currentStage !== null ? (currentStageCopy?.nextStageTeaser ?? null) : null
-  const currentStageRequiresPro = currentStage !== null && currentStage.id !== FREE_STAGE_ID && !hasProAccess
+  const currentStageRequiresPro = currentStage !== null && !hasProAccess
 
   return (
     <div>
@@ -154,7 +142,7 @@ export default async function QuantumSpeedReadingLabPage(): Promise<React.JSX.El
           continueHref={journey.continueHref}
           isJourneyComplete={journey.isJourneyComplete}
           currentStageRequiresPro={currentStageRequiresPro}
-          secondaryHref={isVisualActivationComplete && currentStage?.id === 'reading-preparation' ? SKIP_TO_READING_PRACTICE_HREF : null}
+          secondaryHref={currentStage?.id === 'reading-preparation' ? SKIP_TO_READING_PRACTICE_HREF : null}
           secondaryLabel="Skip to Reading Practice →"
         />
 

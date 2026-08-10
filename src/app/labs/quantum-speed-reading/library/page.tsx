@@ -14,6 +14,11 @@ export const metadata: Metadata = {
 // route files and code are untouched, they simply aren't linked from here
 // anymore. Reading Preparation™ is labeled optional since Core Reading
 // Journey™ no longer requires it (see phrase-reading/page.tsx's gate).
+// Visual Activation™ (now "Brain Gym") is no longer a journey step, so
+// it's no longer listed here either — same treatment as this Library's
+// other sibling pillars (Reading Intelligence, Intuition Development,
+// Visualisation, Right Brain Activation, Brain Gym), none of which are
+// listed on this page; it's reachable from its own pillar card instead.
 type LibrarySection = {
   title: string
   note?: string
@@ -26,7 +31,6 @@ const SECTIONS: LibrarySection[] = [
     note: 'Optional — you can also skip straight to Core Reading Journey™ below.',
     items: [
       { label: 'Reading Preparation™ (guided 6-step sequence)', href: '/labs/quantum-speed-reading/preparation' },
-      { label: 'Theta Breathing & Focal Anchor (part of Visual Activation™)', href: '/labs/visual-intelligence/visual-activation' },
       { label: 'Eye Warm-up', href: '/labs/quantum-speed-reading/eye-warm-up' },
       { label: 'Eye Stretch', href: '/labs/quantum-speed-reading/eye-stretch' },
       { label: 'Eye Span', href: '/labs/quantum-speed-reading/eye-span' },

@@ -3,13 +3,9 @@ import type { VisualActivationExerciseMeta } from './types'
 
 // Visual Activation Suite™ — the full, ordered 7-exercise roadmap. This
 // is the SUITE's own internal registry, used only for the "what's coming
-// next" display inside VisualActivationSuiteExperience.tsx — it is
-// deliberately NEVER imported by anything paywall/gating-related.
-// src/features/visual-intelligence/visualActivationSequence.ts is the
-// separate, minimal, gating-facing export (currently just Exercise 1,
-// since a gate can only require what's actually completable) — the two
-// lists are allowed to diverge, and always will until every exercise
-// here ships.
+// next" display inside VisualActivationSuiteExperience.tsx. Now mounted
+// as the standalone, ungated "Brain Gym" pillar (see LabPillarsGrid.tsx)
+// — no longer a journey stage, so nothing here is gating-related.
 export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = [
   {
     id: 'theta-breathing-anchor',

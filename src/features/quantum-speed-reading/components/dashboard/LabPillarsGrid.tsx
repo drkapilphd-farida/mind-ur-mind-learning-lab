@@ -39,6 +39,12 @@ const LAB_PILLARS: readonly LabPillar[] = [
     description: 'Gamified right-brain and photographic-memory training exercises.',
     href: '/labs/quantum-speed-reading/right-brain-hub',
   },
+  {
+    icon: '💪',
+    title: 'Brain Gym',
+    description: 'A guided breathing & focus warm-up with haptics and audio, plus a roadmap of 6 more visual-activation exercises.',
+    href: '/labs/quantum-speed-reading/brain-gym',
+  },
 ] as const
 
 export function LabPillarsGrid(): React.JSX.Element {

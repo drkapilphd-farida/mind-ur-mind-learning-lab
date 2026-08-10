@@ -8,19 +8,19 @@ import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
 
-const LAB_HREF = '/labs/visual-intelligence'
+const LAB_HREF = '/labs/quantum-speed-reading'
 
 type SuitePhase = 'theta-breathing-anchor' | 'complete'
 
-// Visual Activation Suite™ — the orchestrator for the whole 7-exercise
-// suite. Only Exercise 1 (Theta Breathing & Focal Anchor) is real today;
-// rather than force learners through 6 fake blocking screens, completing
-// it leads straight to an honest roadmap of what's coming next. Progress
-// is recorded the same way the suite's predecessor always did — one
-// savePracticeSession call per completed exercise, `labId:
-// 'visual-intelligence'` — so getModuleProgress (and therefore the
-// Quantum Speed Reading paywall gate) sees real completion, not a
-// fabricated one.
+// Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
+// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx). Only
+// Exercise 1 (Theta Breathing & Focal Anchor) is real today; rather than
+// force learners through 6 fake blocking screens, completing it leads
+// straight to an honest roadmap of what's coming next. Progress is
+// recorded the same way it always was — one savePracticeSession call per
+// completed exercise, `labId: 'visual-intelligence'` — kept unchanged so
+// no already-saved progress data is orphaned; purely cosmetic/analytics
+// now that no paywall gate depends on it.
 export function VisualActivationSuiteExperience(): React.JSX.Element {
   const router = useRouter()
   const [phase, setPhase] = useState<SuitePhase>('theta-breathing-anchor')

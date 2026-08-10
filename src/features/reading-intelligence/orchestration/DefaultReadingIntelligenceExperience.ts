@@ -1,6 +1,5 @@
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 import { READING_EXPANSION_MODULE } from '@/features/quantum-speed-reading/readingExpansionModule'
-import { VISUAL_ACTIVATION_EXERCISE_IDS, VISUAL_ACTIVATION_SEQUENCE } from '@/features/visual-intelligence/visualActivationSequence'
 import { getContinueLearningSummary } from '@/lib/exercises/continueLearning'
 import { computeJourneyProgress, type JourneyExerciseStage } from '@/lib/exercises/journeyProgress'
 import { computeMindScore, computeReadingScore, getMindScoreLabel } from '@/lib/exercises/mindScore'
@@ -36,40 +35,40 @@ function createDefaultDataSource(): ReadingIntelligenceDataSource {
 // The ONLY file in this feature that calls real production functions
 // directly — mirrors Sprint 41's (ai-runtime-orchestrator) precedent of
 // confining real cross-boundary calls to one coordinator file. Every stage's
-// exercise-id catalog (VISUAL_ACTIVATION_SEQUENCE, EYE_FOUNDATION_MODULE,
-// READING_EXPANSION_MODULE) is the same real, unmodified configuration data
+// exercise-id catalog (EYE_FOUNDATION_MODULE, READING_EXPANSION_MODULE) is
+// the same real, unmodified configuration data
 // app/labs/quantum-speed-reading/page.tsx already imports for the identical
 // purpose — not new coupling, not duplicated logic.
 //
 // SPRINT-2A — Quantum Speed Reading Library Cleanup™. Flash Intelligence
 // Pack™ removed as an active journey stage (kept in the repo, unlinked from
 // Version-1 navigation) — Reading Preparation™ and Core Reading Journey™ are
-// now parallel, optional branches after Visual Activation rather than a
-// strict Visual Activation → Reading Preparation → Flash → Core chain.
+// parallel, optional branches of each other, not a strict chain.
+//
+// Visual Activation™ removed as a journey stage entirely (rebuilt as the
+// standalone, ungated "Brain Gym" pillar — see
+// src/components/qsr/visual-activation/ and LabPillarsGrid.tsx) — it no
+// longer gates or precedes Reading Preparation™/Core Reading Journey™ in
+// any way. Reading Preparation™ is now the journey's first stage; per
+// product decision this does NOT make it free — every stage here still
+// requires Pro (see quantum-speed-reading/page.tsx, which no longer has a
+// free-stage exception).
 export class DefaultReadingIntelligenceExperience implements ReadingIntelligenceExperience {
   constructor(private readonly dataSource: ReadingIntelligenceDataSource) {}
 
   async load(): Promise<ReadingIntelligenceExperienceResult> {
     const { getModuleProgress: fetchModuleProgress, getPracticeSessions: fetchPracticeSessions } = this.dataSource
 
-    const [visualActivationProgress, readingPreparationProgress, coreReadingJourneyProgress, sessions] = await Promise.all([
-      fetchModuleProgress('visual-intelligence', VISUAL_ACTIVATION_EXERCISE_IDS),
+    const [readingPreparationProgress, coreReadingJourneyProgress, sessions] = await Promise.all([
       fetchModuleProgress('quantum-speed-reading', EYE_FOUNDATION_EXERCISE_IDS),
       fetchModuleProgress('quantum-speed-reading', READING_EXPANSION_EXERCISE_IDS),
       fetchPracticeSessions('quantum-speed-reading'),
     ])
 
-    const visualActivationSummary = getContinueLearningSummary(visualActivationProgress, VISUAL_ACTIVATION_SEQUENCE)
     const readingPreparationSummary = getContinueLearningSummary(readingPreparationProgress, EYE_FOUNDATION_MODULE)
     const coreReadingJourneySummary = getContinueLearningSummary(coreReadingJourneyProgress, READING_EXPANSION_MODULE)
 
     const exerciseStages: JourneyExerciseStage[] = [
-      {
-        id: 'visual-activation',
-        title: 'Visual Activation™',
-        href: visualActivationSummary.currentExercise?.href ?? '/labs/visual-intelligence/visual-activation',
-        summary: visualActivationSummary,
-      },
       {
         id: 'reading-preparation',
         title: 'Reading Preparation™',
@@ -102,7 +101,6 @@ export class DefaultReadingIntelligenceExperience implements ReadingIntelligence
     const journeyState = buildReadingJourneyState(journey, streak, mindScore, mindScoreLabel)
     const dailyMission = buildReadingDailyMission(journey)
     const progressSnapshot = buildReadingProgressSnapshot([
-      { stageId: 'visual-activation', progress: visualActivationProgress },
       { stageId: 'reading-preparation', progress: readingPreparationProgress },
       { stageId: 'core-reading-journey', progress: coreReadingJourneyProgress },
     ])

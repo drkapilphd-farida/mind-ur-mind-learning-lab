@@ -1,11 +1,7 @@
 import type { Metadata } from 'next'
 import { ReadingPreparationSequence } from '@/features/quantum-speed-reading/components/ReadingPreparationSequence'
-import { ExerciseLockedScreen } from '@/components/exercises/ExerciseLockedScreen'
 import { ProLockedScreen } from '@/components/exercises/ProLockedScreen'
-import { getModuleProgress } from '@/lib/exercises/queries/getModuleProgress'
 import { hasQuantumSpeedReadingProAccess } from '@/lib/subscription/hasQuantumSpeedReadingProAccess'
-import { VISUAL_ACTIVATION_EXERCISE_IDS } from '@/features/visual-intelligence/visualActivationSequence'
-import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 
 export const metadata: Metadata = {
   title: 'Reading Preparation™ — Quantum Speed Reading Lab™',
@@ -13,28 +9,11 @@ export const metadata: Metadata = {
 }
 
 export default async function ReadingPreparationPage(): Promise<React.JSX.Element> {
-  // Quantum Speed Reading Paywall™ — the Reading Preparation™ stage
-  // itself requires Pro, checked before the Visual Activation™
-  // cross-stage gate below.
+  // Quantum Speed Reading Paywall™ — Reading Preparation™ requires Pro.
+  // Visual Activation™ is no longer part of this journey (rebuilt as the
+  // standalone "Brain Gym" pillar), so it's no longer a prerequisite here.
   if (!(await hasQuantumSpeedReadingProAccess())) {
     return <ProLockedScreen title="Reading Preparation™" />
-  }
-
-  const visualActivationProgress = await getModuleProgress('visual-intelligence', VISUAL_ACTIVATION_EXERCISE_IDS)
-  const isVisualActivationComplete =
-    visualActivationProgress.totalCount > 0 && visualActivationProgress.completedCount === visualActivationProgress.totalCount
-
-  // Dev/Test Mode™ — this cross-stage gate is hardcoded here rather than
-  // flowing through deriveAvailability, so it needs its own explicit
-  // bypass check (see isDevUnlockEnabled's own doc comment).
-  if (!isVisualActivationComplete && !isDevUnlockEnabled()) {
-    return (
-      <ExerciseLockedScreen
-        title="Reading Preparation™"
-        unlockHref="/labs/visual-intelligence/visual-activation"
-        unlockLabel="Go to Visual Activation™"
-      />
-    )
   }
 
   return <ReadingPreparationSequence />

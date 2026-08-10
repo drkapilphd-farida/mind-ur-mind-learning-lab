@@ -29,10 +29,10 @@ describe('DefaultReadingIntelligenceExperience', () => {
     expect(result.dailyMission.stageId).toBe('reading-intelligence')
     expect(result.dailyMission.stageTitle).toBe('Reading Intelligence™')
     expect(result.dailyMission.continueHref).toBe('/labs/quantum-speed-reading/intelligence')
-    expect(result.progressSnapshot.overallCompletedCount).toBe(6)
-    expect(result.progressSnapshot.overallTotalCount).toBe(6)
+    expect(result.progressSnapshot.overallCompletedCount).toBe(4)
+    expect(result.progressSnapshot.overallTotalCount).toBe(4)
     expect(result.journeyState.streak.currentStreak).toBe(1)
-    expect(result.xp).toEqual({ totalXp: 65, fromCompletedExercises: 60, fromStreak: 5 })
+    expect(result.xp).toEqual({ totalXp: 45, fromCompletedExercises: 40, fromStreak: 5 })
   })
 
   it('New Learner: an all-zero, no-history state still produces a valid, well-formed result', async () => {
@@ -44,7 +44,7 @@ describe('DefaultReadingIntelligenceExperience', () => {
     expect(result.progressSnapshot.overallCompletedCount).toBe(0)
     expect(result.journeyState.streak).toEqual({ currentStreak: 0, bestStreak: 0, lastPracticedDateKey: null })
     expect(result.xp).toEqual({ totalXp: 0, fromCompletedExercises: 0, fromStreak: 0 })
-    expect(result.dailyMission.stageId).toBe('visual-activation')
+    expect(result.dailyMission.stageId).toBe('reading-preparation')
   })
 
   it('Progress Tracking: calls getModuleProgress once per real Reading Lab stage', async () => {
@@ -60,7 +60,7 @@ describe('DefaultReadingIntelligenceExperience', () => {
 
     await experience.load()
 
-    expect(calledLabIds).toEqual(['visual-intelligence', 'quantum-speed-reading', 'quantum-speed-reading'])
+    expect(calledLabIds).toEqual(['quantum-speed-reading', 'quantum-speed-reading'])
   })
 
   it('Determinism: two independently-constructed experiences produce identical results for identical stub data', async () => {
