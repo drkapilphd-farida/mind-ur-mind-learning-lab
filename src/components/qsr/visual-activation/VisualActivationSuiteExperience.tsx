@@ -7,17 +7,23 @@ import { CheckCircle2, PartyPopper } from 'lucide-react'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
 import { CardinalOculomotorStretches } from './CardinalOculomotorStretches'
 import { InfinityFigureEightGliding } from './InfinityFigureEightGliding'
+import { PeripheralFlashExpander } from './PeripheralFlashExpander'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 
-type SuitePhase = 'theta-breathing-anchor' | 'cardinal-oculomotor-stretches' | 'infinity-figure-eight-gliding' | 'complete'
+type SuitePhase =
+  | 'theta-breathing-anchor'
+  | 'cardinal-oculomotor-stretches'
+  | 'infinity-figure-eight-gliding'
+  | 'peripheral-flash-expander'
+  | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
 // Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx).
-// Exercises 1, 2, and 3 are real today; rather than force learners through
-// 4 fake blocking screens, completing them leads straight to an honest
+// Exercises 1 through 4 are real today; rather than force learners through
+// 3 fake blocking screens, completing them leads straight to an honest
 // roadmap of what's coming next. Progress is recorded the same way it
 // always was — one savePracticeSession call per completed exercise,
 // `labId: 'visual-intelligence'` — kept unchanged so no already-saved
@@ -64,6 +70,18 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('peripheral-flash-expander')
+  }
+
+  function handlePeripheralFlashComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'peripheral-flash-expander',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -79,6 +97,10 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
     return <InfinityFigureEightGliding onComplete={handleInfinityFigureEightComplete} onExit={handleExit} />
   }
 
+  if (phase === 'peripheral-flash-expander') {
+    return <PeripheralFlashExpander onComplete={handlePeripheralFlashComplete} onExit={handleExit} />
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -92,8 +114,8 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       <div>
         <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Visual Activation Started</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Theta Breathing &amp; Focal Anchor, Cardinal Oculomotor Stretches, and Infinity Figure-8 Gliding are complete. The rest of the suite is
-          on its way.
+          Theta Breathing &amp; Focal Anchor, Cardinal Oculomotor Stretches, Infinity Figure-8 Gliding, and Peripheral Flash Expander are
+          complete. The rest of the suite is on its way.
         </p>
       </div>
 

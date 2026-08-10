@@ -41,7 +41,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'Extreme-corner flashes that stretch your usable visual field outward.',
     trains: 'Eye span expansion',
     icon: Zap,
-    isImplemented: false,
+    isImplemented: true,
   },
   {
     id: 'quantum-tachistoscope-multi-word-blast',
