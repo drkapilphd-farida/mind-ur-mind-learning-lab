@@ -23,7 +23,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
     summary: 'Guided up/down/left/right eye-muscle stretches that build tracking control before fast reading.',
     trains: 'Ocular muscle tracking',
     icon: Eye,
-    isImplemented: false,
+    isImplemented: true,
   },
   {
     id: 'infinity-figure-eight-gliding',

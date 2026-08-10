@@ -5,22 +5,23 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CheckCircle2, PartyPopper } from 'lucide-react'
 import { savePracticeSession } from '@/lib/exercises/actions/savePracticeSession'
+import { CardinalOculomotorStretches } from './CardinalOculomotorStretches'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 
-type SuitePhase = 'theta-breathing-anchor' | 'complete'
+type SuitePhase = 'theta-breathing-anchor' | 'cardinal-oculomotor-stretches' | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole 7-exercise Visual Activation
-// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx). Only
-// Exercise 1 (Theta Breathing & Focal Anchor) is real today; rather than
-// force learners through 6 fake blocking screens, completing it leads
-// straight to an honest roadmap of what's coming next. Progress is
-// recorded the same way it always was — one savePracticeSession call per
-// completed exercise, `labId: 'visual-intelligence'` — kept unchanged so
-// no already-saved progress data is orphaned; purely cosmetic/analytics
-// now that no paywall gate depends on it.
+// Suite, mounted as its own ungated pillar (see LabPillarsGrid.tsx).
+// Exercises 1 and 2 are real today; rather than force learners through 5
+// fake blocking screens, completing them leads straight to an honest
+// roadmap of what's coming next. Progress is recorded the same way it
+// always was — one savePracticeSession call per completed exercise,
+// `labId: 'visual-intelligence'` — kept unchanged so no already-saved
+// progress data is orphaned; purely cosmetic/analytics now that no
+// paywall gate depends on it.
 export function VisualActivationSuiteExperience(): React.JSX.Element {
   const router = useRouter()
   const [phase, setPhase] = useState<SuitePhase>('theta-breathing-anchor')
@@ -38,11 +39,27 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('cardinal-oculomotor-stretches')
+  }
+
+  function handleCardinalOculomotorComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'cardinal-oculomotor-stretches',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
   if (phase === 'theta-breathing-anchor') {
     return <ThetaBreathingAnchor onComplete={handleThetaBreathingComplete} onExit={handleExit} />
+  }
+
+  if (phase === 'cardinal-oculomotor-stretches') {
+    return <CardinalOculomotorStretches onComplete={handleCardinalOculomotorComplete} onExit={handleExit} />
   }
 
   return (
@@ -58,7 +75,7 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       <div>
         <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Visual Activation Started</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Theta Breathing &amp; Focal Anchor is complete. The rest of the suite is on its way.
+          Theta Breathing &amp; Focal Anchor and Cardinal Oculomotor Stretches are complete. The rest of the suite is on its way.
         </p>
       </div>
 
