@@ -28,26 +28,15 @@ export type ReadingHubMode = {
   statUnit?: ReadingHubModeStatUnit
 }
 
+// Schulte Grid Speed Drill™ and Rapid Visual Span Expander™ moved out of
+// this list — both are now Brain Gym exercises (see
+// src/components/qsr/visual-activation/SchulteGridSpeedDrill.tsx and
+// RapidVisualSpanExpander.tsx, wired into VISUAL_ACTIVATION_SUITE),
+// reachable from the Brain Gym pillar rather than here. Their original
+// engines (src/features/schulte-grid-drill/, .../rapid-visual-span-expander/)
+// are untouched and still power the 21-Day Quantum Journey and the Unified
+// Session's Pro rotation — only this hub's own listing/routes changed.
 export const READING_HUB_MODES: readonly ReadingHubMode[] = [
-  {
-    id: 'schulte-grid-drill',
-    title: 'Schulte Grid Speed Drill™',
-    purpose: 'Warm up visual focus and peripheral search before your reading session.',
-    status: 'available',
-    href: '/labs/quantum-speed-reading/schulte-grid-drill',
-    exerciseId: 'schulte-grid-drill',
-    storageKey: 'qsr-schulte-grid-drill-best',
-    statUnit: 'time-ms',
-  },
-  {
-    id: 'rapid-visual-span-expander',
-    title: 'Rapid Visual Span Expander™',
-    purpose: 'Expand peripheral awareness with rapid, randomized flashes around a fixation point.',
-    status: 'available',
-    href: '/labs/quantum-speed-reading/rapid-visual-span-expander',
-    exerciseId: 'rapid-visual-span-expander',
-    storageKey: 'qsr-rapid-visual-span-expander-best',
-  },
   {
     id: 'dynamic-chunk-sliding',
     title: 'Dynamic Chunk Sliding™',

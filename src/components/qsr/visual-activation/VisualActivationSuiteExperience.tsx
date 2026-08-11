@@ -11,6 +11,8 @@ import { AuraEdgeColorPulsing } from './AuraEdgeColorPulsing'
 import { BlinkTriggerMicroRecall } from './BlinkTriggerMicroRecall'
 import { PeripheralFlashExpander } from './PeripheralFlashExpander'
 import { QuantumTachistoscopeMultiWordBlast } from './QuantumTachistoscopeMultiWordBlast'
+import { RapidVisualSpanExpander } from './RapidVisualSpanExpander'
+import { SchulteGridSpeedDrill } from './SchulteGridSpeedDrill'
 import { ThetaBreathingAnchor } from './ThetaBreathingAnchor'
 import { TratakAfterimageStretches } from './TratakAfterimageStretches'
 import { VISUAL_ACTIVATION_SUITE } from './visualActivationSuite'
@@ -26,6 +28,8 @@ type SuitePhase =
   | 'aura-edge-color-pulsing'
   | 'blink-trigger-micro-recall'
   | 'tratak-afterimage-stretches'
+  | 'schulte-grid-speed-drill'
+  | 'rapid-visual-span-expander'
   | 'complete'
 
 // Brain Gym™ — the orchestrator for the whole Visual Activation Suite,
@@ -139,6 +143,30 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
       durationMs,
       completed: true,
     })
+    startedAtRef.current = Date.now()
+    setPhase('schulte-grid-speed-drill')
+  }
+
+  function handleSchulteGridComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'schulte-grid-speed-drill',
+      durationMs,
+      completed: true,
+    })
+    startedAtRef.current = Date.now()
+    setPhase('rapid-visual-span-expander')
+  }
+
+  function handleRapidVisualSpanComplete(): void {
+    const durationMs = Math.max(1, Date.now() - startedAtRef.current)
+    void savePracticeSession({
+      labId: 'visual-intelligence',
+      exerciseId: 'rapid-visual-span-expander',
+      durationMs,
+      completed: true,
+    })
     setPhase('complete')
   }
 
@@ -172,6 +200,14 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
 
   if (phase === 'tratak-afterimage-stretches') {
     return <TratakAfterimageStretches onComplete={handleTratakAfterimageComplete} onExit={handleExit} />
+  }
+
+  if (phase === 'schulte-grid-speed-drill') {
+    return <SchulteGridSpeedDrill onComplete={handleSchulteGridComplete} onExit={handleExit} />
+  }
+
+  if (phase === 'rapid-visual-span-expander') {
+    return <RapidVisualSpanExpander onComplete={handleRapidVisualSpanComplete} onExit={handleExit} />
   }
 
   const doneCount = VISUAL_ACTIVATION_SUITE.filter((exercise) => exercise.isImplemented).length
