@@ -1,32 +1,58 @@
 import { describe, expect, it } from 'vitest'
-import { FLASH_RECALL_SPRINT_ROUNDS } from './flashRecallSprintDataset'
+import {
+  FLASH_RECALL_SPRINT_SENTENCES,
+  FLASH_RECALL_SPRINT_PASSAGE,
+  FLASH_RECALL_SPRINT_WORDS,
+  FLASH_RECALL_SPRINT_QUESTIONS,
+} from './flashRecallSprintDataset'
 
-describe('FLASH_RECALL_SPRINT_ROUNDS', () => {
-  it('produces at least one round', () => {
-    expect(FLASH_RECALL_SPRINT_ROUNDS.length).toBeGreaterThan(0)
-  })
-
-  it('gives every round a unique id', () => {
-    const ids = new Set(FLASH_RECALL_SPRINT_ROUNDS.map((round) => round.id))
-    expect(ids.size).toBe(FLASH_RECALL_SPRINT_ROUNDS.length)
-  })
-
-  it('keeps every passage at exactly 12 words, so the settings WPM band reliably yields a 3-5s flash', () => {
-    for (const round of FLASH_RECALL_SPRINT_ROUNDS) {
-      const wordCount = round.passage.trim().split(/\s+/).filter(Boolean).length
-      expect(wordCount).toBe(12)
+describe('FLASH_RECALL_SPRINT_PASSAGE', () => {
+  it('is a single continuous passage built from all the real hand-authored sentences', () => {
+    for (const sentence of FLASH_RECALL_SPRINT_SENTENCES) {
+      expect(FLASH_RECALL_SPRINT_PASSAGE).toContain(sentence)
     }
   })
 
-  it('gives every question a correctOptionId that matches one of its own options', () => {
-    for (const round of FLASH_RECALL_SPRINT_ROUNDS) {
-      const optionIds = round.question.options.map((option) => option.id)
-      expect(optionIds).toContain(round.question.correctOptionId)
+  it('has no empty sentences', () => {
+    for (const sentence of FLASH_RECALL_SPRINT_SENTENCES) {
+      expect(sentence.trim().length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('FLASH_RECALL_SPRINT_WORDS', () => {
+  it('splits the passage into true single-word RSVP units', () => {
+    expect(FLASH_RECALL_SPRINT_WORDS.length).toBeGreaterThan(0)
+    for (const word of FLASH_RECALL_SPRINT_WORDS) {
+      // A genuine single-word unit never contains whitespace.
+      expect(word.trim()).toBe(word)
+      expect(word.length).toBeGreaterThan(0)
+      expect(/\s/.test(word)).toBe(false)
     }
   })
 
-  it('gives every question a unique id across the dataset', () => {
-    const questionIds = new Set(FLASH_RECALL_SPRINT_ROUNDS.map((round) => round.question.id))
-    expect(questionIds.size).toBe(FLASH_RECALL_SPRINT_ROUNDS.length)
+  it('reassembles back into the exact original passage when joined with spaces', () => {
+    expect(FLASH_RECALL_SPRINT_WORDS.join(' ')).toBe(FLASH_RECALL_SPRINT_PASSAGE)
+  })
+})
+
+describe('FLASH_RECALL_SPRINT_QUESTIONS', () => {
+  it('has exactly 3 post-session comprehension questions', () => {
+    expect(FLASH_RECALL_SPRINT_QUESTIONS.length).toBe(3)
+  })
+
+  it('gives every question exactly 4 options and a valid correct-answer index', () => {
+    for (const question of FLASH_RECALL_SPRINT_QUESTIONS) {
+      expect(question.options.length).toBe(4)
+      expect(question.correctOptionIndex).toBeGreaterThanOrEqual(0)
+      expect(question.correctOptionIndex).toBeLessThanOrEqual(3)
+      expect(question.question.trim().length).toBeGreaterThan(0)
+      expect(new Set(question.options).size).toBe(question.options.length)
+    }
+  })
+
+  it('gives every question a unique id', () => {
+    const ids = new Set(FLASH_RECALL_SPRINT_QUESTIONS.map((question) => question.id))
+    expect(ids.size).toBe(FLASH_RECALL_SPRINT_QUESTIONS.length)
   })
 })

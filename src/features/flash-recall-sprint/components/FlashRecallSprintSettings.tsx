@@ -4,15 +4,12 @@ import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { Button } from '@/components/ui/button'
 
-// Deliberately a narrow band, not the wide 100-500 range other modes use.
-// Every passage in flashRecallSprintDataset.ts is a fixed 12 words, so the
-// resulting single-flash dwell time (12 * 60000/targetWpm) needs to stay
-// inside the required 3-5 second window: 150 WPM -> 4.8s, 175 -> 4.11s,
-// 200 -> 3.6s, 225 -> 3.2s. A wider range would push some options outside
-// that window for this exercise's fixed passage length.
-export const TARGET_WPM_OPTIONS = [150, 175, 200, 225] as const
-export type TargetWpm = (typeof TARGET_WPM_OPTIONS)[number]
-export const DEFAULT_TARGET_WPM: TargetWpm = 175
+// The old narrow [150,175,200,225] band existed only to keep a single
+// whole-passage flash inside a fixed 3-5 second window — that constraint
+// no longer applies now that every unit is a single RSVP word with its
+// own independent dwell time, so this uses the same standard 100-500
+// band every other Reading Mode offers.
+const TARGET_WPM_OPTIONS = [100, 150, 200, 250, 300, 350, 400, 450, 500] as const
 
 type FlashRecallSprintSettingsProps = {
   targetWpm: number
@@ -38,7 +35,7 @@ export function FlashRecallSprintSettings({
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Flash Recall &amp; Retention Sprint™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A short passage flashes for a few seconds, then a quick question checks what you retained.
+          A true RSVP stream flashes one word at a time at your target pace — no stops — then 3 quick questions check what you retained.
         </p>
       </div>
 

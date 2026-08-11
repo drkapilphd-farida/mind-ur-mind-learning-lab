@@ -1,178 +1,129 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
+import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
-import { computeWpm } from '@/features/reading-engine/readingMetrics'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { ComprehensionCheckpoint } from '@/features/reading-engine/components/ComprehensionCheckpoint'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { FLASH_RECALL_SPRINT_ROUNDS, TOTAL_FLASH_RECALL_SPRINT_ROUNDS } from '../flashRecallSprintDataset'
-import { FlashRecallSprintSettings, DEFAULT_TARGET_WPM } from './FlashRecallSprintSettings'
-import { FlashRecallSprintBlockRuntime } from './FlashRecallSprintBlockRuntime'
+import { FLASH_RECALL_SPRINT_WORDS, FLASH_RECALL_SPRINT_QUESTIONS } from '../flashRecallSprintDataset'
+import { FlashRecallSprintSettings } from './FlashRecallSprintSettings'
+import { FlashRecallSprintCanvas } from './FlashRecallSprintCanvas'
+import { FlashRecallSprintQuiz } from './FlashRecallSprintQuiz'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 const BEST_WPM_STORAGE_KEY = 'qsr-flash-recall-sprint-best'
 
-// A single comprehension question per round genuinely gates progression:
-// passThreshold=1 against a 1-question array means a wrong answer forces
-// ComprehensionCheckpoint's own built-in "Try Again" retry of that same
-// question — the exact existing convention already used by Sentence/
-// Paragraph Reading, not a new gate mechanic invented for this exercise.
-const PASS_THRESHOLD = 1
-
-type ExperiencePhase = 'settings' | 'flashing' | 'recall-check' | 'complete'
-
 type FlashRecallSprintExperienceProps = {
-  // QSR Pro Circuit™ — additive, optional. See
-  // SchulteGridDrillExperience.tsx's identical seam for the full
-  // rationale. Standalone usage (this prop omitted) is unchanged.
+  // QSR Pro Circuit™ seam — additive, optional, same pattern as every
+  // other Reading Mode's identical prop. Standalone usage (this prop
+  // omitted) is unaffected.
   onComplete?: (result: ReadingSessionResult) => void
 }
 
-// Top-level orchestrator for Flash Recall & Retention Sprint™ — the fourth
-// and final advanced training exercise. Structurally mirrors
-// SentenceReadingModeExperience.tsx's block + comprehension-check flow
-// (same UNCHANGED useReadingRuntime via FlashRecallSprintBlockRuntime.tsx,
-// same useReadingSession persistence, same shared ComprehensionCheckpoint
-// component, unforked). Unlike Sentence/RVSE, target WPM stays CONSTANT
-// across rounds rather than auto-incrementing — every passage here is a
-// fixed 12 words, and the Settings screen's own WPM band is specifically
-// chosen to keep the flash's dwell duration inside the required 3-5
-// second window (see FlashRecallSprintSettings.tsx); incrementing WPM
-// round over round would eventually push later rounds' flash duration
-// below 3 seconds, breaking that requirement.
+// Top-level orchestrator for Flash Recall & Retention Sprint™ — completely
+// redesigned around True RSVP. Previously this ran 6 separate rounds, each
+// its own short flash immediately followed by a comprehension question
+// (ComprehensionCheckpoint) before the next round could begin — repeatedly
+// breaking the reading flow. Now it mirrors VerticalChunkSlidingExperience.tsx
+// exactly: one continuous useReadingRuntime instance over the whole word
+// list, zero interruptions, and a single post-session 3-question quiz
+// gating the completion screen. FlashRecallSprintBlockRuntime.tsx (the old
+// per-round wrapper) and ComprehensionCheckpoint are no longer used here —
+// the latter stays fully intact for Sentence/Paragraph/Guided Paragraph
+// Reading, which still rely on it.
 export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+
+  const runtime = useReadingRuntime(FLASH_RECALL_SPRINT_WORDS)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'flash-recall-sprint' })
   const readingSession = useReadingSession(session)
 
-  const [phase, setPhase] = useState<ExperiencePhase>('settings')
-  const [roundIndex, setRoundIndex] = useState(0)
-  const [restartNonce, setRestartNonce] = useState(0)
-  const [targetWpm, setTargetWpm] = useState<number>(DEFAULT_TARGET_WPM)
   const [bestWpm, setBestWpm] = useState(0)
   const [completedResult, setCompletedResult] = useState<ReadingSessionResult | null>(null)
+  // Comprehension quiz gate — see FlashRecallSprintQuiz.tsx's own doc
+  // comment on why this lives here rather than as a new phase inside the
+  // locked useReadingRuntime.ts. null means "not yet taken this session";
+  // reset alongside completedResult on every restart/read-again.
+  const [quizScore, setQuizScore] = useState<number | null>(null)
 
-  const accumulatedElapsedMsRef = useRef(0)
-  const accumulatedWordsReadRef = useRef(0)
-  const accumulatedTotalWordsRef = useRef(0)
+  useEffect(() => {
+    setBestWpm(loadBestWpm(BEST_WPM_STORAGE_KEY))
+  }, [])
 
-  function finalizeSession(aggregate: {
-    elapsedMs: number
-    wordsRead: number
-    totalWords: number
-    targetWpmUsed: number
-    wasFinishedEarly: boolean
-  }): void {
-    const averageWpm = computeWpm(aggregate.wordsRead, aggregate.elapsedMs)
-    const completionPercent = aggregate.totalWords > 0 ? Math.round((aggregate.wordsRead / aggregate.totalWords) * 100) : 0
+  useEffect(() => {
+    if (runtime.phase !== 'complete' || completedResult !== null) return
+
     const result: ReadingSessionResult = {
-      averageWpm,
-      targetWpm: aggregate.targetWpmUsed,
-      elapsedMs: aggregate.elapsedMs,
-      wordsRead: aggregate.wordsRead,
-      totalWords: aggregate.totalWords,
-      completionPercent,
-      wasFinishedEarly: aggregate.wasFinishedEarly,
+      averageWpm: runtime.liveWpm,
+      targetWpm: runtime.targetWpm,
+      elapsedMs: runtime.elapsedMs,
+      wordsRead: runtime.wordsRead,
+      totalWords: runtime.totalWords,
+      completionPercent: runtime.progressPercent,
+      wasFinishedEarly: runtime.wasFinishedEarly,
     }
     setCompletedResult(result)
     setBestWpm(recordBestWpmSession(BEST_WPM_STORAGE_KEY, result.averageWpm))
     readingSession.recordResult(result)
-    setPhase('complete')
-  }
+  }, [
+    runtime.phase,
+    runtime.liveWpm,
+    runtime.targetWpm,
+    runtime.elapsedMs,
+    runtime.wordsRead,
+    runtime.totalWords,
+    runtime.progressPercent,
+    runtime.wasFinishedEarly,
+    completedResult,
+    readingSession,
+  ])
 
   function handleStart(): void {
-    setBestWpm(loadBestWpm(BEST_WPM_STORAGE_KEY))
-    accumulatedElapsedMsRef.current = 0
-    accumulatedWordsReadRef.current = 0
-    accumulatedTotalWordsRef.current = 0
-    setRoundIndex(0)
     session.start()
-    setPhase('flashing')
-  }
-
-  function handleFlashComplete(result: ReadingSessionResult): void {
-    if (result.wasFinishedEarly) {
-      finalizeSession({
-        elapsedMs: accumulatedElapsedMsRef.current + result.elapsedMs,
-        wordsRead: accumulatedWordsReadRef.current + result.wordsRead,
-        totalWords: accumulatedTotalWordsRef.current + result.totalWords,
-        targetWpmUsed: result.targetWpm,
-        wasFinishedEarly: true,
-      })
-      return
-    }
-
-    accumulatedElapsedMsRef.current += result.elapsedMs
-    accumulatedWordsReadRef.current += result.wordsRead
-    accumulatedTotalWordsRef.current += result.totalWords
-    setPhase('recall-check')
-  }
-
-  function handleCheckpointPassContinue(): void {
-    const isLastRound = roundIndex >= TOTAL_FLASH_RECALL_SPRINT_ROUNDS - 1
-    if (isLastRound) {
-      finalizeSession({
-        elapsedMs: accumulatedElapsedMsRef.current,
-        wordsRead: accumulatedWordsReadRef.current,
-        totalWords: accumulatedTotalWordsRef.current,
-        targetWpmUsed: targetWpm,
-        wasFinishedEarly: false,
-      })
-      return
-    }
-
-    setRoundIndex((index) => index + 1)
-    setPhase('flashing')
-  }
-
-  function handleExitRequested(elapsedMsInCurrentRound: number): void {
-    void session.recordExit(accumulatedElapsedMsRef.current + elapsedMsInCurrentRound)
-    router.push(LAB_HREF)
+    runtime.start()
   }
 
   function handleReadAgain(): void {
     readingSession.reset()
     setCompletedResult(null)
-    accumulatedElapsedMsRef.current = 0
-    accumulatedWordsReadRef.current = 0
-    accumulatedTotalWordsRef.current = 0
-    setRoundIndex(0)
-    setRestartNonce((nonce) => nonce + 1)
+    setQuizScore(null)
     session.start()
-    setPhase('flashing')
+    runtime.restart()
   }
 
-  if (phase === 'settings') {
-    return <FlashRecallSprintSettings targetWpm={targetWpm} onSelectTargetWpm={setTargetWpm} onStart={handleStart} />
+  function handleRestart(): void {
+    readingSession.reset()
+    setCompletedResult(null)
+    setQuizScore(null)
+    runtime.restart()
   }
 
-  if (phase === 'recall-check') {
-    const isLastRound = roundIndex >= TOTAL_FLASH_RECALL_SPRINT_ROUNDS - 1
-    const currentRound = FLASH_RECALL_SPRINT_ROUNDS[roundIndex]
-    if (currentRound === undefined) {
-      return <></>
+  async function handleExit(): Promise<void> {
+    if (runtime.phase === 'reading' || runtime.phase === 'paused') {
+      await session.recordExit(runtime.elapsedMs)
     }
-    return (
-      <ComprehensionCheckpoint
-        blockLabel={`Round ${roundIndex + 1} of ${TOTAL_FLASH_RECALL_SPRINT_ROUNDS}`}
-        questions={[currentRound.question]}
-        passThreshold={PASS_THRESHOLD}
-        isLastBlock={isLastRound}
-        nextTargetWpm={targetWpm}
-        onPassContinue={handleCheckpointPassContinue}
-        onExit={() => handleExitRequested(0)}
-      />
-    )
+    router.push(LAB_HREF)
   }
 
-  if (phase === 'complete' && completedResult !== null) {
+  if (runtime.phase === 'settings') {
+    return <FlashRecallSprintSettings targetWpm={runtime.targetWpm} onSelectTargetWpm={runtime.setTargetWpm} onStart={handleStart} />
+  }
+
+  // The retention quiz gates the completion screen — it renders as soon as
+  // the RSVP stream finishes and stays up until all 3 questions are
+  // answered, independent of completedResult's own timing (the quiz never
+  // needs that value, only the fixed question set).
+  if (runtime.phase === 'complete' && quizScore === null) {
+    return <FlashRecallSprintQuiz questions={FLASH_RECALL_SPRINT_QUESTIONS} onComplete={(score) => setQuizScore(score)} onExit={() => void handleExit()} />
+  }
+
+  if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        subtitle="Nice, sharp recall."
+        subtitle={quizScore !== null ? `Nice, sharp recall — retention: ${quizScore}/${FLASH_RECALL_SPRINT_QUESTIONS.length}.` : 'Nice, sharp recall.'}
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
@@ -181,20 +132,20 @@ export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExp
     )
   }
 
-  const currentRound = FLASH_RECALL_SPRINT_ROUNDS[roundIndex]
-  if (currentRound === undefined) {
-    return <></>
-  }
-
   return (
-    <FlashRecallSprintBlockRuntime
-      key={`${roundIndex}-${restartNonce}`}
-      passage={currentRound.passage}
-      targetWpm={targetWpm}
-      roundIndex={roundIndex}
-      totalRounds={TOTAL_FLASH_RECALL_SPRINT_ROUNDS}
-      onFlashComplete={handleFlashComplete}
-      onExitRequested={handleExitRequested}
+    <FlashRecallSprintCanvas
+      words={FLASH_RECALL_SPRINT_WORDS}
+      currentUnitIndex={runtime.currentUnitIndex}
+      isPaused={runtime.phase === 'paused'}
+      liveWpm={runtime.liveWpm}
+      targetWpm={runtime.targetWpm}
+      elapsedMs={runtime.elapsedMs}
+      progressPercent={runtime.progressPercent}
+      onPause={runtime.pause}
+      onResume={runtime.resume}
+      onRestart={handleRestart}
+      onFinish={runtime.finish}
+      onExit={() => void handleExit()}
     />
   )
 }
