@@ -1,72 +1,58 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
-import { measureSingleLineWidthsPx } from '@/hooks/reading-engine/measureSingleLineWidths'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
 import type { ReadingUnit } from '@/features/reading-engine/types'
 import type { PhraseSize } from './PhraseReadingModeSettings'
 
-// Fixed viewport width per PhraseSize — "how much of the flowing single
-// line is visible," not a per-unit column width. Applied as a `maxWidth`
-// on a `w-full` element (not a literal `width`) so it shrinks safely on
-// narrow viewports instead of forcing horizontal page overflow.
-const PHRASE_VIEWPORT_WIDTH_PX: Record<PhraseSize, number> = {
+// Vertical Phrase Flow — the vertical companion to the horizontal channel,
+// same GPU-accelerated teleprompter waterfall as Vertical Chunk Sliding™ /
+// Vertical Word Reading™ (own-copy of that proven pattern). Phrases stack
+// top-to-bottom in a fixed-height row rather than side-by-side, so —
+// unlike the horizontal Canvas — no DOM measurement is needed:
+// offsetForIndex below is pure closed-form arithmetic. Reuses the same
+// per-PhraseSize channel width and row height as the horizontal Canvas
+// (own-copy, not a shared import) so the size picker means the same thing
+// in both orientations.
+const PHRASE_CHANNEL_WIDTH_PX: Record<PhraseSize, number> = {
   small: 420,
   medium: 620,
   large: 1040,
 }
 
-// A single fixed line height per PhraseSize, independent of width — since
-// no wrapping is ever allowed, height only needs to fit one line at that
-// size's own font size.
-const PHRASE_LINE_HEIGHT_PX: Record<PhraseSize, number> = {
+const PHRASE_ROW_HEIGHT_PX: Record<PhraseSize, number> = {
   small: 56,
   medium: 76,
   large: 108,
 }
 
-// Responsive per tier — not a fixed size — so even the longest real phrase
-// chunks in the dataset (up to 4 words) stay within the card on narrow
-// mobile viewports at every PhraseSize; the top breakpoint value is the
-// tier's "true" desktop size, matching what the size picker visually
-// promises there. measureSingleLineWidthsPx below measures against
-// whichever breakpoint is actually active in the real viewport, so the
-// glide math always matches what's rendered.
+// Responsive per tier — same rationale and same breakpoints as the
+// horizontal Canvas's own copy of this map (own-copy, not a shared
+// import) — see that file's comment for why a fixed size clips the
+// longest real phrase chunks on narrow mobile viewports.
 const PHRASE_SIZE_TEXT_CLASSES: Record<PhraseSize, string> = {
   small: 'text-lg sm:text-xl md:text-2xl font-semibold whitespace-nowrap',
   medium: 'text-2xl sm:text-3xl md:text-4xl font-semibold whitespace-nowrap',
   large: 'text-4xl sm:text-5xl md:text-6xl font-semibold whitespace-nowrap',
 }
 
-// Real horizontal gap between consecutive phrases on the track.
-const UNIT_GAP_PX = 64
-
-// The engine's own tick (see useReadingRuntime.ts, unmodified/locked) only
-// updates elapsedMs in discrete 100ms jumps. This local interpolation
-// bridges those jumps into a genuinely continuous, 60fps-smooth motion:
-// each rAF frame projects forward from the last real tick by real wall-
-// clock time elapsed since it landed, capped at one tick's worth so it can
-// never overshoot past where the next real tick will likely arrive.
+const UNIT_GAP_PX = 20
+const VISIBLE_ROWS = 3
 const ENGINE_TICK_MS = 100
 const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
-// A spacious, high-contrast "frosted glass" card — the same palette
-// established across this app's reading exercises (own-copy, not a
-// shared import), a touch of translucency and backdrop blur layered on
-// top, matching Vertical Word Reading / Vertical Flash Recall's identical
-// treatment.
+// Same frosted-glass palette as the horizontal Canvas (own-copy).
 const CARD_CLASS_NAME = 'bg-[#FBF9F4]/95 dark:bg-[#16171A]/95 backdrop-blur-md'
 const PHRASE_TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
 
 // The exact tuned drone recipe every sibling exercise in this app
-// establishes (own-copy) — a full octave down from the original Brain Gym
-// recipe, heavily low-passed, quiet at rest, slow to fade in/out.
+// establishes (own-copy).
 const FUNDAMENTAL_HZ = 110
 const RESTING_GAIN = 0.014
 const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
@@ -86,7 +72,7 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 
 type HarmonicVoice = { oscillator: OscillatorNode }
 
-type PhraseReadingModeCanvasProps = {
+type PhraseReadingModeVerticalCanvasProps = {
   units: readonly ReadingUnit[]
   currentUnitIndex: number
   phraseSize: PhraseSize
@@ -115,21 +101,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   return impulse
 }
 
-// Horizontal Phrase Flow — a 10/10 rebuild of the sliding channel itself.
-// Still the same "no dimming, one continuous linear transform" streaming
-// model (measureSingleLineWidthsPx for each phrase's true rendered width,
-// computeContinuousStreamOffsetPx for the shared frame-by-frame glide math
-// — both imported unmodified, shared across every horizontal-streaming
-// Reading Mode in this app) — every phrase still renders at full
-// opacity/foreground at all times, nothing fades or dims, ever. What
-// changed is HOW that transform reaches the screen: it used to flow
-// through React state → an inline `transform` style → a CSS `transition:
-// 100ms linear`, re-triggered every engine tick — approximate, not
-// frame-synced, and visibly stutter-prone under any surrounding jank. Now
-// a dedicated requestAnimationFrame loop writes `translate3d` straight to
-// the track element via a ref, every real display frame, completely
-// bypassing React re-renders for the motion itself.
-export function PhraseReadingModeCanvas({
+export function PhraseReadingModeVerticalCanvas({
   units,
   currentUnitIndex,
   phraseSize,
@@ -144,16 +116,20 @@ export function PhraseReadingModeCanvas({
   onRestart,
   onFinish,
   onExit,
-}: PhraseReadingModeCanvasProps): React.JSX.Element {
+}: PhraseReadingModeVerticalCanvasProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
-  const viewportWidth = PHRASE_VIEWPORT_WIDTH_PX[phraseSize]
-  const lineHeight = PHRASE_LINE_HEIGHT_PX[phraseSize]
+  const channelWidth = PHRASE_CHANNEL_WIDTH_PX[phraseSize]
+  const rowHeight = PHRASE_ROW_HEIGHT_PX[phraseSize]
   const textClassName = PHRASE_SIZE_TEXT_CLASSES[phraseSize]
+  const channelHeight = rowHeight * VISIBLE_ROWS + UNIT_GAP_PX * (VISIBLE_ROWS - 1)
 
-  // Zero-distraction focus mode: header stats/progress/controls fade out
-  // after pointer inactivity while running, leaving only the flowing
-  // phrases — any pointer movement (or pausing) brings them straight back.
+  // Every row is the same fixed height, so a unit's vertical center is
+  // pure arithmetic — no measurement of any kind needed.
+  function offsetForIndex(index: number): number {
+    return index * (rowHeight + UNIT_GAP_PX) + rowHeight / 2
+  }
+
   const [isChromeVisible, setIsChromeVisible] = useState(true)
   const chromeHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -172,23 +148,6 @@ export function PhraseReadingModeCanvas({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
-
-  const [unitWidths, setUnitWidths] = useState<number[] | null>(null)
-  useLayoutEffect(() => {
-    setUnitWidths(measureSingleLineWidthsPx(units.map((unit) => unit.text), textClassName))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, phraseSize])
-
-  const cumulativeCenters = useMemo(() => {
-    if (!unitWidths) return []
-    const centers: number[] = []
-    let cursor = 0
-    for (const width of unitWidths) {
-      centers.push(cursor + width / 2)
-      cursor += width + UNIT_GAP_PX
-    }
-    return centers
-  }, [unitWidths])
 
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -287,13 +246,10 @@ export function PhraseReadingModeCanvas({
     }
   }, [])
 
-  // The actual motion — a dedicated rAF loop, started once real widths are
-  // known and re-created only if the unit list, size, or reduced-motion
-  // preference itself changes.
+  // The actual motion — a dedicated rAF loop writing translateY straight to
+  // the track element via a ref, same GPU-composited direct-DOM pattern as
+  // the horizontal Canvas's translateX, just the other axis.
   useEffect(() => {
-    if (unitWidths === null) return undefined
-
-    const offsetForIndex = (index: number): number => cumulativeCenters[index] ?? 0
     let rafId: number
 
     function tick(): void {
@@ -317,25 +273,22 @@ export function PhraseReadingModeCanvas({
                   lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
                 offsetForIndex,
               })
-        track.style.transform = `translate3d(-${offsetPx}px, 0, 0)`
+        track.style.transform = `translate3d(0, -${offsetPx}px, 0)`
       }
       rafId = requestAnimationFrame(tick)
     }
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-    // cumulativeCenters is derived from unitWidths, which IS a dependency
-    // — omitting it here is deliberate, not stale: it's read fresh via
-    // offsetForIndex's own closure on every single frame anyway.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitWidths, units, prefersReducedMotion])
+  }, [units, prefersReducedMotion, rowHeight])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
   const chromeClassName = `transition-opacity duration-500 ease-out ${isChromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`
 
   return (
-    <ReadingLayout maxWidthClassName="max-w-6xl" onExit={onExit}>
+    <ReadingLayout maxWidthClassName="max-w-2xl" onExit={onExit}>
       <div
         className="flex w-full flex-col items-center"
         onPointerMove={revealChromeAndScheduleHide}
@@ -343,7 +296,7 @@ export function PhraseReadingModeCanvas({
         onFocus={revealChromeAndScheduleHide}
       >
         <div className={`w-full max-w-md ${chromeClassName}`}>
-          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Phrase Reading Mode™ · Horizontal</p>
+          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Phrase Reading Mode™ · Vertical</p>
           {categoryLabel && <p className="mb-3 text-center text-xs text-muted-foreground">Reading: {categoryLabel}</p>}
 
           <div className="grid grid-cols-3 gap-x-4 text-center">
@@ -363,28 +316,24 @@ export function PhraseReadingModeCanvas({
           </div>
         </div>
 
-        {/* The single-line focus channel — a marquee the track can never
-            wrap out of (whitespace-nowrap per phrase + overflow-hidden on
-            the frame). `maxWidth` + `w-full` (not a literal `width`) so it
-            shrinks safely on narrow viewports instead of overflowing. */}
+        {/* The teleprompter waterfall — a fixed 3-row window (previous /
+            current / next, current centered) the track can never wrap or
+            spill out of (overflow-hidden on the frame). One phrase per
+            row, flowing smoothly downward at a constant, WPM-paced rate. */}
         <div
           className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
-          style={{
-            maxWidth: viewportWidth,
-            height: lineHeight,
-            visibility: unitWidths === null ? 'hidden' : 'visible',
-          }}
+          style={{ maxWidth: channelWidth, height: channelHeight }}
           aria-live="off"
         >
           <div
             ref={trackRef}
-            className="absolute top-0 flex h-full items-center will-change-transform"
-            style={{ left: '50%', gap: UNIT_GAP_PX }}
+            className="absolute left-0 flex w-full flex-col items-center will-change-transform"
+            style={{ top: '50%', gap: UNIT_GAP_PX }}
           >
             {units.map((unit) => (
-              <span key={unit.id} className={`${textClassName} ${PHRASE_TEXT_COLOR_CLASS_NAME}`}>
-                {unit.text}
-              </span>
+              <div key={unit.id} className="flex items-center justify-center px-6" style={{ height: rowHeight, width: '100%' }}>
+                <span className={`${textClassName} ${PHRASE_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
+              </div>
             ))}
           </div>
         </div>

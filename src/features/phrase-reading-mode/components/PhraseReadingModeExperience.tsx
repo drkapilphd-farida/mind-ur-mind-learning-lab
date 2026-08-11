@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
@@ -8,34 +8,46 @@ import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { PHRASE_READING_MODE_UNITS } from '../phraseReadingModeDataset'
-import { PhraseReadingModeSettings, type PhraseSize } from './PhraseReadingModeSettings'
+import { buildUnitsForCategory, pickSessionCategory, type PhraseReadingModeCategory } from '../phraseReadingModeDataset'
+import { PhraseReadingModeSettings, type PhraseSize, type PhraseFlowOrientation } from './PhraseReadingModeSettings'
 import { PhraseReadingModeCanvas } from './PhraseReadingModeCanvas'
+import { PhraseReadingModeVerticalCanvas } from './PhraseReadingModeVerticalCanvas'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 
-// Own storage key, separate from Vertical Word Reading's Best Record.
+// Same literal storage key the pre-overhaul version used — kept exact so an
+// existing user's Best Record survives this redesign.
 const BEST_WPM_STORAGE_KEY = 'qsr-phrase-reading-mode-best'
 
-const UNIT_TEXTS = PHRASE_READING_MODE_UNITS.map((unit) => unit.text)
-
-// Top-level orchestrator for Phrase Reading Mode™ (Sprint 3.2) — the Master
-// Reading Engine's second mode. Structurally mirrors
+// Top-level orchestrator for Phrase Reading Mode™ (10/10 Overhaul) — the
+// Master Reading Engine's second mode. Structurally mirrors
 // VerticalWordReadingExperience.tsx (same engine, same session pipeline,
-// same local-history pattern) but feeds it phrase-shaped ReadingUnits
-// instead of word-shaped ones, proving the engine itself needed zero
-// changes to support a different content shape. The only genuinely new
-// piece here is phraseSize — a presentational setting the engine never
-// sees, kept as local state.
+// same local-history pattern), but now also owns an orientation choice
+// (horizontal/vertical) that picks which Canvas renders — both feed the
+// engine the exact same units/pacing, proving the engine itself needed no
+// changes to support a second streaming axis. A category is picked fresh
+// per mount via pickSessionCategory (client-only, called only from this
+// effect — never a lazy useState initializer — see that function's own doc
+// comment for the full rationale).
 export function PhraseReadingModeExperience(): React.JSX.Element {
   const router = useRouter()
-  const runtime = useReadingRuntime(UNIT_TEXTS)
+
+  const [sessionCategory, setSessionCategory] = useState<PhraseReadingModeCategory | null>(null)
+  useEffect(() => {
+    setSessionCategory(pickSessionCategory())
+  }, [])
+
+  const sessionUnits = useMemo(() => (sessionCategory ? buildUnitsForCategory(sessionCategory) : []), [sessionCategory])
+  const sessionWords = useMemo(() => sessionUnits.map((unit) => unit.text), [sessionUnits])
+
+  const runtime = useReadingRuntime(sessionWords)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'phrase-reading-mode' })
   const readingSession = useReadingSession(session)
 
   const [bestWpm, setBestWpm] = useState(0)
   const [completedResult, setCompletedResult] = useState<ReadingSessionResult | null>(null)
   const [phraseSize, setPhraseSize] = useState<PhraseSize>('medium')
+  const [orientation, setOrientation] = useState<PhraseFlowOrientation>('horizontal')
 
   useEffect(() => {
     setBestWpm(loadBestWpm(BEST_WPM_STORAGE_KEY))
@@ -70,6 +82,7 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
   ])
 
   function handleStart(): void {
+    if (sessionUnits.length === 0) return
     session.start()
     runtime.start()
   }
@@ -101,6 +114,9 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
         onSelectTargetWpm={runtime.setTargetWpm}
         phraseSize={phraseSize}
         onSelectPhraseSize={setPhraseSize}
+        orientation={orientation}
+        onSelectOrientation={setOrientation}
+        categoryLabel={sessionCategory?.label ?? null}
         onStart={handleStart}
       />
     )
@@ -117,21 +133,22 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
     )
   }
 
-  return (
-    <PhraseReadingModeCanvas
-      units={PHRASE_READING_MODE_UNITS}
-      currentUnitIndex={runtime.currentUnitIndex}
-      phraseSize={phraseSize}
-      isPaused={runtime.phase === 'paused'}
-      liveWpm={runtime.liveWpm}
-      targetWpm={runtime.targetWpm}
-      elapsedMs={runtime.elapsedMs}
-      progressPercent={runtime.progressPercent}
-      onPause={runtime.pause}
-      onResume={runtime.resume}
-      onRestart={handleRestart}
-      onFinish={runtime.finish}
-      onExit={() => void handleExit()}
-    />
-  )
+  const canvasProps = {
+    units: sessionUnits,
+    currentUnitIndex: runtime.currentUnitIndex,
+    phraseSize,
+    categoryLabel: sessionCategory?.label ?? null,
+    isPaused: runtime.phase === 'paused',
+    liveWpm: runtime.liveWpm,
+    targetWpm: runtime.targetWpm,
+    elapsedMs: runtime.elapsedMs,
+    progressPercent: runtime.progressPercent,
+    onPause: runtime.pause,
+    onResume: runtime.resume,
+    onRestart: handleRestart,
+    onFinish: runtime.finish,
+    onExit: () => void handleExit(),
+  }
+
+  return orientation === 'vertical' ? <PhraseReadingModeVerticalCanvas {...canvasProps} /> : <PhraseReadingModeCanvas {...canvasProps} />
 }
