@@ -65,6 +65,15 @@ export const READING_HUB_MODES: readonly ReadingHubMode[] = [
     storageKey: 'qsr-flash-recall-sprint-best',
   },
   {
+    id: 'vertical-flash-recall',
+    title: 'Vertical Flash Recall & Retention Sprint™',
+    purpose: 'Words flash down a fixed vertical column at your pace, training rapid vertical eye-span, then a quick retention check.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/vertical-flash-recall',
+    exerciseId: 'vertical-flash-recall',
+    storageKey: 'qsr-vertical-flash-recall-best',
+  },
+  {
     id: 'vertical-word-reading',
     title: 'Vertical Word Reading™',
     purpose: 'Improve instant word recognition and eye movement.',
