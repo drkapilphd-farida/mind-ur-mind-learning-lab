@@ -1,62 +1,57 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
-import { measureSingleLineWidthsPx } from '@/hooks/reading-engine/measureSingleLineWidths'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
 import type { ReadingUnit } from '@/features/reading-engine/types'
 import type { SentenceWidth } from './SentenceReadingModeSettings'
 
-// Fixed viewport width per SentenceWidth — "how much of the flowing single
-// line is visible," not a per-unit column width. Applied as a `maxWidth`
-// on a `w-full` element (not a literal `width`) so it shrinks safely on
-// narrow viewports instead of forcing horizontal page overflow.
-const SENTENCE_VIEWPORT_WIDTH_PX: Record<SentenceWidth, number> = {
-  compact: 384,
-  comfortable: 576,
-  wide: 768,
+// Vertical Teleprompter Waterfall — the vertical companion to the
+// horizontal channel, same GPU-accelerated teleprompter waterfall as
+// Vertical Chunk Sliding™ / Sentence Reading Mode's own horizontal
+// sibling (own-copy of that proven pattern). Sentences stack top-to-bottom
+// in fixed-height rows rather than side-by-side. Rows are taller and allow
+// up to two lines (unlike the strict single-line horizontal marquee),
+// since a full ~15-25 word sentence reads far more naturally wrapped
+// across two lines in a stacked teleprompter than squeezed onto one.
+const SENTENCE_CHANNEL_WIDTH_PX: Record<SentenceWidth, number> = {
+  compact: 420,
+  comfortable: 620,
+  wide: 860,
 }
 
-const LINE_HEIGHT_PX = 64
+const SENTENCE_ROW_HEIGHT_PX: Record<SentenceWidth, number> = {
+  compact: 96,
+  comfortable: 120,
+  wide: 144,
+}
 
-// Responsive per tier — not a fixed size — so even the dataset's longest
-// real sentences (up to ~25 words) stay within the card on narrow mobile
-// viewports at every SentenceWidth; the top breakpoint value is the
-// tier's "true" desktop size. measureSingleLineWidthsPx below measures
-// against whichever breakpoint is actually active in the real viewport,
-// so the glide math always matches what's rendered.
+// Responsive per tier, same rationale and same breakpoints as the
+// horizontal Canvas's own copy of this map (own-copy, not a shared
+// import). Two-line wrapping is allowed here (no whitespace-nowrap), so
+// text can safely be a touch larger than the horizontal single-line model.
 const SENTENCE_WIDTH_TEXT_CLASSES: Record<SentenceWidth, string> = {
-  compact: 'text-base sm:text-lg md:text-xl leading-relaxed font-semibold whitespace-nowrap',
-  comfortable: 'text-lg sm:text-xl md:text-2xl leading-relaxed font-semibold whitespace-nowrap',
-  wide: 'text-xl sm:text-2xl md:text-3xl leading-relaxed font-semibold whitespace-nowrap',
+  compact: 'text-base sm:text-lg md:text-xl leading-snug font-semibold',
+  comfortable: 'text-lg sm:text-xl md:text-2xl leading-snug font-semibold',
+  wide: 'text-xl sm:text-2xl md:text-3xl leading-snug font-semibold',
 }
 
-// Real horizontal gap between consecutive sentences on the track.
-const UNIT_GAP_PX = 72
-
-// The engine's own tick (see useReadingRuntime.ts, unmodified/locked) only
-// updates elapsedMs in discrete 100ms jumps. This local interpolation
-// bridges those jumps into a genuinely continuous, 60fps-smooth motion:
-// each rAF frame projects forward from the last real tick by real wall-
-// clock time elapsed since it landed, capped at one tick's worth so it can
-// never overshoot past where the next real tick will likely arrive.
+const UNIT_GAP_PX = 24
+const VISIBLE_ROWS = 3
 const ENGINE_TICK_MS = 100
 const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
-// A spacious, high-contrast "frosted glass" card — the same palette
-// established across this app's reading exercises (own-copy, not a
-// shared import).
+// Same frosted-glass palette as the horizontal Canvas (own-copy).
 const CARD_CLASS_NAME = 'bg-[#FBF9F4]/95 dark:bg-[#16171A]/95 backdrop-blur-md'
 const SENTENCE_TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
 
 // The exact tuned drone recipe every sibling exercise in this app
-// establishes (own-copy) — a full octave down from the original Brain Gym
-// recipe, heavily low-passed, quiet at rest, slow to fade in/out.
+// establishes (own-copy).
 const FUNDAMENTAL_HZ = 110
 const RESTING_GAIN = 0.014
 const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
@@ -76,7 +71,7 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 
 type HarmonicVoice = { oscillator: OscillatorNode }
 
-type SentenceReadingModeCanvasProps = {
+type SentenceReadingModeVerticalCanvasProps = {
   units: readonly ReadingUnit[]
   currentUnitIndex: number
   sentenceWidth: SentenceWidth
@@ -105,21 +100,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   return impulse
 }
 
-// Horizontal Flow — a 10/10 rebuild of the sliding channel itself, and the
-// end of this mode's old mid-session interruptions: reading now streams
-// continuously through one entire passage with zero pop-ups, and the
-// comprehension check (SentenceReadingModeQuiz.tsx) only ever appears once
-// after the whole thing finishes. Still the same "no dimming, one
-// continuous linear transform" streaming model
-// (measureSingleLineWidthsPx for each sentence's true rendered width,
-// computeContinuousStreamOffsetPx for the shared frame-by-frame glide math
-// — both imported unmodified, shared across every horizontal-streaming
-// Reading Mode in this app). What changed from the pre-overhaul version is
-// HOW the transform reaches the screen: a dedicated requestAnimationFrame
-// loop now writes `translate3d` straight to the track element via a ref,
-// every real display frame, completely bypassing React re-renders for the
-// motion itself.
-export function SentenceReadingModeCanvas({
+export function SentenceReadingModeVerticalCanvas({
   units,
   currentUnitIndex,
   sentenceWidth,
@@ -134,15 +115,20 @@ export function SentenceReadingModeCanvas({
   onRestart,
   onFinish,
   onExit,
-}: SentenceReadingModeCanvasProps): React.JSX.Element {
+}: SentenceReadingModeVerticalCanvasProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
-  const viewportWidth = SENTENCE_VIEWPORT_WIDTH_PX[sentenceWidth]
+  const channelWidth = SENTENCE_CHANNEL_WIDTH_PX[sentenceWidth]
+  const rowHeight = SENTENCE_ROW_HEIGHT_PX[sentenceWidth]
   const textClassName = SENTENCE_WIDTH_TEXT_CLASSES[sentenceWidth]
+  const channelHeight = rowHeight * VISIBLE_ROWS + UNIT_GAP_PX * (VISIBLE_ROWS - 1)
 
-  // Zero-distraction focus mode: header stats/progress/controls fade out
-  // after pointer inactivity while running, leaving only the flowing
-  // sentences — any pointer movement (or pausing) brings them straight back.
+  // Every row is the same fixed height, so a unit's vertical center is
+  // pure arithmetic — no measurement of any kind needed.
+  function offsetForIndex(index: number): number {
+    return index * (rowHeight + UNIT_GAP_PX) + rowHeight / 2
+  }
+
   const [isChromeVisible, setIsChromeVisible] = useState(true)
   const chromeHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -161,23 +147,6 @@ export function SentenceReadingModeCanvas({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
-
-  const [unitWidths, setUnitWidths] = useState<number[] | null>(null)
-  useLayoutEffect(() => {
-    setUnitWidths(measureSingleLineWidthsPx(units.map((unit) => unit.text), textClassName))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, sentenceWidth])
-
-  const cumulativeCenters = useMemo(() => {
-    if (!unitWidths) return []
-    const centers: number[] = []
-    let cursor = 0
-    for (const width of unitWidths) {
-      centers.push(cursor + width / 2)
-      cursor += width + UNIT_GAP_PX
-    }
-    return centers
-  }, [unitWidths])
 
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -276,13 +245,10 @@ export function SentenceReadingModeCanvas({
     }
   }, [])
 
-  // The actual motion — a dedicated rAF loop, started once real widths are
-  // known and re-created only if the unit list, width tier, or reduced-
-  // motion preference itself changes.
+  // The actual motion — a dedicated rAF loop writing translateY straight to
+  // the track element via a ref, same GPU-composited direct-DOM pattern as
+  // the horizontal Canvas's translateX, just the other axis.
   useEffect(() => {
-    if (unitWidths === null) return undefined
-
-    const offsetForIndex = (index: number): number => cumulativeCenters[index] ?? 0
     let rafId: number
 
     function tick(): void {
@@ -306,25 +272,22 @@ export function SentenceReadingModeCanvas({
                   lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
                 offsetForIndex,
               })
-        track.style.transform = `translate3d(-${offsetPx}px, 0, 0)`
+        track.style.transform = `translate3d(0, -${offsetPx}px, 0)`
       }
       rafId = requestAnimationFrame(tick)
     }
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-    // cumulativeCenters is derived from unitWidths, which IS a dependency
-    // — omitting it here is deliberate, not stale: it's read fresh via
-    // offsetForIndex's own closure on every single frame anyway.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitWidths, units, prefersReducedMotion])
+  }, [units, prefersReducedMotion, rowHeight])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
   const chromeClassName = `transition-opacity duration-500 ease-out ${isChromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`
 
   return (
-    <ReadingLayout maxWidthClassName="max-w-6xl" onExit={onExit}>
+    <ReadingLayout maxWidthClassName="max-w-2xl" onExit={onExit}>
       <div
         className="flex w-full flex-col items-center"
         onPointerMove={revealChromeAndScheduleHide}
@@ -332,7 +295,7 @@ export function SentenceReadingModeCanvas({
         onFocus={revealChromeAndScheduleHide}
       >
         <div className={`w-full max-w-md ${chromeClassName}`}>
-          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Sentence Reading Mode™ · Horizontal</p>
+          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Sentence Reading Mode™ · Vertical</p>
           {categoryLabel && <p className="mb-3 text-center text-xs text-muted-foreground">Reading: {categoryLabel}</p>}
 
           <div className="grid grid-cols-3 gap-x-4 text-center">
@@ -352,28 +315,25 @@ export function SentenceReadingModeCanvas({
           </div>
         </div>
 
-        {/* The single-line focus channel — a marquee the track can never
-            wrap out of (whitespace-nowrap per sentence + overflow-hidden
-            on the frame). `maxWidth` + `w-full` (not a literal `width`) so
-            it shrinks safely on narrow viewports instead of overflowing. */}
+        {/* The teleprompter waterfall — a fixed 3-row window (previous /
+            current / next, current centered) the track can never wrap or
+            spill out of (overflow-hidden on the frame). One full sentence
+            per row, flowing smoothly downward at a constant, WPM-paced
+            rate — no jumps, no discrete flashes. */}
         <div
           className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
-          style={{
-            maxWidth: viewportWidth,
-            height: LINE_HEIGHT_PX,
-            visibility: unitWidths === null ? 'hidden' : 'visible',
-          }}
+          style={{ maxWidth: channelWidth, height: channelHeight }}
           aria-live="off"
         >
           <div
             ref={trackRef}
-            className="absolute top-0 flex h-full items-center will-change-transform"
-            style={{ left: '50%', gap: UNIT_GAP_PX }}
+            className="absolute left-0 flex w-full flex-col items-center will-change-transform"
+            style={{ top: '50%', gap: UNIT_GAP_PX }}
           >
             {units.map((unit) => (
-              <span key={unit.id} className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>
-                {unit.text}
-              </span>
+              <div key={unit.id} className="flex items-center justify-center px-6 text-center" style={{ height: rowHeight, width: '100%' }}>
+                <span className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
+              </div>
             ))}
           </div>
         </div>
