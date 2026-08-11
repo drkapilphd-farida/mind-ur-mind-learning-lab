@@ -136,6 +136,15 @@ export const READING_HUB_MODES: readonly ReadingHubMode[] = [
     exerciseId: 'photographic-reading',
     storageKey: 'qsr-photographic-reading-best',
   },
+  {
+    id: 'dual-stream-split-reader',
+    title: 'Dual-Stream Split Reader™',
+    purpose: 'Two synchronized word streams flow side by side, training bilateral focus and genuinely parallel processing.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/dual-stream-split-reader',
+    exerciseId: 'dual-stream-split-reader',
+    storageKey: 'qsr-dual-stream-split-reader-best',
+  },
 ] as const
 
 export const READING_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = READING_HUB_MODES.filter(
