@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue, useTransform } from 'framer-motion'
 import { ArrowRight, EyeOff, SkipForward } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import type { VisualActivationExerciseProps } from './types'
 
 // Aura Edge Color Pulsing™ — Exercise 6 of the Visual Activation Suite.
@@ -290,6 +291,7 @@ export function AuraEdgeColorPulsing({ onComplete, onExit }: VisualActivationExe
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       {/* Rich, layered ambient wash — the same indigo/violet/cyan
           treatment as the rest of the suite, for a consistent Brain Gym
           identity across every phase. */}

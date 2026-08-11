@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { Button } from '@/components/ui/button'
 
 const TARGET_WPM_OPTIONS = [100, 150, 200, 250, 300, 350, 400, 450, 500] as const
@@ -43,6 +44,7 @@ export function ParagraphReadingModeSettings({
 }: ParagraphReadingModeSettingsProps): React.JSX.Element {
   return (
     <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       <Link
         href="/labs/quantum-speed-reading"
         className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"

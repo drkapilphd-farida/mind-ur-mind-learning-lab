@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, Circle, Contact, Diamond, Flame, type LucideIcon, SkipForward, Star, Triangle, UserRound } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import type { VisualActivationExerciseProps } from './types'
 
 // Tratak Afterimage Stretches™ — Exercise 8 (the suite's closing
@@ -394,6 +395,7 @@ export function TratakAfterimageStretches({ onComplete, onExit }: VisualActivati
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       {/* Rich, layered ambient wash — the same indigo/violet/cyan
           treatment as the rest of the suite, for a consistent Brain Gym
           identity. */}

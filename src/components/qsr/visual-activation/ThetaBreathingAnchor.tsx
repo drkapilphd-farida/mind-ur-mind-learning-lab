@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, SkipForward, Wind } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { cn } from '@/lib/utils'
 import type { VisualActivationExerciseProps } from './types'
 
@@ -327,6 +328,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       {/* Rich, layered ambient wash — deep indigo bleeding into electric
           violet and a luminous cyan core, static (only the orb itself
           carries motion) but saturated enough to read as premium in both

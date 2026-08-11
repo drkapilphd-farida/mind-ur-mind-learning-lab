@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { Button } from '@/components/ui/button'
 
 // Deliberately a narrow band, not the wide 100-500 range other modes use.
@@ -26,6 +27,7 @@ export function FlashRecallSprintSettings({
 }: FlashRecallSprintSettingsProps): React.JSX.Element {
   return (
     <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       <Link
         href="/labs/quantum-speed-reading"
         className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"

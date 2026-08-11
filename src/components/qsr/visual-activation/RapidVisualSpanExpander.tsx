@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, ScanEye, SkipForward } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import type { VisualActivationExerciseProps } from './types'
 
 // Rapid Visual Span Expander™ — Exercise 10 of the Visual Activation
@@ -454,6 +455,7 @@ export function RapidVisualSpanExpander({ onComplete, onExit }: VisualActivation
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div
           className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"

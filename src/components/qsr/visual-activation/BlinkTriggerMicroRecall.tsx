@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, Diamond, Hexagon, type LucideIcon, SkipForward, Square, Star, Timer, Triangle } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import type { VisualActivationExerciseProps } from './types'
 
 // Blink-Trigger Micro-Recall™ — Exercise 7 (the final exercise) of the
@@ -438,6 +439,7 @@ export function BlinkTriggerMicroRecall({ onComplete, onExit }: VisualActivation
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       {/* Rich, layered ambient wash — the same indigo/violet/cyan
           treatment as the rest of the suite, for a consistent Brain Gym
           identity. */}

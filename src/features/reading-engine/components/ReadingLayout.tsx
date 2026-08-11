@@ -1,5 +1,7 @@
 'use client'
 
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
+
 type ReadingLayoutProps = {
   maxWidthClassName?: string
   onExit: () => void
@@ -16,6 +18,7 @@ const SECONDARY_TEXT_BUTTON_CLASSES =
 export function ReadingLayout({ maxWidthClassName = 'max-w-md', onExit, children }: ReadingLayoutProps): React.JSX.Element {
   return (
     <div className={`relative mx-auto flex min-h-[70vh] ${maxWidthClassName} flex-col items-center px-6 py-16`}>
+      <BrandWatermark className="absolute top-4 left-6" />
       <button onClick={onExit} className={`absolute top-4 right-6 ${SECONDARY_TEXT_BUTTON_CLASSES}`} aria-label="Exit exercise">
         Exit
       </button>

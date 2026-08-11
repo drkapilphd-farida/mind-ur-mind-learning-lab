@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, Sparkles, SkipForward } from 'lucide-react'
+import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import type { VisualActivationExerciseProps } from './types'
 
 // Quantum Tachistoscope Multi-Word Blast™ — Exercise 5 of the Visual
@@ -540,6 +541,7 @@ export function QuantumTachistoscopeMultiWordBlast({ onComplete, onExit }: Visua
 
   return (
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute top-4 left-6" />
       {/* Rich, layered ambient wash — the same indigo/violet/cyan
           treatment as the rest of the suite, for a consistent Brain Gym
           identity. */}

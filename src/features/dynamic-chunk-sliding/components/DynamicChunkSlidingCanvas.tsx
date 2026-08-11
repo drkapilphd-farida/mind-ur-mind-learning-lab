@@ -32,17 +32,40 @@ const ENGINE_TICK_MS = 100
 
 const HAPTIC_TRANSITION_MS = 10
 
+// Zero-distraction focus mode: the header stats/progress bar and the
+// Pause/Restart/Finish row fade out after this much pointer inactivity
+// while actively running, leaving only the sliding words on screen. Any
+// pointer movement (or pausing) brings them straight back — never a
+// permanent disappearance, just an auto-hide, the same convention as any
+// video player's control bar.
+const CHROME_AUTO_HIDE_DELAY_MS = 2_200
+
+// Deep charcoal / crisp near-white — deliberately hardcoded literal
+// Tailwind arbitrary-value classes (bg-[#FBF9F4] etc.) rather than theme
+// tokens like bg-background/text-foreground, since "razor-sharp, reading-
+// optimized contrast" is a stronger guarantee than whatever the app's
+// general-purpose tokens happen to resolve to. Written as literal class
+// strings directly in the JSX below, not built from JS constants — the
+// Tailwind JIT scanner can't resolve interpolated values, so a template
+// literal here would silently produce no CSS in production.
+const CARD_CLASS_NAME = 'bg-[#FBF9F4] dark:bg-[#16171A]'
+const CHUNK_TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
+
 // The same static-frequency singing-bowl drone every Brain Gym exercise
 // uses (own-copy, per this app's established convention of duplicating
 // small self-contained logic rather than cross-feature coupling) — here a
 // calm, distraction-free background presence for focused reading, never a
-// pitch sweep.
-const FUNDAMENTAL_HZ = 220
-const RESTING_GAIN = 0.026
-const AMBIENT_FADE_IN_TIME_CONSTANT_S = 1.0
-const RELEASE_TIME_CONSTANT_S = 0.6
+// pitch sweep. Tuned noticeably softer/deeper/slower than the Brain Gym
+// original per direct user-testing feedback ("invisible, profoundly
+// calming backdrop") — a full octave down, much heavier low-pass
+// filtering to cut the brighter overtones, quieter at rest, and slower to
+// fade in/out so it never announces itself.
+const FUNDAMENTAL_HZ = 110
+const RESTING_GAIN = 0.014
+const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
+const RELEASE_TIME_CONSTANT_S = 1.6
 const RELEASE_SETTLE_MS = RELEASE_TIME_CONSTANT_S * 5 * 1000
-const LOWPASS_CUTOFF_HZ = 2_600
+const LOWPASS_CUTOFF_HZ = 900
 const REVERB_WET_LEVEL = 0.28
 const REVERB_DURATION_S = 2.0
 const REVERB_DECAY = 2.8
@@ -117,6 +140,28 @@ export function DynamicChunkSlidingCanvas({
 }: DynamicChunkSlidingCanvasProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
+
+  // Zero-distraction focus mode — see CHROME_AUTO_HIDE_DELAY_MS above.
+  const [isChromeVisible, setIsChromeVisible] = useState(true)
+  const chromeHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function revealChromeAndScheduleHide(): void {
+    setIsChromeVisible(true)
+    if (chromeHideTimeoutRef.current) clearTimeout(chromeHideTimeoutRef.current)
+    if (!isPaused) {
+      chromeHideTimeoutRef.current = setTimeout(() => setIsChromeVisible(false), CHROME_AUTO_HIDE_DELAY_MS)
+    }
+  }
+
+  useEffect(() => {
+    revealChromeAndScheduleHide()
+    return () => {
+      if (chromeHideTimeoutRef.current) clearTimeout(chromeHideTimeoutRef.current)
+    }
+    // Re-arms whenever isPaused changes: pausing cancels the pending hide
+    // and keeps chrome visible; resuming re-schedules it fresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaused])
 
   const [unitWidths, setUnitWidths] = useState<number[] | null>(null)
   useLayoutEffect(() => {
@@ -291,100 +336,85 @@ export function DynamicChunkSlidingCanvas({
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
 
+  const chromeClassName = `transition-opacity duration-500 ease-out ${isChromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`
+
   return (
     <ReadingLayout maxWidthClassName="max-w-4xl" onExit={onExit}>
-      {/* Rich, layered ambient wash — the same indigo/violet/cyan
-          treatment as the Brain Gym suite, for one consistent premium
-          identity across the whole Reading Intelligence Hub. */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-          style={{
-            background: 'radial-gradient(circle at 35% 30%, rgba(103,232,249,0.3) 0%, rgba(139,92,246,0.28) 38%, rgba(67,56,202,0.32) 68%, transparent 100%)',
-          }}
-        />
-        <div
-          className="absolute left-1/2 top-1/2 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-          style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.3) 0%, transparent 70%)' }}
-        />
-      </div>
-
-      <div className="w-full max-w-md">
-        <p className="mb-3 text-center text-[10px] font-medium tracking-widest text-primary uppercase">Dynamic Chunk Sliding™</p>
-
-        <div className="grid grid-cols-3 gap-x-4 text-center">
-          <ReadingStatTile label="Reading Pace" value={isWarmingUp ? 'Warming up…' : `${Math.round(animatedWpm)} wpm`} />
-          <ReadingStatTile label="Target WPM" value={String(targetWpm)} />
-          <ReadingStatTile label="Elapsed" value={formatElapsedTime(elapsedMs)} />
-        </div>
-
-        {/* A modern gradient progress bar, specific to this exercise's own
-            redesign — the shared ReadingProgressBar (used by every other
-            Reading Mode) stays untouched. */}
-        <div className="mt-4">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15 dark:bg-white/5">
-            <div
-              className={`h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 ${prefersReducedMotion ? '' : 'transition-[width] duration-300 ease-out'}`}
-              style={{ width: `${clampedProgress}%` }}
-            />
-          </div>
-          <p className="mt-1.5 text-right text-[10px] font-medium tabular-nums text-muted-foreground">{clampedProgress}%</p>
-        </div>
-      </div>
-
-      {/* The frosted glassmorphic focus channel — a single-line marquee
-          the track can never wrap out of (whitespace-nowrap per chunk +
-          overflow-hidden on the frame), with a soft center-focus glow
-          marking exactly where each chunk settles. */}
+      {/* Zero-distraction focus mode — any pointer activity reveals the
+          header/controls and restarts the auto-hide timer; see
+          CHROME_AUTO_HIDE_DELAY_MS. Reading-optimized: no color wash, a
+          plain neutral surface, so nothing here competes with the text
+          itself for attention. */}
       <div
-        className="relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-white/25 bg-white/10 shadow-[0_8px_40px_-12px_rgba(79,70,229,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5"
-        style={{
-          maxWidth: CHUNK_VIEWPORT_WIDTH_PX,
-          height: CHUNK_LINE_HEIGHT_PX,
-          visibility: unitWidths === null ? 'hidden' : 'visible',
-          boxShadow: 'inset 36px 0 32px -28px rgba(15,10,40,0.12), inset -36px 0 32px -28px rgba(15,10,40,0.12)',
-        }}
-        aria-live="off"
+        className="flex w-full flex-col items-center"
+        onPointerMove={revealChromeAndScheduleHide}
+        onTouchStart={revealChromeAndScheduleHide}
+        onFocus={revealChromeAndScheduleHide}
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-0 h-full w-32 -translate-x-1/2"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.16) 0%, rgba(34,211,238,0.1) 55%, transparent 80%)' }}
-        />
+        <div className={`w-full max-w-md ${chromeClassName}`}>
+          <p className="mb-3 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Dynamic Chunk Sliding™</p>
 
-        <div
-          ref={trackRef}
-          className="absolute top-0 flex h-full items-center will-change-transform"
-          style={{ left: '50%', gap: UNIT_GAP_PX }}
-        >
-          {units.map((unit) => (
-            <span
-              key={unit.id}
-              className={`${CHUNK_TEXT_CLASS_NAME} relative text-foreground`}
-              style={{ filter: 'drop-shadow(0 2px 10px rgba(99,102,241,0.35)) drop-shadow(0 0 22px rgba(34,211,238,0.18))' }}
-            >
-              {unit.text}
-            </span>
-          ))}
+          <div className="grid grid-cols-3 gap-x-4 text-center">
+            <ReadingStatTile label="Reading Pace" value={isWarmingUp ? 'Warming up…' : `${Math.round(animatedWpm)} wpm`} />
+            <ReadingStatTile label="Target WPM" value={String(targetWpm)} />
+            <ReadingStatTile label="Elapsed" value={formatElapsedTime(elapsedMs)} />
+          </div>
+
+          <div className="mt-4">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
+              <div
+                className={`h-full rounded-full bg-foreground/80 ${prefersReducedMotion ? '' : 'transition-[width] duration-300 ease-out'}`}
+                style={{ width: `${clampedProgress}%` }}
+              />
+            </div>
+            <p className="mt-1.5 text-right text-[10px] font-medium tabular-nums text-muted-foreground">{clampedProgress}%</p>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
-        {isPaused ? (
-          <button onClick={onResume} className={PRIMARY_TEXT_BUTTON_CLASSES}>
-            Resume
+        {/* The single-line focus channel — a marquee the track can never
+            wrap out of (whitespace-nowrap per chunk + overflow-hidden on
+            the frame). Solid, near-opaque paper/graphite card rather than
+            a translucent glass-over-color-wash, so text contrast never
+            depends on whatever happens to be behind it. */}
+        <div
+          className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
+          style={{
+            maxWidth: CHUNK_VIEWPORT_WIDTH_PX,
+            height: CHUNK_LINE_HEIGHT_PX,
+            visibility: unitWidths === null ? 'hidden' : 'visible',
+          }}
+          aria-live="off"
+        >
+          <div
+            ref={trackRef}
+            className="absolute top-0 flex h-full items-center will-change-transform"
+            style={{ left: '50%', gap: UNIT_GAP_PX }}
+          >
+            {units.map((unit) => (
+              <span key={unit.id} className={`${CHUNK_TEXT_CLASS_NAME} ${CHUNK_TEXT_COLOR_CLASS_NAME}`}>
+                {unit.text}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className={`mt-10 flex flex-wrap items-center justify-center gap-6 ${chromeClassName}`}>
+          {isPaused ? (
+            <button onClick={onResume} className={PRIMARY_TEXT_BUTTON_CLASSES}>
+              Resume
+            </button>
+          ) : (
+            <button onClick={onPause} className={PRIMARY_TEXT_BUTTON_CLASSES}>
+              Pause
+            </button>
+          )}
+          <button onClick={onRestart} className={SECONDARY_TEXT_BUTTON_CLASSES}>
+            Restart
           </button>
-        ) : (
-          <button onClick={onPause} className={PRIMARY_TEXT_BUTTON_CLASSES}>
-            Pause
+          <button onClick={onFinish} className={SECONDARY_TEXT_BUTTON_CLASSES}>
+            Finish
           </button>
-        )}
-        <button onClick={onRestart} className={SECONDARY_TEXT_BUTTON_CLASSES}>
-          Restart
-        </button>
-        <button onClick={onFinish} className={SECONDARY_TEXT_BUTTON_CLASSES}>
-          Finish
-        </button>
+        </div>
       </div>
     </ReadingLayout>
   )
