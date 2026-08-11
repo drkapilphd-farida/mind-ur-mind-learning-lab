@@ -127,6 +127,15 @@ export const READING_HUB_MODES: readonly ReadingHubMode[] = [
     exerciseId: 'subvocalization-destroyer',
     storageKey: 'qsr-subvocalization-destroyer-best',
   },
+  {
+    id: 'photographic-reading',
+    title: 'Photographic Reading™',
+    purpose: 'Meaningful word clusters flash across shifting screen quadrants, training non-linear reading and spatial photographic memory.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/photographic-reading',
+    exerciseId: 'photographic-reading',
+    storageKey: 'qsr-photographic-reading-best',
+  },
 ] as const
 
 export const READING_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = READING_HUB_MODES.filter(
