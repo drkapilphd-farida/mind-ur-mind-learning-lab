@@ -8,6 +8,7 @@ const TARGET_WPM_OPTIONS = [100, 150, 200, 250, 300, 350, 400, 450, 500] as cons
 
 export type GuidedParagraphReadingWidth = 'compact' | 'comfortable' | 'wide'
 export type GuidedParagraphFontSize = 'small' | 'medium' | 'large'
+export type GuidedParagraphOrientation = 'horizontal' | 'vertical'
 
 const READING_WIDTH_OPTIONS: readonly { id: GuidedParagraphReadingWidth; label: string }[] = [
   { id: 'compact', label: 'Compact' },
@@ -21,6 +22,11 @@ const FONT_SIZE_OPTIONS: readonly { id: GuidedParagraphFontSize; label: string }
   { id: 'large', label: 'Large' },
 ]
 
+const ORIENTATION_OPTIONS: readonly { id: GuidedParagraphOrientation; label: string; description: string }[] = [
+  { id: 'horizontal', label: 'Horizontal Guided Sweeping', description: 'A glowing marker sweeps left to right along each line' },
+  { id: 'vertical', label: 'Vertical Guided Tracking', description: 'A glowing bar glides smoothly down the whole page' },
+]
+
 type GuidedParagraphReadingModeSettingsProps = {
   targetWpm: number
   onSelectTargetWpm: (wpm: number) => void
@@ -28,13 +34,16 @@ type GuidedParagraphReadingModeSettingsProps = {
   onSelectReadingWidth: (width: GuidedParagraphReadingWidth) => void
   fontSize: GuidedParagraphFontSize
   onSelectFontSize: (size: GuidedParagraphFontSize) => void
+  orientation: GuidedParagraphOrientation
+  onSelectOrientation: (orientation: GuidedParagraphOrientation) => void
+  categoryLabel: string | null
   onStart: () => void
 }
 
-// Guided Paragraph Reading Mode™ — the Master Reading Engine's fifth and
-// final mode. Reading Width and Font Size are both purely presentational
-// — the engine never sees either, same as every prior mode's own
-// settings. Structurally identical to ParagraphReadingModeSettings.tsx.
+// Reading Width and Font Size are both purely presentational — the engine
+// never sees either. Orientation is the same kind of purely presentational
+// choice: both Canvases feed the engine the exact same word-level
+// units/pacing, just guiding the eye along a different path.
 export function GuidedParagraphReadingModeSettings({
   targetWpm,
   onSelectTargetWpm,
@@ -42,6 +51,9 @@ export function GuidedParagraphReadingModeSettings({
   onSelectReadingWidth,
   fontSize,
   onSelectFontSize,
+  orientation,
+  onSelectOrientation,
+  categoryLabel,
   onStart,
 }: GuidedParagraphReadingModeSettingsProps): React.JSX.Element {
   return (
@@ -57,8 +69,37 @@ export function GuidedParagraphReadingModeSettings({
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Guided Paragraph Reading™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Read full paragraphs with a gentle guide bar sweeping through each line at your pace.
+          Read full paragraphs with a glowing guide gliding through them at your pace.
         </p>
+        {/* Deliberately null on both the server and the client's first
+            paint (only ever set from a useEffect in the Experience
+            orchestrator, never a lazy state initializer) — see
+            guidedParagraphReadingModeDataset.ts's pickSessionCategory doc
+            comment for why, to avoid a hydration mismatch. */}
+        {categoryLabel && <p className="mt-2 text-xs font-medium text-muted-foreground">Today&rsquo;s passage: {categoryLabel}</p>}
+      </div>
+
+      <div className="w-full">
+        <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">Guide Direction</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+          {ORIENTATION_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => onSelectOrientation(option.id)}
+              aria-pressed={option.id === orientation}
+              className={`flex-1 rounded-2xl border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 ${
+                option.id === orientation
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border/60 bg-card text-foreground hover:border-foreground/40'
+              }`}
+            >
+              <span className="block text-sm font-semibold">{option.label}</span>
+              <span className={`mt-0.5 block text-xs ${option.id === orientation ? 'text-background/70' : 'text-muted-foreground'}`}>
+                {option.description}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="w-full">
@@ -106,9 +147,10 @@ export function GuidedParagraphReadingModeSettings({
 
       <button
         onClick={onStart}
-        className="rounded-full bg-foreground px-10 py-3 text-sm font-medium text-background transition-all duration-150 hover:opacity-80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        disabled={categoryLabel === null}
+        className="rounded-full bg-foreground px-10 py-3 text-sm font-medium text-background transition-all duration-150 hover:opacity-80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        Start
+        {categoryLabel === null ? 'Preparing…' : 'Start'}
       </button>
     </div>
   )

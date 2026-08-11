@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
-import { measureWrappedWordYCentersPx } from '@/hooks/reading-engine/measureWrappedWordYCenters'
+import { measureWrappedWordPositionsPx, type WrappedLineMeta } from '@/hooks/reading-engine/measureWrappedWordPositions'
 import { computeUnitDwellMs } from '@/features/reading-engine/readingMetrics'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
@@ -11,8 +11,6 @@ import { ReadingStatTile } from '@/features/reading-engine/components/ReadingSta
 import type { ReadingUnit } from '@/features/reading-engine/types'
 import type { GuidedParagraphReadingWidth, GuidedParagraphFontSize } from './GuidedParagraphReadingModeSettings'
 
-// "How much of the passage is visible" — the comfort-reading measure, same
-// convention as Paragraph Reading Mode.
 const READING_WIDTH_PX: Record<GuidedParagraphReadingWidth, number> = {
   compact: 560,
   comfortable: 720,
@@ -27,24 +25,28 @@ const FONT_SIZE_STYLE: Record<GuidedParagraphFontSize, { fontSize: number; lineH
   large: { fontSize: 22, lineHeight: 40 },
 }
 
+// How wide the glowing marker itself is — roughly a small reading cluster,
+// not a single character and not a full line, so it reads as "a spotlight
+// following your eyes" rather than either a caret or a full highlight bar.
+const MARKER_WIDTH_PX = 110
+
+// The final portion of each line's own sweep where the marker begins
+// blending toward the *next* line's start — a smooth, continuous "return
+// sweep" (own-copy rationale of Paragraph Reading Mode's constant-
+// velocity fix, extended to two axes: X sweeps across the current line,
+// then both X and Y glide together toward the next line's start during
+// this blend window, rather than an instant CSS-transition snap).
+const LINE_BLEND_START_FRACTION = 0.8
+
 const ENGINE_TICK_MS = 100
 const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
-// Cinematic Reader palette — same frosted-glass card every sibling Reading
-// Mode in this app shares (own-copy, not a shared import).
 const CARD_CLASS_NAME = 'bg-[#FBF9F4]/95 dark:bg-[#16171A]/95 backdrop-blur-md'
 const TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
+const GLOW_MARKER_CLASS_NAME = 'rounded-full bg-sky-400/20 dark:bg-sky-300/20 ring-1 ring-sky-400/50 dark:ring-sky-300/50'
+const GLOW_MARKER_BOX_SHADOW = '0 0 24px 6px rgba(56, 189, 248, 0.4), 0 0 8px rgba(56, 189, 248, 0.55)'
 
-// The glowing guide bar itself — a soft, saturated glow (own-copy color
-// choice, deliberately distinct from the app's neutral foreground/primary
-// tokens, since a "glow" reads as a glow specifically because it carries
-// real, saturated color rather than a flat neutral tint).
-const GLOW_BAR_CLASS_NAME = 'rounded-xl bg-sky-400/15 dark:bg-sky-300/15 ring-1 ring-sky-400/40 dark:ring-sky-300/40'
-const GLOW_BAR_BOX_SHADOW = '0 0 28px 6px rgba(56, 189, 248, 0.35), 0 0 8px rgba(56, 189, 248, 0.5)'
-
-// The exact tuned drone recipe every sibling exercise in this app
-// establishes (own-copy).
 const FUNDAMENTAL_HZ = 110
 const RESTING_GAIN = 0.014
 const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
@@ -64,7 +66,7 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 
 type HarmonicVoice = { oscillator: OscillatorNode }
 
-type GuidedParagraphReadingModeCanvasProps = {
+type GuidedParagraphReadingModeHorizontalCanvasProps = {
   units: readonly ReadingUnit[]
   currentUnitIndex: number
   readingWidth: GuidedParagraphReadingWidth
@@ -94,29 +96,55 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   return impulse
 }
 
-// Own-copy of Paragraph Reading Mode's proven constant-velocity formula
-// (see that file's own extensive doc comment on why this replaced simple
-// adjacent-word/line interpolation) — the guide bar glides at one steady
-// rate for the *entire* passage duration, from the first line's Y all the
-// way to the last, so it is structurally incapable of the old CSS-
-// transition's freeze-then-snap jerk between lines.
-function computeConstantVelocityOffsetPx(startOffsetPx: number, endOffsetPx: number, totalDurationMs: number, elapsedMs: number): number {
-  if (totalDurationMs <= 0) return startOffsetPx
-  const fraction = Math.min(Math.max(elapsedMs / totalDurationMs, 0), 1)
-  return startOffsetPx + (endOffsetPx - startOffsetPx) * fraction
+// Pure, deterministic 2D guide position for any point in time — no event-
+// driven transition state needed. Within a line, X sweeps at one constant
+// velocity from that line's first word to its last (own-copy of Paragraph
+// Reading Mode's constant-velocity idea, scoped per line instead of per
+// whole passage, since X resets at every line break rather than being
+// monotonic across the entire text). Y holds steady at that line's own
+// height for most of the line, then during the final
+// LINE_BLEND_START_FRACTION portion, both X and Y glide together toward
+// the next line's start — a smooth, continuous "return sweep" rather than
+// an instant reset.
+function computeGuidePosition(
+  lines: readonly WrappedLineMeta[],
+  dwellPerWordMs: number,
+  totalWords: number,
+  elapsedMs: number,
+): { x: number; y: number } {
+  if (lines.length === 0 || dwellPerWordMs <= 0) return { x: 0, y: 0 }
+
+  const virtualIndex = Math.min(Math.max(elapsedMs / dwellPerWordMs, 0), Math.max(totalWords - 1, 0))
+  let lineIndex = lines.findIndex((line) => virtualIndex >= line.firstWordIndex && virtualIndex <= line.lastWordIndex + 1)
+  if (lineIndex === -1) lineIndex = virtualIndex < (lines[0]?.firstWordIndex ?? 0) ? 0 : lines.length - 1
+
+  const line = lines[lineIndex]
+  if (!line) return { x: 0, y: 0 }
+  const nextLine = lines[lineIndex + 1] ?? null
+
+  const span = Math.max(line.lastWordIndex - line.firstWordIndex, 1)
+  const fraction = Math.min(Math.max((virtualIndex - line.firstWordIndex) / span, 0), 1)
+
+  let x = line.firstWordX + (line.lastWordX - line.firstWordX) * fraction
+  let y = line.y
+
+  if (fraction > LINE_BLEND_START_FRACTION && nextLine) {
+    const blend = (fraction - LINE_BLEND_START_FRACTION) / (1 - LINE_BLEND_START_FRACTION)
+    x = x + (nextLine.firstWordX - x) * blend
+    y = y + (nextLine.y - y) * blend
+  }
+
+  return { x, y }
 }
 
-// Vertical Guided Tracking — the full passage stays completely static and
-// fully visible (this mode's own "True Multi-Line Comfort Window"
-// signature, unchanged from before this overhaul), while a single glowing
-// horizontal bar glides continuously downward through it at one constant,
-// sub-pixel velocity for the whole passage — replacing the old mechanical
-// grey box (a CSS `transform` transition re-triggered every time the
-// engine's line index changed, producing a visible hold-then-jump feel)
-// with genuine rAF-driven continuous motion. The bar's own height and
-// glow are the only "highlight" — the text underneath never dims, fades,
-// or changes brightness, exactly like every sibling Reading Mode.
-export function GuidedParagraphReadingModeCanvas({
+// Horizontal Guided Sweeping — the same static, fully-visible multi-line
+// passage as Vertical Guided Tracking, but here a small glowing marker
+// sweeps left to right along the *current line*, training lateral reading
+// eye-span directly, then glides smoothly down and back to the next
+// line's start once that line finishes — the natural "return sweep" a
+// real reading guide (finger, ruler, index card) makes, now genuinely
+// continuous and rAF-driven rather than a CSS-transition snap.
+export function GuidedParagraphReadingModeHorizontalCanvas({
   units,
   currentUnitIndex,
   readingWidth,
@@ -132,7 +160,7 @@ export function GuidedParagraphReadingModeCanvas({
   onRestart,
   onFinish,
   onExit,
-}: GuidedParagraphReadingModeCanvasProps): React.JSX.Element {
+}: GuidedParagraphReadingModeHorizontalCanvasProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
   const viewportWidth = READING_WIDTH_PX[readingWidth]
@@ -140,12 +168,11 @@ export function GuidedParagraphReadingModeCanvas({
 
   // The card renders at `maxWidth: viewportWidth` + `w-full`, so on a
   // narrow mobile viewport its *real* rendered width is smaller than the
-  // desktop tier value above — measuring text wrap against the fixed tier
-  // value instead of the real width would silently clip lines mid-
-  // sentence once the card actually shrinks. This measures the card's own
-  // real clientWidth (valid even while `visibility: hidden`, since layout
-  // is still computed) and re-measures on resize, so word positions always
-  // match what's actually on screen at the current viewport.
+  // desktop tier value above — measuring text wrap (and X sweep bounds)
+  // against the fixed tier value instead of the real width would silently
+  // clip lines mid-sentence once the card actually shrinks. This measures
+  // the card's own real clientWidth (valid even while `visibility:
+  // hidden`, since layout is still computed) and re-measures on resize.
   const cardRef = useRef<HTMLDivElement | null>(null)
   const [measuredWrapWidth, setMeasuredWrapWidth] = useState<number | null>(null)
   useLayoutEffect(() => {
@@ -176,34 +203,24 @@ export function GuidedParagraphReadingModeCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
 
-  // Real, per-word vertical centers within the naturally-wrapped passage —
-  // measured against a hidden probe sharing the exact width/font/style the
-  // text below actually renders with.
-  const [wordYCenters, setWordYCenters] = useState<number[] | null>(null)
+  const [positions, setPositions] = useState<{ y: number[]; lines: readonly WrappedLineMeta[] } | null>(null)
   useLayoutEffect(() => {
     if (measuredWrapWidth === null) return
-    setWordYCenters(
-      measureWrappedWordYCentersPx(units.map((unit) => unit.text), measuredWrapWidth, '', {
-        fontSize: `${fontSizePx}px`,
-        lineHeight: `${lineHeight}px`,
-        fontWeight: '400',
-      }),
-    )
+    const measured = measureWrappedWordPositionsPx(units.map((unit) => unit.text), measuredWrapWidth, '', {
+      fontSize: `${fontSizePx}px`,
+      lineHeight: `${lineHeight}px`,
+      fontWeight: '400',
+    })
+    setPositions({ y: measured.y, lines: measured.lines })
   }, [units, measuredWrapWidth, fontSizePx, lineHeight])
 
-  // The card's own height must fit every line of this passage — computed
-  // from the real last measured Y rather than a fixed lookup table, so a
-  // longer passage never gets silently clipped.
   const cardHeight = useMemo(() => {
-    if (!wordYCenters || wordYCenters.length === 0) return lineHeight * 3 + CARD_PADDING_PX * 2
-    const lastY = wordYCenters[wordYCenters.length - 1] ?? 0
+    if (!positions || positions.y.length === 0) return lineHeight * 3 + CARD_PADDING_PX * 2
+    const lastY = positions.y[positions.y.length - 1] ?? 0
     return lastY + lineHeight / 2 + CARD_PADDING_PX * 2
-  }, [wordYCenters, lineHeight])
+  }, [positions, lineHeight])
 
-  const totalDurationMs = useMemo(
-    () => units.reduce((sum, unit) => sum + computeUnitDwellMs(unit.text, targetWpm), 0),
-    [units, targetWpm],
-  )
+  const dwellPerWordMs = useMemo(() => computeUnitDwellMs(units[0]?.text ?? '', targetWpm), [units, targetWpm])
 
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -220,10 +237,10 @@ export function GuidedParagraphReadingModeCanvas({
 
   const currentUnitIndexRef = useRef(currentUnitIndex)
   const isPausedRef = useRef(isPaused)
-  const totalDurationMsRef = useRef(totalDurationMs)
+  const dwellPerWordMsRef = useRef(dwellPerWordMs)
   currentUnitIndexRef.current = currentUnitIndex
   isPausedRef.current = isPaused
-  totalDurationMsRef.current = totalDurationMs
+  dwellPerWordMsRef.current = dwellPerWordMs
 
   useEffect(() => {
     if (currentUnitIndex === lastHapticUnitIndexRef.current) return
@@ -302,39 +319,34 @@ export function GuidedParagraphReadingModeCanvas({
     }
   }, [])
 
-  // The actual motion — a dedicated rAF loop writing translateY straight to
-  // the glow bar via a ref. Every frame recomputes a fresh constant-
-  // velocity offset directly from elapsed time — no per-line branch left
-  // to hold or jump on.
+  // The actual motion — a dedicated rAF loop writing a 2D translate
+  // straight to the marker via a ref. Every frame recomputes a fresh
+  // position directly from elapsed time via computeGuidePosition, a pure
+  // function with zero mutable transition state.
   useEffect(() => {
-    if (wordYCenters === null || wordYCenters.length === 0) return undefined
+    if (positions === null || positions.lines.length === 0) return undefined
 
-    const centers = wordYCenters
-    const startOffsetPx = centers[0] ?? 0
-    const endOffsetPx = centers[centers.length - 1] ?? 0
+    const lines = positions.lines
+    const totalWords = units.length
     let rafId: number
 
     function tick(): void {
       const track = trackRef.current
       if (track) {
-        const offsetPx = prefersReducedMotion
-          ? (centers[currentUnitIndexRef.current] ?? 0)
+        const effectiveElapsedMs = prefersReducedMotion
+          ? (currentUnitIndexRef.current + 0.5) * dwellPerWordMsRef.current
           : isPausedRef.current
-            ? computeConstantVelocityOffsetPx(startOffsetPx, endOffsetPx, totalDurationMsRef.current, lastEngineElapsedMsRef.current)
-            : computeConstantVelocityOffsetPx(
-                startOffsetPx,
-                endOffsetPx,
-                totalDurationMsRef.current,
-                lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
-              )
-        track.style.transform = `translate3d(0, ${offsetPx - lineHeight / 2}px, 0)`
+            ? lastEngineElapsedMsRef.current
+            : lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS)
+        const { x, y } = computeGuidePosition(lines, dwellPerWordMsRef.current, totalWords, effectiveElapsedMs)
+        track.style.transform = `translate3d(${x - MARKER_WIDTH_PX / 2}px, ${y - lineHeight / 2}px, 0)`
       }
       rafId = requestAnimationFrame(tick)
     }
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [wordYCenters, prefersReducedMotion, lineHeight])
+  }, [positions, units.length, prefersReducedMotion, lineHeight])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
@@ -349,7 +361,7 @@ export function GuidedParagraphReadingModeCanvas({
         onFocus={revealChromeAndScheduleHide}
       >
         <div className={`w-full max-w-md ${chromeClassName}`}>
-          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Guided Paragraph Reading™ · Vertical</p>
+          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Guided Paragraph Reading™ · Horizontal</p>
           {categoryLabel && <p className="mb-3 text-center text-xs text-muted-foreground">Reading: {categoryLabel}</p>}
 
           <div className="grid grid-cols-3 gap-x-4 text-center">
@@ -372,14 +384,14 @@ export function GuidedParagraphReadingModeCanvas({
         <div
           ref={cardRef}
           className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 p-8 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
-          style={{ maxWidth: viewportWidth, height: cardHeight, visibility: wordYCenters === null ? 'hidden' : 'visible' }}
+          style={{ maxWidth: viewportWidth, height: cardHeight, visibility: positions === null ? 'hidden' : 'visible' }}
         >
           <div className="relative">
-            {wordYCenters && (
+            {positions && (
               <div
                 ref={trackRef}
-                className={`pointer-events-none absolute inset-x-0 will-change-transform ${GLOW_BAR_CLASS_NAME}`}
-                style={{ height: lineHeight, boxShadow: GLOW_BAR_BOX_SHADOW }}
+                className={`pointer-events-none absolute top-0 left-0 will-change-transform ${GLOW_MARKER_CLASS_NAME}`}
+                style={{ width: MARKER_WIDTH_PX, height: lineHeight, boxShadow: GLOW_MARKER_BOX_SHADOW }}
               />
             )}
             <p
