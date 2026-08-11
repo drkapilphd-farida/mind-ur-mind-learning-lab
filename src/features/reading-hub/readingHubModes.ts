@@ -47,6 +47,15 @@ export const READING_HUB_MODES: readonly ReadingHubMode[] = [
     storageKey: 'qsr-dynamic-chunk-sliding-best',
   },
   {
+    id: 'vertical-chunk-sliding',
+    title: 'Vertical Chunk Sliding™',
+    purpose: 'Slide fluidly through meaningful word chunks flowing top to bottom, with a fresh topic every session.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/vertical-chunk-sliding',
+    exerciseId: 'vertical-chunk-sliding',
+    storageKey: 'qsr-vertical-chunk-sliding-best',
+  },
+  {
     id: 'flash-recall-sprint',
     title: 'Flash Recall & Retention Sprint™',
     purpose: 'Flash a short passage, then answer a quick question on what you retained.',
