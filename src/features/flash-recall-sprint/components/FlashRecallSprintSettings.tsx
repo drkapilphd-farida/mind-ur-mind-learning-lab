@@ -15,12 +15,14 @@ type FlashRecallSprintSettingsProps = {
   targetWpm: number
   onSelectTargetWpm: (wpm: number) => void
   onStart: () => void
+  categoryLabel: string | null
 }
 
 export function FlashRecallSprintSettings({
   targetWpm,
   onSelectTargetWpm,
   onStart,
+  categoryLabel,
 }: FlashRecallSprintSettingsProps): React.JSX.Element {
   return (
     <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
@@ -37,6 +39,12 @@ export function FlashRecallSprintSettings({
         <p className="mt-3 text-sm text-muted-foreground">
           A true RSVP stream flashes one word at a time at your target pace — no stops — then 3 quick questions check what you retained.
         </p>
+        {/* Deliberately rendered as null on both the server and the
+            client's first paint (only ever set from a useEffect in the
+            Experience orchestrator, never a lazy state initializer) — see
+            flashRecallSprintDataset.ts's pickSessionCategory doc comment
+            for why, to avoid a hydration mismatch. */}
+        {categoryLabel && <p className="mt-2 text-xs font-medium text-muted-foreground">Today&rsquo;s reading: {categoryLabel}</p>}
       </div>
 
       <div className="w-full">
@@ -52,9 +60,10 @@ export function FlashRecallSprintSettings({
 
       <button
         onClick={onStart}
-        className="rounded-full bg-foreground px-10 py-3 text-sm font-medium text-background transition-all duration-150 hover:opacity-80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        disabled={categoryLabel === null}
+        className="rounded-full bg-foreground px-10 py-3 text-sm font-medium text-background transition-all duration-150 hover:opacity-80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        Start
+        {categoryLabel === null ? 'Preparing…' : 'Start'}
       </button>
     </div>
   )

@@ -12,6 +12,7 @@ const TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
 
 type FlashRecallSprintQuizProps = {
   questions: readonly FlashRecallSprintQuizQuestion[]
+  categoryLabel: string
   onComplete: (score: number) => void
   onExit: () => void
 }
@@ -29,7 +30,7 @@ function scoreMessage(score: number, total: number): string {
 // deliberately its own small component rather than a new phase inside the
 // locked useReadingRuntime.ts, which stays untouched and shared by 18+
 // other exercises.
-export function FlashRecallSprintQuiz({ questions, onComplete, onExit }: FlashRecallSprintQuizProps): React.JSX.Element {
+export function FlashRecallSprintQuiz({ questions, categoryLabel, onComplete, onExit }: FlashRecallSprintQuizProps): React.JSX.Element {
   const [questionIndex, setQuestionIndex] = useState(0)
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null)
   const [score, setScore] = useState(0)
@@ -60,7 +61,8 @@ export function FlashRecallSprintQuiz({ questions, onComplete, onExit }: FlashRe
       <ReadingLayout maxWidthClassName="max-w-xl" onExit={onExit}>
         <div className="flex w-full flex-col items-center gap-8 text-center">
           <div>
-            <p className="mb-3 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Retention Check</p>
+            <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Retention Check</p>
+            <p className="mb-3 text-center text-xs text-muted-foreground">{categoryLabel}</p>
             <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">You scored {score} / {totalQuestions}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{scoreMessage(score, totalQuestions)}</p>
           </div>
@@ -83,7 +85,7 @@ export function FlashRecallSprintQuiz({ questions, onComplete, onExit }: FlashRe
         <div className="w-full text-center">
           <p className="mb-1 text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Retention Check</p>
           <p className="text-xs text-muted-foreground">
-            Question {questionIndex + 1} of {totalQuestions}
+            {categoryLabel} · Question {questionIndex + 1} of {totalQuestions}
           </p>
         </div>
 

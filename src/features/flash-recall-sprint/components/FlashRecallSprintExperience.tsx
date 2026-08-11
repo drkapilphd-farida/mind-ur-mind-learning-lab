@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
@@ -8,7 +8,7 @@ import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { FLASH_RECALL_SPRINT_WORDS, FLASH_RECALL_SPRINT_QUESTIONS } from '../flashRecallSprintDataset'
+import { buildWordsForCategory, pickSessionCategory, type FlashRecallSprintCategory } from '../flashRecallSprintDataset'
 import { FlashRecallSprintSettings } from './FlashRecallSprintSettings'
 import { FlashRecallSprintCanvas } from './FlashRecallSprintCanvas'
 import { FlashRecallSprintQuiz } from './FlashRecallSprintQuiz'
@@ -23,21 +23,27 @@ type FlashRecallSprintExperienceProps = {
   onComplete?: (result: ReadingSessionResult) => void
 }
 
-// Top-level orchestrator for Flash Recall & Retention Sprint™ — completely
-// redesigned around True RSVP. Previously this ran 6 separate rounds, each
-// its own short flash immediately followed by a comprehension question
-// (ComprehensionCheckpoint) before the next round could begin — repeatedly
-// breaking the reading flow. Now it mirrors VerticalChunkSlidingExperience.tsx
-// exactly: one continuous useReadingRuntime instance over the whole word
-// list, zero interruptions, and a single post-session 3-question quiz
-// gating the completion screen. FlashRecallSprintBlockRuntime.tsx (the old
-// per-round wrapper) and ComprehensionCheckpoint are no longer used here —
-// the latter stays fully intact for Sentence/Paragraph/Guided Paragraph
-// Reading, which still rely on it.
+// Top-level orchestrator for Flash Recall & Retention Sprint™ — True RSVP
+// over a genuine 25-category content library. Mirrors
+// VerticalChunkSlidingExperience.tsx exactly: a category is picked fresh
+// per mount via pickSessionCategory (client-only, called only from this
+// effect — never a lazy useState initializer — so the server-rendered
+// 'settings' phase and the client's first paint always match; see that
+// function's own doc comment for the full rationale), one continuous
+// useReadingRuntime instance over the picked category's word list, zero
+// interruptions, and a single post-session 3-question quiz gating the
+// completion screen.
 export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
 
-  const runtime = useReadingRuntime(FLASH_RECALL_SPRINT_WORDS)
+  const [sessionCategory, setSessionCategory] = useState<FlashRecallSprintCategory | null>(null)
+  useEffect(() => {
+    setSessionCategory(pickSessionCategory())
+  }, [])
+
+  const sessionWords = useMemo(() => (sessionCategory ? buildWordsForCategory(sessionCategory) : []), [sessionCategory])
+
+  const runtime = useReadingRuntime(sessionWords)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'flash-recall-sprint' })
   const readingSession = useReadingSession(session)
 
@@ -82,6 +88,7 @@ export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExp
   ])
 
   function handleStart(): void {
+    if (sessionWords.length === 0) return
     session.start()
     runtime.start()
   }
@@ -109,21 +116,35 @@ export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExp
   }
 
   if (runtime.phase === 'settings') {
-    return <FlashRecallSprintSettings targetWpm={runtime.targetWpm} onSelectTargetWpm={runtime.setTargetWpm} onStart={handleStart} />
+    return (
+      <FlashRecallSprintSettings
+        targetWpm={runtime.targetWpm}
+        onSelectTargetWpm={runtime.setTargetWpm}
+        onStart={handleStart}
+        categoryLabel={sessionCategory?.label ?? null}
+      />
+    )
   }
 
   // The retention quiz gates the completion screen — it renders as soon as
   // the RSVP stream finishes and stays up until all 3 questions are
   // answered, independent of completedResult's own timing (the quiz never
-  // needs that value, only the fixed question set).
-  if (runtime.phase === 'complete' && quizScore === null) {
-    return <FlashRecallSprintQuiz questions={FLASH_RECALL_SPRINT_QUESTIONS} onComplete={(score) => setQuizScore(score)} onExit={() => void handleExit()} />
+  // needs that value, only the picked category's own questions).
+  if (runtime.phase === 'complete' && quizScore === null && sessionCategory !== null) {
+    return (
+      <FlashRecallSprintQuiz
+        questions={sessionCategory.questions}
+        categoryLabel={sessionCategory.label}
+        onComplete={(score) => setQuizScore(score)}
+        onExit={() => void handleExit()}
+      />
+    )
   }
 
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        subtitle={quizScore !== null ? `Nice, sharp recall — retention: ${quizScore}/${FLASH_RECALL_SPRINT_QUESTIONS.length}.` : 'Nice, sharp recall.'}
+        subtitle={quizScore !== null ? `Nice, sharp recall — retention: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, sharp recall.'}
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
@@ -134,13 +155,14 @@ export function FlashRecallSprintExperience({ onComplete }: FlashRecallSprintExp
 
   return (
     <FlashRecallSprintCanvas
-      words={FLASH_RECALL_SPRINT_WORDS}
+      words={sessionWords}
       currentUnitIndex={runtime.currentUnitIndex}
       isPaused={runtime.phase === 'paused'}
       liveWpm={runtime.liveWpm}
       targetWpm={runtime.targetWpm}
       elapsedMs={runtime.elapsedMs}
       progressPercent={runtime.progressPercent}
+      categoryLabel={sessionCategory?.label ?? null}
       onPause={runtime.pause}
       onResume={runtime.resume}
       onRestart={handleRestart}

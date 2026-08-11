@@ -1,15 +1,12 @@
-// Flash Recall & Retention Sprint™ — redesigned around True RSVP (Rapid
-// Serial Visual Presentation): one continuous, uninterrupted word-by-word
-// stream, read start to finish with zero mid-exercise stops, followed by a
-// single post-session 3-question comprehension check. This replaces the
-// previous "6 rounds, each its own 12-word flash + immediate question"
-// design — that repeatedly broke the reading flow, exactly what this
-// redesign removes.
-//
-// The passage below is the same real, hand-authored content the previous
-// 6 rounds used (no AI, no lorem ipsum, nothing thrown away) — now read as
-// one continuous six-sentence passage instead of six separate interrupted
-// flashes.
+// Flash Recall & Retention Sprint™ — True RSVP over a genuine content
+// library. 25 real, hand-authored ~270-word reading modules (no AI, no
+// lorem ipsum) spanning five pillars — true stories, general knowledge,
+// science wonders, psychology secrets, and historical mysteries — each
+// followed by 3 comprehension questions answerable only from that
+// specific passage. A category is picked fresh per session (own-copy of
+// Vertical Chunk Sliding's identical pickSessionCategory pattern), never
+// repeating the immediately previous pick, so consecutive sessions read a
+// genuinely different module.
 export type FlashRecallSprintQuizQuestion = {
   id: string
   question: string
@@ -17,42 +14,805 @@ export type FlashRecallSprintQuizQuestion = {
   correctOptionIndex: number
 }
 
-export const FLASH_RECALL_SPRINT_SENTENCES: readonly string[] = [
-  'Quiet practice each morning slowly builds confidence that carries through busy days.',
-  'A calm reader always trusts their eyes to keep moving steadily forward.',
-  'Small wins that repeat daily quietly become a much bigger habit eventually.',
-  'Curiosity always keeps your mind open even when the material feels difficult.',
-  'Real focus truly grows the moment you stop rushing toward the ending.',
-  'Patience during daily practice matters far more than raw natural talent alone.',
-]
+export type FlashRecallSprintCategory = {
+  id: string
+  label: string
+  sentences: readonly string[]
+  questions: readonly FlashRecallSprintQuizQuestion[]
+}
 
-export const FLASH_RECALL_SPRINT_PASSAGE = FLASH_RECALL_SPRINT_SENTENCES.join(' ')
-
-// True RSVP units — one word per flash, exactly what "word-by-word" means.
-// Feeding this straight into the UNCHANGED useReadingRuntime works exactly
-// right with zero changes there: each unit's dwell time is
-// `countWords(unit) * 60000/targetWpm`, and countWords of a single word is
-// always 1, so every word gets an identical, precisely WPM-paced dwell —
-// true RSVP timing, entirely for free from the locked engine.
-export const FLASH_RECALL_SPRINT_WORDS: readonly string[] = FLASH_RECALL_SPRINT_PASSAGE.split(/\s+/).filter(Boolean)
-
-export const FLASH_RECALL_SPRINT_QUESTIONS: readonly FlashRecallSprintQuizQuestion[] = [
+export const FLASH_RECALL_SPRINT_CATEGORIES: readonly FlashRecallSprintCategory[] = [
+  // --- True Stories ---
   {
-    id: 'flash-recall-q1',
-    question: 'According to the passage, what does quiet daily practice build over time?',
-    options: ['Confidence that carries through busy days', 'A faster reading speed only', 'A larger vocabulary', 'Immediate perfection'],
-    correctOptionIndex: 0,
+    id: 'wright-brothers-first-flight',
+    label: 'The Wright Brothers’ First Flight',
+    sentences: [
+      'On the morning of December 17, 1903, two bicycle mechanics from Dayton, Ohio changed the world forever.',
+      'Orville and Wilbur Wright had spent years testing gliders on the windy dunes near Kitty Hawk, North Carolina.',
+      'Unlike earlier inventors, the brothers built their own wind tunnel to scientifically test different wing shapes.',
+      'That careful testing let them solve the problem of control, not just the problem of lift.',
+      'On the chosen morning, Orville lay flat on the lower wing and gripped the controls tightly.',
+      'The flimsy wood-and-fabric machine lifted off the launching rail and flew for twelve remarkable seconds.',
+      'It covered only about one hundred twenty feet, shorter than the wingspan of a modern airliner.',
+      'Still, it was the first sustained, controlled flight of a powered, heavier-than-air machine in history.',
+      'The brothers took turns flying four times that day, alternating who piloted each attempt.',
+      'Wilbur flew the fourth and final flight, covering eight hundred fifty-two feet in fifty-nine seconds.',
+      'A gust of wind afterward tumbled the damaged aircraft, ending the day’s experiments for good.',
+      'Few newspapers took much notice at first, and the achievement spread slowly by word of mouth.',
+      'The brothers kept refining their designs quietly back in Dayton, wary of having their ideas copied.',
+      'Within just a few years, powered flight went from a fragile experiment to a genuine industry.',
+      'Their meticulous, scientific approach to problem solving mattered as much as the flight itself.',
+      'They treated failure as data, patiently rebuilding after every crash on the dunes.',
+      'Neither brother had a formal engineering degree; both were largely self-taught through hands-on tinkering.',
+      'Their bicycle shop skills in balance, gears, and lightweight construction transferred directly to aircraft design.',
+      'Today a granite marker stands at Kitty Hawk honoring the spot where the age of flight began.',
+    ],
+    questions: [
+      { id: 'wright-brothers-first-flight-q1', question: 'According to the passage, what did the Wright brothers build to scientifically test wing shapes?', options: ['A hot air balloon', 'A wind tunnel', 'A steam engine', 'A parachute'], correctOptionIndex: 1 },
+      { id: 'wright-brothers-first-flight-q2', question: 'Who flew the fourth and final flight of the day, covering 852 feet?', options: ['Orville', 'Their father', 'A hired pilot', 'Wilbur'], correctOptionIndex: 3 },
+      { id: 'wright-brothers-first-flight-q3', question: 'What ended the day’s flying experiments, according to the passage?', options: ['Running out of fuel', 'A gust of wind tumbling the damaged aircraft', 'A newspaper reporter arriving', 'Nightfall'], correctOptionIndex: 1 },
+    ],
   },
   {
-    id: 'flash-recall-q2',
-    question: 'What does the passage say a calm reader trusts their eyes to do?',
-    options: ['Stop frequently to rest', 'Keep moving steadily forward', 'Jump back to reread often', 'Close between sentences'],
-    correctOptionIndex: 1,
+    id: 'amundsen-south-pole',
+    label: "Amundsen’s Race to the South Pole",
+    sentences: [
+      'In the early twentieth century, reaching the South Pole was one of the last great unclaimed prizes on Earth.',
+      'Norwegian explorer Roald Amundsen originally planned an expedition to the North Pole, not the South.',
+      'When he learned the North Pole had already been claimed, he quietly redirected his ambitions south instead.',
+      'A British expedition led by Robert Falcon Scott was racing toward the same icy goal.',
+      'Amundsen relied heavily on dog sleds and skis, techniques learned partly from Arctic indigenous peoples.',
+      'His team moved efficiently across the ice, planning depots of supplies with careful precision.',
+      'Scott’s team, by contrast, relied more on motorized sledges and Siberian ponies, both of which struggled badly in the cold.',
+      'On December 14, 1911, Amundsen and four companions reached the South Pole successfully.',
+      'They planted the Norwegian flag and left a small tent with a letter for Scott, who they knew was still coming.',
+      'Amundsen’s team returned safely to their base camp, having lost not a single member of the polar party.',
+      'Scott’s team reached the pole about a month later, on January 17, 1912, only to find Amundsen’s flag already there.',
+      'Crushed and exhausted, Scott’s team began the long return journey across the frozen continent.',
+      'Terrible weather, injuries, and dwindling supplies slowed their progress to a crawl.',
+      'Scott and his remaining companions died on the return journey, just eleven miles from a supply depot.',
+      'Their bodies and diaries were discovered by a search party several months later.',
+      'Amundsen’s success is often credited to meticulous planning rather than luck or heroics.',
+      'He treated the expedition as a logistics problem to be solved calmly, not a dramatic contest of endurance.',
+      'The contrasting fates of the two expeditions remain one of exploration history’s most studied comparisons.',
+    ],
+    questions: [
+      { id: 'amundsen-south-pole-q1', question: 'On what date did Amundsen’s team reach the South Pole?', options: ['January 17, 1912', 'December 14, 1911', 'November 1, 1910', 'March 3, 1912'], correctOptionIndex: 1 },
+      { id: 'amundsen-south-pole-q2', question: 'According to the passage, what did Scott’s team rely on that struggled badly in the cold?', options: ['Sled dogs', 'Motorized sledges and Siberian ponies', 'Reindeer', 'Hot air balloons'], correctOptionIndex: 1 },
+      { id: 'amundsen-south-pole-q3', question: 'How far from a supply depot did Scott and his companions die, according to the passage?', options: ['Eleven miles', 'One hundred miles', 'Fifty miles', 'Two miles'], correctOptionIndex: 0 },
+    ],
   },
   {
-    id: 'flash-recall-q3',
-    question: 'According to the passage, what matters far more than raw natural talent?',
-    options: ['Expensive tools', 'Natural talent itself', 'Patience during daily practice', 'Reading only when motivated'],
-    correctOptionIndex: 2,
+    id: 'apollo-13-rescue',
+    label: 'The Rescue of Apollo 13',
+    sentences: [
+      'In April 1970, three astronauts were roughly two hundred thousand miles from Earth when disaster struck.',
+      'An oxygen tank aboard the Apollo 13 spacecraft exploded, crippling the main service module.',
+      'Astronaut Jack Swigert radioed the now-famous words, later slightly misquoted as "Houston, we have a problem."',
+      'Commander Jim Lovell and crewmate Fred Haise joined him in assessing the sudden, alarming loss of power.',
+      'The planned Moon landing was abandoned almost immediately; survival became the only real mission.',
+      'Engineers on the ground realized the crew would need to use the small Lunar Module as a lifeboat.',
+      'That module was designed to support two astronauts for two days, not three astronauts for four.',
+      'Carbon dioxide began building to dangerous levels, since the lifeboat’s filters could not handle the extra crew member.',
+      'Mission control engineers improvised a filter adapter using plastic bags, cardboard, and tape, all items already on board.',
+      'The crew followed detailed instructions radioed up from Earth to build the makeshift device exactly.',
+      'It worked, and carbon dioxide levels dropped back to safer, breathable levels within hours.',
+      'Power, water, and warmth were all rationed severely for the long trip back toward Earth.',
+      'Temperatures inside the spacecraft dropped close to freezing, and condensation coated the instrument panels.',
+      'The crew navigated partly by sighting the Sun through a hatch window, a remarkably low-tech backup method.',
+      'Just before reentry, the crew powered the damaged command module back on using minimal stored power.',
+      'On April 17, 1970, the spacecraft splashed down safely in the Pacific Ocean.',
+      'All three astronauts survived what NASA later called a "successful failure," since the mission’s true goal became survival.',
+      'It proved that careful teamwork between a crew and mission control could overcome a genuinely life-threatening crisis.',
+    ],
+    questions: [
+      { id: 'apollo-13-rescue-q1', question: 'What caused the crisis aboard Apollo 13, according to the passage?', options: ['A meteor strike', 'An oxygen tank explosion', 'A fuel leak', 'A computer failure'], correctOptionIndex: 1 },
+      { id: 'apollo-13-rescue-q2', question: 'What did the crew use as a "lifeboat" after the explosion?', options: ['The command module', 'A spacesuit', 'An escape pod', 'The Lunar Module'], correctOptionIndex: 3 },
+      { id: 'apollo-13-rescue-q3', question: 'What materials did mission control use to improvise a carbon dioxide filter adapter?', options: ['Metal and glass', 'Plastic bags, cardboard, and tape', 'Rubber and wire', 'Spare oxygen tanks'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'fleming-penicillin-discovery',
+    label: 'Fleming’s Accidental Discovery of Penicillin',
+    sentences: [
+      'In the summer of 1928, a Scottish bacteriologist named Alexander Fleming went on vacation and left his lab a mess.',
+      'Petri dishes containing Staphylococcus bacteria sat uncovered on his workbench while he was away.',
+      'When Fleming returned, he noticed something strange had happened to one particular dish.',
+      'A blob of blue-green mold had contaminated the dish, apparently drifting in through an open window.',
+      'Around that mold, a clear ring had formed where the bacteria had simply died off.',
+      'Most scientists might have discarded the contaminated dish without a second thought.',
+      'Fleming, curious, examined it closely and suspected the mold was producing something that killed bacteria.',
+      'He identified the mold as a strain of Penicillium and named the bacteria-killing substance penicillin.',
+      'Fleming published his findings, but the discovery attracted relatively little attention at first.',
+      'Producing enough pure penicillin to actually treat patients turned out to be a major technical challenge.',
+      'More than a decade later, scientists Howard Florey and Ernst Chain took up that challenge in earnest.',
+      'Working in Oxford, they found ways to purify and mass-produce the drug for real medical use.',
+      'Their work arrived just in time for the Second World War, when infected wounds killed countless soldiers.',
+      'Penicillin dramatically reduced deaths from infections that had been fatal for all of human history before it.',
+      'Fleming, Florey, and Chain jointly received the Nobel Prize in Medicine in 1945 for this work.',
+      'Fleming himself later warned that overusing antibiotics could allow bacteria to evolve resistance to them.',
+      'That warning proved remarkably prescient, as antibiotic resistance is now a serious global health concern.',
+      'The discovery is often cited as one of history’s most famous accidents in science.',
+      'It began not with a plan, but with a messy lab and one scientist’s simple curiosity.',
+    ],
+    questions: [
+      { id: 'fleming-penicillin-discovery-q1', question: 'What did Fleming notice had contaminated his petri dish?', options: ['A drop of water', 'A blob of blue-green mold', 'A crack in the glass', 'Another bacteria strain'], correctOptionIndex: 1 },
+      { id: 'fleming-penicillin-discovery-q2', question: 'Who purified and found ways to mass-produce penicillin, according to the passage?', options: ['Fleming alone', 'Howard Florey and Ernst Chain', 'A team in Germany', 'The Nobel committee'], correctOptionIndex: 1 },
+      { id: 'fleming-penicillin-discovery-q3', question: 'What did Fleming later warn about, according to the passage?', options: ['Mold spreading indoors', 'Overusing antibiotics causing bacterial resistance', 'The cost of medicine', 'Contaminated water supplies'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'shackleton-endurance-voyage',
+    label: 'Shackleton’s Perilous Antarctic Voyage',
+    sentences: [
+      'In 1914, explorer Ernest Shackleton set sail for Antarctica aboard a ship fittingly named Endurance.',
+      'His goal was to cross the entire Antarctic continent on foot, a feat no one had yet achieved.',
+      'Before the crew could even reach land, thick pack ice trapped the ship completely.',
+      'For months the Endurance drifted helplessly, locked inside the slowly shifting ice.',
+      'Eventually the relentless pressure of the ice crushed the ship’s hull beyond any hope of repair.',
+      'Shackleton ordered the crew to abandon ship and set up camp directly on the drifting ice floes.',
+      'The men salvaged what supplies and lifeboats they could before the Endurance finally sank beneath the ice.',
+      'For months they camped and drifted on the ice, watching their food supplies steadily dwindle.',
+      'When the ice began breaking apart beneath them, the crew took to three small lifeboats.',
+      'After a brutal journey through freezing seas, they reached the desolate, uninhabited Elephant Island.',
+      'Knowing rescue was unlikely to find them there, Shackleton made a desperate decision.',
+      'He and five other men set out in a small boat for South Georgia Island, roughly eight hundred miles away.',
+      'They navigated across brutal open ocean swells using only a sextant and dead reckoning.',
+      'Remarkably, they reached South Georgia after seventeen days at sea, though on the wrong side of the island.',
+      'A whaling station lay on the far side, across mountains no one had ever crossed on foot.',
+      'Shackleton and two companions hiked thirty-six hours straight over glaciers and peaks to reach help.',
+      'A rescue ship was finally sent back for the men stranded on Elephant Island.',
+      'Astonishingly, every single member of the original twenty-eight man crew survived the entire ordeal.',
+      'The voyage is still remembered as one of history’s greatest stories of leadership and survival.',
+    ],
+    questions: [
+      { id: 'shackleton-endurance-voyage-q1', question: 'What happened to Shackleton’s ship, the Endurance?', options: ['It sailed home safely', 'It was crushed by pack ice and sank', 'It caught fire', 'It ran aground'], correctOptionIndex: 1 },
+      { id: 'shackleton-endurance-voyage-q2', question: 'How many men, out of the original crew, survived the entire ordeal?', options: ['About half', 'Only Shackleton', 'None', 'Every single one'], correctOptionIndex: 3 },
+      { id: 'shackleton-endurance-voyage-q3', question: 'How long did the small boat journey to South Georgia Island take?', options: ['Seventeen days', 'Three days', 'Two months', 'One day'], correctOptionIndex: 0 },
+    ],
+  },
+  // --- General Knowledge ---
+  {
+    id: 'great-barrier-reef',
+    label: 'The Great Barrier Reef',
+    sentences: [
+      'Off the northeastern coast of Australia lies the largest living structure on the entire planet.',
+      'The Great Barrier Reef stretches for more than two thousand three hundred kilometers along the coastline.',
+      'It is so vast that astronauts can actually see its outline from space.',
+      'The reef is not one single structure but a system of thousands of smaller individual reefs and islands.',
+      'It was built, coral polyp by coral polyp, over many thousands of years.',
+      'Each polyp is a tiny animal that secretes a hard limestone skeleton around its soft body.',
+      'Over countless generations, these skeletons accumulate into the massive reef structures visible today.',
+      'The reef supports an extraordinary diversity of life, including thousands of species of fish.',
+      'Sea turtles, sharks, dolphins, and even migrating whales all rely on the reef ecosystem.',
+      'Coral itself gets much of its vivid color from tiny algae living inside its tissue.',
+      'These algae and coral share a mutually beneficial relationship, exchanging nutrients and sunlight energy.',
+      'When ocean water becomes too warm, corals can expel these algae in a process called bleaching.',
+      'A bleached coral is not necessarily dead, but it is under severe stress and vulnerable.',
+      'Repeated bleaching events in recent decades have damaged large sections of the reef.',
+      'Rising ocean temperatures linked to climate change are the primary driver of this bleaching.',
+      'Ocean acidification, caused by absorbed carbon dioxide, also threatens the coral’s ability to build its skeleton.',
+      'Conservation efforts now include coral nurseries, where fragments are grown and later transplanted onto damaged reefs.',
+      'Scientists also study naturally heat-resistant coral strains, hoping to breed hardier reefs for the future.',
+      'The reef remains one of Earth’s most spectacular natural wonders, even as it faces serious threats.',
+    ],
+    questions: [
+      { id: 'great-barrier-reef-q1', question: 'According to the passage, what builds up over thousands of years to form the reef?', options: ['Volcanic rock', 'Coral polyp skeletons', 'Sand dunes', 'Driftwood'], correctOptionIndex: 1 },
+      { id: 'great-barrier-reef-q2', question: 'What is the process called when coral expels the algae living in its tissue?', options: ['Bleaching', 'Migration', 'Spawning', 'Erosion'], correctOptionIndex: 0 },
+      { id: 'great-barrier-reef-q3', question: 'According to the passage, what is the primary driver of coral bleaching?', options: ['Overfishing', 'Rising ocean temperatures', 'Boat traffic', 'Sand mining'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'bee-waggle-dance',
+    label: 'How Bees Talk Through Dance',
+    sentences: [
+      'Deep inside a beehive, one returning forager can tell thousands of other bees exactly where food is.',
+      'She does this not with sound or scent alone, but through a precise, repeated dance.',
+      'This behavior is famously known as the waggle dance, and it functions like a living map.',
+      'The bee moves in a tight figure-eight pattern, waggling her body rapidly during the middle straight run.',
+      'The angle of that straight run, relative to straight up on the honeycomb, encodes a direction.',
+      'That angle corresponds to the direction of the food source relative to the position of the sun outside.',
+      'The duration of the waggling portion encodes distance, with longer waggles signaling a farther food source.',
+      'Other worker bees crowd closely around the dancer, following her movements intently in the darkness.',
+      'They then leave the hive and fly out using the encoded direction and distance information.',
+      'This behavior was carefully decoded by Austrian scientist Karl von Frisch in the twentieth century.',
+      'Von Frisch spent decades observing and experimenting with bee behavior to crack the dance’s meaning.',
+      'His discovery earned him a share of the Nobel Prize in Physiology or Medicine in 1973.',
+      'The dance is remarkable because bees have no written language, yet still transmit precise spatial data.',
+      'Researchers have since found the dance can also communicate the location of a good new nest site.',
+      'When a colony needs to relocate, scout bees dance to advertise different candidate locations.',
+      'Other scouts visit the advertised sites, then return and dance in favor of the one they judged best.',
+      'Gradually, through this decentralized voting process, the swarm converges on a single chosen new home.',
+      'It remains one of the most elegant examples of complex behavior arising from a very small brain.',
+    ],
+    questions: [
+      { id: 'bee-waggle-dance-q1', question: 'According to the passage, what does the angle of the waggle dance encode?', options: ['The temperature outside', 'Direction relative to the sun', 'The size of the hive', 'The bee’s age'], correctOptionIndex: 1 },
+      { id: 'bee-waggle-dance-q2', question: 'Who decoded the meaning of the waggle dance, according to the passage?', options: ['Charles Darwin', 'Karl von Frisch', 'Jane Goodall', 'Gregor Mendel'], correctOptionIndex: 1 },
+      { id: 'bee-waggle-dance-q3', question: 'Besides food sources, what else can the waggle dance communicate, according to the passage?', options: ['The hive’s temperature', 'The location of a good new nest site', 'Which bees are sick', 'The queen’s age'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'printing-press-invention',
+    label: 'The Invention of the Printing Press',
+    sentences: [
+      'Before the fifteenth century, every single book in Europe had to be copied out by hand.',
+      'This painstaking process meant books were rare, expensive, and available mostly to the wealthy or the clergy.',
+      'Around 1440, a German goldsmith named Johannes Gutenberg began developing a radically different approach.',
+      'He designed a system using individual, reusable metal letters called movable type.',
+      'Each letter could be arranged, inked, pressed onto paper, then rearranged to print an entirely different page.',
+      'Gutenberg adapted the mechanical screw press, already used for pressing wine and olives, to print pages instead.',
+      'He also developed an oil-based ink better suited to metal type than the water-based inks used before.',
+      'His most famous work, now called the Gutenberg Bible, was completed around 1455.',
+      'It took a skilled scribe roughly a year to hand-copy a single Bible by comparison.',
+      'Gutenberg’s press could produce many complete copies in a fraction of that time.',
+      'The technology spread rapidly across Europe within just a few decades of its invention.',
+      'Printing presses soon appeared in major cities from Venice to London to Paris.',
+      'The price of books fell dramatically, and literacy slowly began spreading beyond the elite classes.',
+      'Ideas that once traveled slowly through hand-copied manuscripts now spread far more rapidly.',
+      'Many historians argue the press helped fuel both the Renaissance and the Protestant Reformation.',
+      'Martin Luther’s writings, for example, were printed and distributed widely, fueling religious upheaval.',
+      'Scientific ideas also spread faster, letting researchers build more quickly on each other’s published work.',
+      'Some historians consider the printing press one of the most transformative inventions in human history.',
+      'It fundamentally changed how knowledge itself moved through society.',
+    ],
+    questions: [
+      { id: 'printing-press-invention-q1', question: 'What did Gutenberg’s printing system use that could be rearranged for each new page?', options: ['Carved wooden blocks', 'Individual, reusable metal letters', 'Painted stencils', 'Clay tablets'], correctOptionIndex: 1 },
+      { id: 'printing-press-invention-q2', question: 'What existing mechanical device did Gutenberg adapt for printing, according to the passage?', options: ['A water wheel', 'A screw press used for wine and olives', 'A weaving loom', 'A grain mill'], correctOptionIndex: 1 },
+      { id: 'printing-press-invention-q3', question: 'According to the passage, what two major historical movements did the press help fuel?', options: ['The Renaissance and the Protestant Reformation', 'The Industrial Revolution and colonization', 'The Bronze Age and Iron Age', 'World War I and World War II'], correctOptionIndex: 0 },
+    ],
+  },
+  {
+    id: 'mariana-trench-depths',
+    label: "The World’s Deepest Ocean Trench",
+    sentences: [
+      'Beneath the western Pacific Ocean lies a scar in the seafloor deeper than any mountain is tall.',
+      'The Mariana Trench stretches for more than one thousand five hundred miles in a long curved arc.',
+      'Its deepest point, known as Challenger Deep, plunges nearly eleven thousand meters below the surface.',
+      'If Mount Everest were dropped into that point, its peak would still sit more than a mile underwater.',
+      'The trench formed where one massive tectonic plate slowly slides beneath another, a process called subduction.',
+      'Water pressure at the bottom is more than one thousand times greater than at sea level.',
+      'For decades, scientists assumed almost nothing could survive under such crushing conditions.',
+      'In 1960, Jacques Piccard and Don Walsh became the first people to reach Challenger Deep.',
+      'They descended in a specially built vessel called the bathyscaphe Trieste, a slow and daring journey.',
+      'Their instruments reportedly spotted what appeared to be a flatfish moving along the seafloor.',
+      'Decades passed before anyone returned; the trench proved far harder to revisit than the Moon.',
+      'In 2012, filmmaker James Cameron made a solo dive to Challenger Deep in a custom submersible.',
+      'His journey took roughly two and a half hours to descend to the bottom.',
+      'Since then, unmanned and crewed vehicles have explored the trench more frequently, revealing surprising life.',
+      'Scientists have found shrimp-like creatures, sea cucumbers, and even microbial life thriving in the crushing darkness.',
+      'Some organisms there have evolved specialized proteins that keep their cells from collapsing under pressure.',
+      'Researchers have also discovered plastic debris at the trench’s bottom, showing pollution reaches even Earth’s most remote depths.',
+      'The trench remains one of the least explored places on the entire planet.',
+      'In many ways, humans still know more about the surface of Mars than the deepest ocean floor.',
+    ],
+    questions: [
+      { id: 'mariana-trench-depths-q1', question: 'What is the name of the deepest point of the Mariana Trench?', options: ['Abyssal Point', 'Challenger Deep', 'Mariana Basin', 'The Hadal Zone'], correctOptionIndex: 1 },
+      { id: 'mariana-trench-depths-q2', question: 'Who were the first people to reach the trench’s deepest point, in 1960?', options: ['Jacques Piccard and Don Walsh', 'James Cameron', 'Jacques Cousteau', 'Robert Ballard'], correctOptionIndex: 0 },
+      { id: 'mariana-trench-depths-q3', question: 'According to the passage, what geological process formed the trench?', options: ['Volcanic eruption', 'Subduction of tectonic plates', 'Meteor impact', 'Coral reef collapse'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'silk-road-trade-network',
+    label: 'The Silk Road Trade Network',
+    sentences: [
+      'For more than a thousand years, a vast web of trade routes linked China to the Mediterranean world.',
+      'These routes, later named the Silk Road, were never a single paved highway but a shifting network of paths.',
+      'They stretched across deserts, mountains, and steppes, connecting dozens of cultures along the way.',
+      'The name itself was coined much later, in the nineteenth century, by a German geographer.',
+      'Chinese silk was indeed one of the most prized goods carried along these routes westward.',
+      'Merchants also carried spices, precious stones, glassware, paper, and eventually gunpowder in both directions.',
+      'Goods rarely traveled the entire distance with a single trader; instead they passed through many hands.',
+      'Caravans moved goods between oasis towns and trading posts scattered across Central Asia.',
+      'Cities like Samarkand and Kashgar grew wealthy and cosmopolitan as crucial stops along the route.',
+      'The Silk Road carried far more than physical goods; it also carried ideas and beliefs.',
+      'Buddhism spread from India into China and beyond largely along these same trade paths.',
+      'Techniques for papermaking traveled from China westward, eventually reaching the Islamic world and then Europe.',
+      'The Venetian merchant Marco Polo famously traveled portions of the route in the thirteenth century.',
+      'His written accounts introduced many Europeans to detailed descriptions of Asian societies for the first time.',
+      'Disease also traveled the same routes; some historians link the spread of the Black Death partly to Silk Road trade.',
+      'The network gradually declined as sea routes became faster, cheaper, and safer for long-distance trade.',
+      'European sailing ships eventually connected East and West directly by ocean instead.',
+      'Even so, the Silk Road left a lasting legacy of cultural exchange across Eurasia.',
+      'Modern infrastructure projects still sometimes borrow the name, evoking that ancient spirit of connection.',
+    ],
+    questions: [
+      { id: 'silk-road-trade-network-q1', question: 'According to the passage, was the Silk Road a single paved highway?', options: ['Yes, one continuous road', 'No, a shifting network of paths', 'Yes, built entirely by China', 'No, it was only a sea route'], correctOptionIndex: 1 },
+      { id: 'silk-road-trade-network-q2', question: 'Which religion spread from India into China largely along Silk Road paths, according to the passage?', options: ['Buddhism', 'Christianity', 'Hinduism', 'Judaism'], correctOptionIndex: 0 },
+      { id: 'silk-road-trade-network-q3', question: 'Who was the Venetian merchant who famously traveled portions of the route in the thirteenth century?', options: ['Christopher Columbus', 'Marco Polo', 'Vasco da Gama', 'Zheng He'], correctOptionIndex: 1 },
+    ],
+  },
+  // --- Science Wonders ---
+  {
+    id: 'quantum-entanglement-mystery',
+    label: 'The Strange World of Quantum Entanglement',
+    sentences: [
+      'Deep inside the world of subatomic particles, two objects can become linked in a deeply strange way.',
+      'This connection is known as quantum entanglement, and it puzzled even Albert Einstein himself.',
+      'Once two particles become entangled, measuring one instantly correlates with the state of the other.',
+      'This holds true even if the two particles are separated by enormous distances, in theory even light-years apart.',
+      'Einstein famously distrusted this idea, dismissing it as "spooky action at a distance."',
+      'He suspected some hidden, unknown property must explain the correlation, rather than genuine instant connection.',
+      'Decades of careful experiments have since supported the stranger quantum explanation instead.',
+      'Physicist John Bell devised a mathematical test in the 1960s to distinguish the two possibilities.',
+      'Later experiments testing Bell’s inequality strongly favored true quantum entanglement over hidden local variables.',
+      'Importantly, entanglement does not actually allow sending information faster than light, despite the instant correlation.',
+      'The outcome of any single measurement still appears random until compared with the distant partner’s result.',
+      'Only by comparing results afterward, through ordinary communication, can observers see the strange correlation appear.',
+      'Entanglement is not just a theoretical curiosity; it has real, practical modern applications.',
+      'It forms a foundational building block of quantum computing, a rapidly advancing field of technology.',
+      'Quantum computers use entangled particles called qubits to perform certain calculations far faster than classical computers.',
+      'Entanglement also underlies quantum cryptography, which promises theoretically unbreakable methods of secure communication.',
+      'Scientists have successfully entangled particles across distances of hundreds of kilometers using satellites.',
+      'Despite a century of study, entanglement still challenges our everyday intuitions about space and separateness.',
+      'It remains one of the clearest reminders that the quantum world does not behave like the world we see.',
+    ],
+    questions: [
+      { id: 'quantum-entanglement-mystery-q1', question: 'What phrase did Einstein famously use to describe quantum entanglement?', options: ['"Spooky action at a distance"', '"The uncertainty principle"', '"A cosmic coincidence"', '"The quantum leap"'], correctOptionIndex: 0 },
+      { id: 'quantum-entanglement-mystery-q2', question: 'According to the passage, does entanglement allow sending information faster than light?', options: ['Yes, always', 'No, despite the instant correlation', 'Only across short distances', 'Only in computers'], correctOptionIndex: 1 },
+      { id: 'quantum-entanglement-mystery-q3', question: 'What field of technology does entanglement form a foundational building block for, according to the passage?', options: ['Solar power', 'Quantum computing', 'Nuclear energy', '3D printing'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'how-volcanoes-shape-earth',
+    label: 'How Volcanoes Shape the Earth',
+    sentences: [
+      'Beneath the solid crust we walk on, the Earth hides pockets of molten rock under immense pressure.',
+      'When that molten rock, called magma, finds a path to the surface, a volcano can form.',
+      'Many volcanoes rise along the boundaries where massive tectonic plates meet or pull apart.',
+      'The Pacific Ring of Fire, a horseshoe-shaped zone, contains most of the world’s active volcanoes.',
+      'Not all eruptions look the same; volcanoes can be explosive or relatively gentle, depending on the magma involved.',
+      'Thick, gas-rich magma tends to trap pressure until it releases violently in an explosive eruption.',
+      'Thin, runny magma instead tends to flow more calmly, forming rivers of glowing lava.',
+      'The eruption of Mount Vesuvius in 79 CE buried the Roman city of Pompeii under ash almost instantly.',
+      'That same ash, tragically, also preserved remarkable details of daily Roman life for future archaeologists.',
+      'Not every consequence of volcanic activity is destructive; volcanoes also help build entirely new land.',
+      'The Hawaiian Islands themselves formed from countless eruptions building layer upon layer of hardened lava.',
+      'Volcanic soil, rich in minerals, often becomes remarkably fertile ground for agriculture over time.',
+      'Farmers in regions like Indonesia and Italy have long taken advantage of this volcanic fertility.',
+      'Volcanic eruptions can also temporarily affect global climate by releasing ash and gases into the atmosphere.',
+      'A large eruption can block enough sunlight to slightly cool the entire planet for a year or more.',
+      'Scientists monitor active volcanoes closely, watching for small earthquakes and shifts in ground shape as warning signs.',
+      'Modern monitoring has helped save countless lives by allowing timely evacuations before major eruptions.',
+      'Despite their destructive power, volcanoes remain essential to how our planet’s surface has been continuously shaped.',
+      'They are, in a real sense, the Earth’s way of constantly rebuilding itself from within.',
+    ],
+    questions: [
+      { id: 'how-volcanoes-shape-earth-q1', question: 'According to the passage, what zone contains most of the world’s active volcanoes?', options: ['The Arctic Circle', 'The Pacific Ring of Fire', 'The Sahara Belt', 'The Amazon Basin'], correctOptionIndex: 1 },
+      { id: 'how-volcanoes-shape-earth-q2', question: 'What Roman city did the eruption of Mount Vesuvius bury in 79 CE?', options: ['Rome', 'Pompeii', 'Athens', 'Carthage'], correctOptionIndex: 1 },
+      { id: 'how-volcanoes-shape-earth-q3', question: 'According to the passage, why does thick, gas-rich magma tend to erupt explosively?', options: ['It cools too quickly', 'It traps pressure until it releases violently', 'It contains no gas at all', 'It always erupts underwater'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'northern-lights-phenomenon',
+    label: 'The Northern Lights Phenomenon',
+    sentences: [
+      'On clear, dark nights near the Arctic Circle, the sky itself sometimes seems to come alive with color.',
+      'Ribbons of green, pink, and violet light ripple silently overhead, a display known as the aurora borealis.',
+      'This phenomenon begins not on Earth, but ninety-three million miles away, on the surface of the sun.',
+      'The sun constantly releases a stream of charged particles known as the solar wind.',
+      'When that stream reaches Earth, our planet’s magnetic field deflects most of it harmlessly around us.',
+      'Near the magnetic poles, however, some particles funnel down into the upper atmosphere instead.',
+      'There, they collide with gas molecules like oxygen and nitrogen high above the ground.',
+      'Those collisions release small bursts of light, and trillions of them together create the visible glow.',
+      'Different gases produce different colors during these collisions, painting the sky in varied hues.',
+      'Oxygen typically produces green or red light, while nitrogen tends to produce blue or purple tones.',
+      'The altitude of the collision also affects the color, with higher collisions often producing reds.',
+      'The same phenomenon occurs near the South Pole too, where it is called the aurora australis.',
+      'Both displays intensify during periods of high solar activity, such as solar flares or storms.',
+      'A particularly strong solar storm can push the aurora visible far south of its usual range.',
+      'Indigenous peoples across the Arctic have long woven the lights into rich cultural stories and traditions.',
+      'Some traditions describe the lights as spirits dancing, while others treat them as ancestors communicating.',
+      'Modern scientists now track solar activity closely to help predict when strong auroras might appear.',
+      'Travelers seeking the lights often head to Norway, Iceland, Alaska, or northern Canada during winter months.',
+      'Despite centuries of study, witnessing the aurora firsthand still strikes most observers as genuinely magical.',
+    ],
+    questions: [
+      { id: 'northern-lights-phenomenon-q1', question: 'According to the passage, what causes the northern lights?', options: ['Reflections off polar ice', 'Charged particles from the sun colliding with the atmosphere', 'Lightning storms', 'City light pollution'], correctOptionIndex: 1 },
+      { id: 'northern-lights-phenomenon-q2', question: 'What color does oxygen typically produce during these collisions, according to the passage?', options: ['Blue or purple', 'Yellow', 'Green or red', 'White'], correctOptionIndex: 2 },
+      { id: 'northern-lights-phenomenon-q3', question: 'What is the same phenomenon called near the South Pole?', options: ['Aurora borealis', 'Aurora australis', 'Southern glow', 'Polar shimmer'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'human-genome-hidden-code',
+    label: "The Human Genome’s Hidden Code",
+    sentences: [
+      'Inside nearly every cell of your body lies an instruction manual written in a four-letter chemical alphabet.',
+      'That manual is your genome, a complete set of DNA containing roughly three billion letter-pairs.',
+      'Scientists refer to those letter-pairs as base pairs, the fundamental units of genetic code.',
+      'For decades, reading this entire code seemed like an almost impossibly large task.',
+      'In 1990, an international collaboration launched the ambitious Human Genome Project to attempt exactly that.',
+      'Thousands of scientists across many countries worked together, sharing data and dividing the enormous task.',
+      'The project was declared essentially complete in 2003, roughly thirteen years after it began.',
+      'It revealed that humans have far fewer genes than early scientists had originally expected.',
+      'Researchers had guessed the number might reach one hundred thousand or more.',
+      'The actual count turned out to be closer to twenty thousand protein-coding genes.',
+      'Remarkably, any two humans share about ninety-nine point nine percent of their DNA in common.',
+      'The small remaining fraction accounts for the wide range of visible human differences we observe.',
+      'The project also revealed that much of the genome does not directly code for proteins at all.',
+      'Scientists once dismissively called this non-coding portion "junk DNA," though that label has since changed.',
+      'Later research showed much of this non-coding DNA plays important roles in regulating gene activity.',
+      'Mapping the genome has transformed modern medicine in numerous significant ways.',
+      'Doctors can now identify genetic mutations linked to specific inherited diseases more precisely than ever before.',
+      'Personalized medicine, tailoring treatment to a patient’s own genetic makeup, grew directly out of this research.',
+      'The genome project stands as one of the most ambitious and successful scientific collaborations in history.',
+    ],
+    questions: [
+      { id: 'human-genome-hidden-code-q1', question: 'In what year was the Human Genome Project declared essentially complete?', options: ['1990', '2003', '2010', '1999'], correctOptionIndex: 1 },
+      { id: 'human-genome-hidden-code-q2', question: 'According to the passage, roughly how many protein-coding genes do humans actually have?', options: ['One million', 'One hundred thousand', 'Twenty thousand', 'Three billion'], correctOptionIndex: 2 },
+      { id: 'human-genome-hidden-code-q3', question: 'What percentage of DNA do any two humans share in common, according to the passage?', options: ['About 50%', 'About 75%', 'About 99.9%', 'About 25%'], correctOptionIndex: 2 },
+    ],
+  },
+  {
+    id: 'black-holes-edge-of-physics',
+    label: 'Black Holes and the Edge of Physics',
+    sentences: [
+      'Scattered across the universe are objects so dense that not even light can escape their pull.',
+      'These are black holes, among the strangest and most extreme objects known to modern science.',
+      'A black hole typically forms when a massive star runs out of fuel and collapses under its own gravity.',
+      'The remaining material crushes down into an incredibly small, unimaginably dense point.',
+      'Around that point lies an invisible boundary called the event horizon, the true point of no return.',
+      'Anything crossing the event horizon, including light itself, cannot escape the black hole’s gravity again.',
+      'Because no light escapes, black holes themselves cannot be directly photographed or seen.',
+      'Scientists instead detect them indirectly, by observing their powerful effects on nearby matter and light.',
+      'Stars and gas swirling near a black hole often heat up dramatically, emitting detectable radiation.',
+      'For decades, black holes remained a fascinating but purely theoretical prediction of Einstein’s equations.',
+      'In 2019, an international team called the Event Horizon Telescope achieved a historic milestone.',
+      'By linking observatories across the entire planet, they created a telescope effectively the size of Earth.',
+      'That combined instrument captured the first-ever image showing a black hole’s glowing silhouette.',
+      'The black hole photographed sits at the center of a distant galaxy called M87.',
+      'The image showed a bright ring of glowing gas surrounding a dark central shadow, exactly as predicted.',
+      'Scientists worldwide celebrated the image as visual confirmation of a century-old theoretical prediction.',
+      'Black holes also warp time itself, with clocks running measurably slower the closer they get to one.',
+      'Studying black holes continues to push the boundaries of our understanding of gravity and space.',
+      'They remain one of the clearest reminders of how strange the universe can truly be.',
+    ],
+    questions: [
+      { id: 'black-holes-edge-of-physics-q1', question: 'What is the invisible boundary around a black hole called, according to the passage?', options: ['The singularity', 'The event horizon', 'The gravity well', 'The dark ring'], correctOptionIndex: 1 },
+      { id: 'black-holes-edge-of-physics-q2', question: 'In what year did the Event Horizon Telescope capture the first image of a black hole?', options: ['2005', '2019', '1990', '2023'], correctOptionIndex: 1 },
+      { id: 'black-holes-edge-of-physics-q3', question: 'The black hole in that historic image sits at the center of which galaxy?', options: ['The Milky Way', 'Andromeda', 'M87', 'Triangulum'], correctOptionIndex: 2 },
+    ],
+  },
+  // --- Psychology Secrets ---
+  {
+    id: 'bystander-effect-explained',
+    label: 'The Bystander Effect',
+    sentences: [
+      'One of psychology’s most unsettling discoveries is that having more witnesses can actually reduce the chance someone helps.',
+      'This phenomenon is known as the bystander effect, and it surprised even the researchers who first studied it.',
+      'Interest in the topic surged after a widely publicized 1964 murder case in New York City.',
+      'News reports at the time claimed many witnesses failed to intervene or call for help, though later accounts revised some details.',
+      'Regardless of that specific case’s exact facts, the reported story inspired serious scientific investigation.',
+      'Psychologists Bibb Lataneé and John Darley designed experiments to test how group size affects helping behavior.',
+      'In one study, participants believed they were part of a group discussion happening over an intercom.',
+      'One participant, actually an actor, staged what sounded like a medical emergency during the conversation.',
+      'Participants who believed they were the only witness helped quickly, nearly every single time.',
+      'Participants who believed several other people were also listening helped far less often and more slowly.',
+      'Researchers identified two key psychological mechanisms driving this surprising pattern.',
+      'The first is diffusion of responsibility: when others are present, each individual feels less personally obligated to act.',
+      'The second is social influence: people glance at others’ reactions to judge whether a situation is truly an emergency.',
+      'If everyone else appears calm, individuals often assume nothing is actually wrong, even when something clearly is.',
+      'This can create a strange chain reaction where an entire group hesitates simply by watching each other hesitate.',
+      'The bystander effect has since been replicated across many different settings and countries.',
+      'It weakens significantly, however, when one bystander is specifically singled out and asked directly for help.',
+      'Safety trainers now often teach people to point at a specific individual and assign them a clear task.',
+    ],
+    questions: [
+      { id: 'bystander-effect-explained-q1', question: 'According to the passage, what happened to helping behavior as the number of witnesses increased in the study?', options: ['It increased', 'It stayed exactly the same', 'It decreased', 'It became instant'], correctOptionIndex: 2 },
+      { id: 'bystander-effect-explained-q2', question: 'What is the term for individuals feeling less personally obligated to act when others are present?', options: ['Social proof', 'Diffusion of responsibility', 'Groupthink', 'Confirmation bias'], correctOptionIndex: 1 },
+      { id: 'bystander-effect-explained-q3', question: 'According to the passage, what significantly weakens the bystander effect?', options: ['Turning off the lights', 'Singling out one bystander and asking them directly', 'Adding more witnesses', 'Waiting longer before acting'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'why-optical-illusions-fool-us',
+    label: 'Why We Fall for Optical Illusions',
+    sentences: [
+      'Your eyes do not simply record the world like a camera; your brain actively constructs what you perceive.',
+      'Optical illusions exploit the shortcuts that construction process relies on, revealing how perception actually works.',
+      'One classic example is the Müller-Lyer illusion, featuring two lines of identical length with different arrow-shaped ends.',
+      'Lines with outward-pointing arrows appear noticeably longer than lines with inward-pointing arrows, even though both are equal.',
+      'Researchers believe this illusion partly stems from the brain interpreting the arrows as depth cues.',
+      'The brain assumes it is viewing corners of a room or building, adjusting perceived size accordingly.',
+      'Another famous example involves color and context rather than shape.',
+      'A single gray square can appear noticeably lighter or darker depending entirely on the shades surrounding it.',
+      'This happens because the brain judges color relative to its surroundings, not in complete isolation.',
+      'Motion illusions reveal yet another layer of the brain’s predictive shortcuts.',
+      'Certain static, repeating patterns can appear to shimmer or move even though nothing is actually moving.',
+      'Researchers suspect this results from slight timing differences in how neurons process contrast and edges.',
+      'Illusions are not signs of a flawed or broken brain; quite the opposite, they reveal efficient processing.',
+      'Constructing a full, precise picture of reality from raw light signals would be far too slow for survival.',
+      'Instead, the brain relies on fast assumptions built from a lifetime of prior visual experience.',
+      'Those assumptions work extremely well in ordinary situations, which is exactly why illusions feel so surprising.',
+      'Illusions simply expose the rare cases where those normally reliable shortcuts get fooled.',
+      'Scientists use illusions as valuable tools for studying how visual processing actually works inside the brain.',
+      'They offer a rare, direct window into assumptions your mind makes constantly without your conscious awareness.',
+    ],
+    questions: [
+      { id: 'why-optical-illusions-fool-us-q1', question: 'In the Müller-Lyer illusion, what makes one line appear longer than the other?', options: ['Different colors', 'Different arrow-shaped ends', 'Different thicknesses', 'Different lighting'], correctOptionIndex: 1 },
+      { id: 'why-optical-illusions-fool-us-q2', question: 'According to the passage, why does a gray square appear lighter or darker depending on context?', options: ['The brain judges color relative to its surroundings', 'The eye physically changes shape', 'Gray is not a real color', 'It depends on the viewer’s age'], correctOptionIndex: 0 },
+      { id: 'why-optical-illusions-fool-us-q3', question: 'According to the passage, what do illusions actually reveal about the brain?', options: ['That it is fundamentally broken', 'That it processes visual information inefficiently', 'That it relies on fast, efficient assumptions', 'That vision is entirely random'], correctOptionIndex: 2 },
+    ],
+  },
+  {
+    id: 'placebo-effect-real-power',
+    label: 'The Placebo Effect’s Real Power',
+    sentences: [
+      'A sugar pill contains no active medicine at all, yet it can sometimes genuinely reduce a patient’s pain.',
+      'This surprising outcome is known as the placebo effect, and it reveals a powerful mind-body connection.',
+      'The word placebo comes from Latin, roughly meaning "I shall please."',
+      'Doctors and researchers first began systematically studying it as a control in clinical drug trials.',
+      'In a typical trial, one group receives the real drug while another unknowingly receives an inactive substitute.',
+      'Comparing outcomes between the two groups helps researchers see whether a drug works beyond mere expectation.',
+      'Remarkably, patients given the inactive placebo often report real, measurable improvement anyway.',
+      'This is not simply patients imagining relief or lying about how they feel.',
+      'Brain scans have shown placebos can trigger the release of the body’s own natural painkillers, called endorphins.',
+      'In some studies, placebo pain relief has activated brain regions strikingly similar to those activated by real drugs.',
+      'Expectation appears to be a key ingredient; believing a treatment will work seems to genuinely help it work.',
+      'The color, size, and even price of a placebo pill can influence how effective it feels to patients.',
+      'Studies have found that more expensive-looking placebo pills often produce stronger reported relief than cheap ones.',
+      'Even the ritual of a doctor’s reassuring manner and confident bedside tone can enhance the effect.',
+      'A related phenomenon, the nocebo effect, works in the opposite, harmful direction.',
+      'Patients told a treatment might cause side effects sometimes experience those very side effects from an inactive pill.',
+      'Together, these effects show how deeply belief and expectation are woven into physical experience.',
+      'Researchers now consider the placebo response a genuine biological phenomenon, not merely a psychological trick.',
+      'Understanding it better continues to reshape how new medical treatments are tested and evaluated.',
+    ],
+    questions: [
+      { id: 'placebo-effect-real-power-q1', question: 'According to the passage, what natural substance can placebos trigger the release of?', options: ['Adrenaline', 'Endorphins', 'Insulin', 'Melatonin'], correctOptionIndex: 1 },
+      { id: 'placebo-effect-real-power-q2', question: 'According to the passage, what tends to produce stronger reported relief: expensive-looking or cheap placebo pills?', options: ['Cheap pills', 'Expensive-looking pills', 'Neither makes a difference', 'Only injections work'], correctOptionIndex: 1 },
+      { id: 'placebo-effect-real-power-q3', question: 'What is the name for the opposite, harmful version of the placebo effect?', options: ['The nocebo effect', 'The reverse effect', 'The bias effect', 'The control effect'], correctOptionIndex: 0 },
+    ],
+  },
+  {
+    id: 'mystery-of-deja-vu',
+    label: 'The Mystery of Déjà Vu',
+    sentences: [
+      'Almost everyone has experienced a strange, fleeting sense that a brand-new moment feels eerily familiar.',
+      'This sensation is known as déjà vu, a French phrase meaning "already seen."',
+      'Surveys suggest a majority of people experience it at least once in their lives, often during ordinary moments.',
+      'It tends to occur more frequently in younger people, particularly those in their teens and twenties.',
+      'Frequent travelers and people who remember their dreams often report experiencing it more commonly too.',
+      'Despite how vivid it feels, déjà vu is famously difficult to study in a laboratory setting.',
+      'It strikes suddenly, unpredictably, and typically lasts only a few brief seconds.',
+      'Several competing theories attempt to explain what actually causes the sensation.',
+      'One theory suggests a minor, harmless glitch in how the brain processes new information.',
+      'It proposes that a new experience might briefly get misrouted, accidentally tagged as a retrieved memory.',
+      'Another theory points to slight timing delays between the brain’s two hemispheres processing the same input.',
+      'A tiny lag between the two sides could create the sensation of the present moment repeating itself.',
+      'Some researchers link déjà vu to the brain region called the rhinal cortex, involved in familiarity judgments.',
+      'That region can sometimes signal strong familiarity even without an actual specific memory to back it up.',
+      'Studies using virtual reality have managed to artificially trigger déjà vu-like sensations in controlled settings.',
+      'Researchers showed participants a scene, then later a new but spatially similar scene, prompting a false familiarity.',
+      'This suggests spatial layout similarity alone can trigger the sensation, even without any real prior visit.',
+      'While déjà vu can feel mysterious or even eerie, researchers stress it is a normal, harmless brain quirk.',
+      'It offers a small, strange glimpse into how memory and perception constantly interact behind the scenes.',
+    ],
+    questions: [
+      { id: 'mystery-of-deja-vu-q1', question: 'According to the passage, what does the French phrase "déjà vu" mean?', options: ['"Never seen"', '"Already seen"', '"Strange feeling"', '"Lost memory"'], correctOptionIndex: 1 },
+      { id: 'mystery-of-deja-vu-q2', question: 'According to the passage, in which age group does déjà vu tend to occur more frequently?', options: ['Young children', 'Teens and twenties', 'People over sixty', 'Infants'], correctOptionIndex: 1 },
+      { id: 'mystery-of-deja-vu-q3', question: 'What brain region do some researchers link to déjà vu, according to the passage?', options: ['The cerebellum', 'The rhinal cortex', 'The occipital lobe', 'The brainstem'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'how-groupthink-distorts-decisions',
+    label: 'How Groupthink Distorts Decisions',
+    sentences: [
+      'Sometimes a group of smart, capable people can still make a strikingly poor collective decision.',
+      'Psychologist Irving Janis coined a term for this pattern in the 1970s: groupthink.',
+      'Groupthink occurs when the desire for harmony within a group overrides realistic, critical evaluation of options.',
+      'Members begin prioritizing agreement and unity over honestly voicing doubts or dissenting opinions.',
+      'Janis studied several major historical decisions, searching for a recurring psychological pattern behind them.',
+      'One frequently cited case is the failed 1961 Bay of Pigs invasion, planned during Kennedy’s presidency.',
+      'Advisors reportedly held private doubts about the plan but hesitated to voice them openly in group meetings.',
+      'Janis identified several telltale symptoms that often signal groupthink is taking hold.',
+      'One symptom is an illusion of invulnerability, where the group feels overly confident and immune to failure.',
+      'Another is self-censorship, where individuals privately doubt a plan but choose to stay silent anyway.',
+      'A third symptom involves so-called "mindguards," members who actively pressure others to fall in line.',
+      'Pressure toward consensus can suppress alternative viewpoints before they are ever seriously considered.',
+      'Groupthink tends to appear more often in tightly cohesive groups with a strong, directive leader.',
+      'Stressful, high-stakes situations with limited time also seem to make groupthink more likely to occur.',
+      'Organizations have since developed specific strategies to help counteract this dangerous pattern.',
+      'One common strategy is assigning a designated "devil’s advocate" to actively challenge the group’s emerging consensus.',
+      'Encouraging anonymous input or private, independent opinions gathered before group discussion also helps.',
+      'Leaders are often advised to withhold stating their own preferred position until subordinates speak first.',
+      'Understanding groupthink helps organizations design better processes for making genuinely careful, well-examined decisions.',
+    ],
+    questions: [
+      { id: 'how-groupthink-distorts-decisions-q1', question: 'Who coined the term "groupthink," according to the passage?', options: ['Irving Janis', 'John F. Kennedy', 'Bibb Lataneé', 'Karl von Frisch'], correctOptionIndex: 0 },
+      { id: 'how-groupthink-distorts-decisions-q2', question: 'What historical event does the passage cite as a frequently studied example of groupthink?', options: ['The Apollo 13 mission', 'The Bay of Pigs invasion', 'The Wright brothers’ flight', 'The Silk Road trade'], correctOptionIndex: 1 },
+      { id: 'how-groupthink-distorts-decisions-q3', question: 'What strategy does the passage mention for counteracting groupthink?', options: ['Assigning a designated "devil’s advocate"', 'Making decisions faster', 'Removing the group leader entirely', 'Avoiding all group meetings'], correctOptionIndex: 0 },
+    ],
+  },
+  // --- Historical Mysteries ---
+  {
+    id: 'lost-colony-of-roanoke',
+    label: 'The Lost Colony of Roanoke',
+    sentences: [
+      'In 1587, a group of English settlers arrived on Roanoke Island, off the coast of present-day North Carolina.',
+      'Their leader, John White, hoped to establish a lasting English colony in the New World.',
+      'Shortly after arriving, White’s daughter gave birth to a girl named Virginia Dare, the first English child born in America.',
+      'Facing dwindling supplies, White sailed back to England to gather more provisions for the struggling colony.',
+      'He expected to return within a few months, leaving behind roughly one hundred fifteen settlers.',
+      'War between England and Spain broke out soon after, delaying his return by nearly three years.',
+      'When White finally sailed back to Roanoke in 1590, he found the settlement completely deserted.',
+      'Buildings had been carefully dismantled, suggesting a planned departure rather than a sudden, violent attack.',
+      'The only clue left behind was a single word carved into a wooden post: "CROATOAN."',
+      'That word referenced a nearby island and the Croatoan people who lived there.',
+      'A pre-arranged signal system meant a cross carved alongside the word would indicate distress or danger.',
+      'No such cross was found, offering a small hint that the colonists may have left willingly.',
+      'Storms prevented White from properly searching the Croatoan island before being forced to sail back to England.',
+      'He never returned to search again, and the fate of the colonists remained unresolved.',
+      'Over the centuries, many competing theories have tried to explain the disappearance.',
+      'Some historians suggest the colonists integrated peacefully with nearby Indigenous communities.',
+      'Others propose disease, starvation, or conflict as more tragic possible explanations.',
+      'Modern archaeological digs have uncovered scattered artifacts hinting at possible answers, though nothing fully conclusive.',
+      'The Lost Colony remains one of early American history’s most enduring unsolved mysteries.',
+    ],
+    questions: [
+      { id: 'lost-colony-of-roanoke-q1', question: 'What single word was found carved into a wooden post at the abandoned colony?', options: ['"HELP"', '"CROATOAN"', '"GONE"', '"ENGLAND"'], correctOptionIndex: 1 },
+      { id: 'lost-colony-of-roanoke-q2', question: 'Why was John White’s return to Roanoke delayed by nearly three years?', options: ['He got lost at sea', 'War between England and Spain', 'He decided to stay in England permanently', 'The ship sank'], correctOptionIndex: 1 },
+      { id: 'lost-colony-of-roanoke-q3', question: 'What would a carved cross next to the word have indicated, according to the passage?', options: ['A religious ceremony', 'Distress or danger', 'A peaceful departure', 'A trade agreement'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'voynich-manuscript-unbroken-code',
+    label: "The Voynich Manuscript’s Unbroken Code",
+    sentences: [
+      'Locked away in a Yale University library sits one of the strangest books ever discovered.',
+      'It is known as the Voynich Manuscript, named after the book dealer who acquired it in 1912.',
+      'The manuscript is filled with flowing, elegant handwriting in a script no scholar has ever identified.',
+      'Its pages are also filled with detailed illustrations of plants that do not match any known species.',
+      'Other sections show strange astronomical diagrams alongside small, unclothed human figures bathing in green liquid.',
+      'Scientists used radiocarbon dating to determine the manuscript’s parchment dates to the early fifteenth century.',
+      'This confirmed the book itself is genuinely old, ruling out theories of a purely modern hoax.',
+      'Whether its contents represent real meaningful information remains a much harder question to answer.',
+      'Codebreakers and cryptographers have studied the manuscript intensely for more than a century.',
+      'Even expert codebreakers who helped crack military codes during World War Two failed to decipher it.',
+      'Various theories propose it is written in an unknown natural language, a constructed language, or an elaborate cipher.',
+      'Statistical analysis of the text shows patterns similar to real languages, unlike random gibberish.',
+      'Word lengths, letter frequencies, and repetition patterns all resemble features found in genuine written language.',
+      'Some researchers argue this instead points to a clever hoax designed to mimic real language statistically.',
+      'One theory suggests a medieval scribe used a simple grid-based system to generate meaningless but language-like text.',
+      'Other researchers remain convinced the manuscript encodes genuine, currently unrecoverable meaning.',
+      'Modern computer analysis and artificial intelligence tools have been applied to the puzzle without a confirmed breakthrough.',
+      'The manuscript has inspired novels, documentaries, and passionate online communities devoted to solving it.',
+      'For now, the Voynich Manuscript remains exactly what it has been for over a century: genuinely unread.',
+    ],
+    questions: [
+      { id: 'voynich-manuscript-unbroken-code-q1', question: 'According to the passage, what did radiocarbon dating confirm about the manuscript?', options: ['It was written in the 1900s', 'Its parchment dates to the early fifteenth century', 'It was written by a known author', 'It is a modern forgery'], correctOptionIndex: 1 },
+      { id: 'voynich-manuscript-unbroken-code-q2', question: 'Who reportedly failed to decipher the manuscript, according to the passage?', options: ['Medieval monks', 'World War Two codebreakers', 'Modern novelists', 'The original owner'], correctOptionIndex: 1 },
+      { id: 'voynich-manuscript-unbroken-code-q3', question: 'According to the passage, what do the manuscript’s illustrations depict, alongside strange plants?', options: ['Only maps', 'Astronomical diagrams and figures bathing in green liquid', 'Battle scenes', 'Portraits of kings'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'amelia-earhart-disappearance',
+    label: 'The Disappearance of Amelia Earhart',
+    sentences: [
+      'Amelia Earhart became one of the most celebrated aviators of the early twentieth century.',
+      'In 1932, she became the first woman to fly solo across the Atlantic Ocean.',
+      'Her fame and daring exploits captured the public imagination across the entire world.',
+      'In 1937, she attempted an even more ambitious goal: flying around the entire globe.',
+      'She was accompanied by navigator Fred Noonan aboard a twin-engine Lockheed Electra aircraft.',
+      'By late June, the pair had already completed most of the grueling journey successfully.',
+      'On July 2, 1937, they took off from Lae, New Guinea, heading toward tiny Howland Island.',
+      'Howland Island was an extremely small target, barely visible in the vast surrounding Pacific Ocean.',
+      'A Coast Guard ship stationed near the island attempted to guide them in using radio communication.',
+      'Earhart’s radio transmissions grew increasingly worried, reporting she was low on fuel and could not locate the island.',
+      'Her final confirmed transmission was received, and then radio contact was lost entirely.',
+      'The United States launched one of the largest and most expensive search efforts in history at that time.',
+      'Ships and aircraft scoured a vast stretch of ocean for more than two weeks.',
+      'No confirmed wreckage, remains, or definitive evidence of the plane were ever officially recovered.',
+      'Several competing theories have emerged in the decades since her disappearance.',
+      'The most widely accepted theory suggests the plane ran out of fuel and crashed into the open ocean.',
+      'Another theory proposes Earhart and Noonan crash-landed on a remote, uninhabited atoll called Nikumaroro.',
+      'Some later expeditions to that atoll have found artifacts that researchers still debate the significance of.',
+      'Decades of searching later, Amelia Earhart’s ultimate fate remains one of aviation’s most famous unsolved mysteries.',
+    ],
+    questions: [
+      { id: 'amelia-earhart-disappearance-q1', question: 'What achievement made Earhart famous in 1932, according to the passage?', options: ['First woman to fly around the world', 'First woman to fly solo across the Atlantic', 'First woman to fly a jet', 'First woman pilot ever'], correctOptionIndex: 1 },
+      { id: 'amelia-earhart-disappearance-q2', question: 'What tiny island were Earhart and Noonan trying to reach when they disappeared?', options: ['Howland Island', 'Nikumaroro', 'Roanoke Island', 'Elephant Island'], correctOptionIndex: 0 },
+      { id: 'amelia-earhart-disappearance-q3', question: 'According to the passage, was any confirmed wreckage of the plane ever officially recovered?', options: ['Yes, found immediately', 'No, none was ever officially recovered', 'Yes, decades later', 'Only the engine was found'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'building-the-pyramids',
+    label: 'The Building of the Pyramids',
+    sentences: [
+      'Rising from the desert sands near Cairo stands one of humanity’s most enduring architectural achievements.',
+      'The Great Pyramid of Giza was built as a tomb for the pharaoh Khufu, around 2560 BCE.',
+      'It originally stood about one hundred forty-six meters tall, a height unmatched by any structure for millennia.',
+      'It remains the only surviving wonder among the famous Seven Wonders of the Ancient World.',
+      'The pyramid consists of roughly two million individual limestone and granite blocks.',
+      'Many of those blocks weigh several tons each, with some weighing far more.',
+      'Exactly how ancient builders moved and lifted such massive stones remains genuinely debated among historians.',
+      'Long ago, some assumed the pyramids must have been built by armies of enslaved laborers.',
+      'Archaeological discoveries of nearby worker villages have significantly complicated that older assumption.',
+      'Those villages contained bakeries, breweries, and medical facilities suggesting organized, provisioned laborers rather than pure slavery.',
+      'Evidence suggests many workers were skilled laborers, rotated in from across Egypt in organized shifts.',
+      'Leading theories propose builders used massive ramps, possibly straight, spiraling, or a combination of both designs.',
+      'Others suggest wooden sledges, lubricated with water poured onto sand, helped reduce friction while dragging blocks.',
+      'A famous ancient Egyptian wall painting appears to depict exactly this water-and-sledge technique in action.',
+      'Precise measurements show the pyramid’s sides align remarkably closely with the four true cardinal directions.',
+      'This precision suggests genuinely sophisticated surveying and astronomical knowledge among ancient Egyptian builders.',
+      'Modern engineers still study the structure, impressed by its enduring precision after more than four thousand years.',
+      'No definitive contemporary blueprint or complete construction manual has ever been discovered.',
+      'Exactly how the pyramids were built, in full technical detail, remains an open and actively studied question.',
+    ],
+    questions: [
+      { id: 'building-the-pyramids-q1', question: 'For which pharaoh was the Great Pyramid of Giza built, according to the passage?', options: ['Khufu', 'Tutankhamun', 'Ramses', 'Cleopatra'], correctOptionIndex: 0 },
+      { id: 'building-the-pyramids-q2', question: 'What did archaeological discoveries of nearby worker villages reveal, according to the passage?', options: ['Evidence of pure enslaved labor only', 'Bakeries, breweries, and medical facilities for organized laborers', 'Nothing of significance', 'That no workers lived nearby'], correctOptionIndex: 1 },
+      { id: 'building-the-pyramids-q3', question: 'According to the passage, how closely do the pyramid’s sides align with the cardinal directions?', options: ['Not at all', 'Remarkably closely', 'Only roughly, within many degrees', 'They point to the North Star only'], correctOptionIndex: 1 },
+    ],
+  },
+  {
+    id: 'mystery-of-the-mary-celeste',
+    label: 'The Mystery of the Mary Celeste',
+    sentences: [
+      'In December 1872, a ship crew sailing the Atlantic spotted another vessel drifting strangely off course.',
+      'The ship was the Mary Celeste, an American merchant vessel that had left New York a month earlier.',
+      'When a boarding crew climbed aboard, they found something deeply unsettling: the ship was completely deserted.',
+      'Not a single person remained on board, not the captain, his wife, their young daughter, or any crew member.',
+      'Strangely, the ship itself appeared largely seaworthy and in reasonably good condition.',
+      'Cargo, personal belongings, and even the crew’s valuables were still neatly in place below deck.',
+      'One lifeboat was missing, suggesting the crew had deliberately abandoned ship for some reason.',
+      'The captain’s navigational logbook offered no clear explanation, ending abruptly with a routine, uneventful entry.',
+      'Sails were found in disarray, and some rigging appeared damaged, hinting at possibly rough weather.',
+      'Yet nothing found aboard suggested violence, mutiny, or piracy had definitely taken place.',
+      'News of the mystery spread quickly, and speculation ran wild across newspapers worldwide.',
+      'Some theories proposed a sudden, violent storm frightened the crew into abandoning ship prematurely.',
+      'Others speculated that fumes from leaking cargo barrels of alcohol sparked fears of an explosion.',
+      'Still others imagined dramatic scenarios involving mutiny, sea monsters, or even paranormal explanations.',
+      'No definitive evidence has ever confirmed any single explanation over the others.',
+      'The ship itself continued operating under new owners for over a decade after the incident.',
+      'Its later owners reportedly grew uneasy with its eerie reputation as a cursed vessel.',
+      'Investigators and historians have revisited the case repeatedly, yet no consensus has ever been reached.',
+      'More than a century later, the fate of the Mary Celeste’s crew remains genuinely, officially unexplained.',
+    ],
+    questions: [
+      { id: 'mystery-of-the-mary-celeste-q1', question: 'According to the passage, what did the boarding crew find when they climbed aboard the Mary Celeste?', options: ['A crew asleep', 'The ship completely deserted', 'A raging fire', 'Pirates in control'], correctOptionIndex: 1 },
+      { id: 'mystery-of-the-mary-celeste-q2', question: 'What was notably missing from the ship, suggesting a deliberate abandonment?', options: ['The cargo', 'One lifeboat', 'The anchor', 'The captain’s logbook entirely'], correctOptionIndex: 1 },
+      { id: 'mystery-of-the-mary-celeste-q3', question: 'What theory involving the cargo did some investigators propose, according to the passage?', options: ['Fumes from leaking alcohol barrels sparked explosion fears', 'The cargo was stolen goods', 'The cargo caught fire immediately', 'There was no cargo aboard'], correctOptionIndex: 0 },
+    ],
   },
 ] as const
+
+export const TOTAL_FLASH_RECALL_SPRINT_CATEGORIES = FLASH_RECALL_SPRINT_CATEGORIES.length
+
+export function buildWordsForCategory(category: FlashRecallSprintCategory): readonly string[] {
+  return category.sentences.join(' ').trim().split(/\s+/).filter(Boolean)
+}
+
+const LAST_CATEGORY_STORAGE_KEY = 'qsr-flash-recall-sprint-last-category'
+
+// Own-copy of Vertical Chunk Sliding's identical pickSessionCategory —
+// client-only (reads/writes localStorage, calls Math.random(), so must
+// never run during SSR). Callers invoke this exclusively from a
+// useEffect, never a lazy useState initializer, so the server-rendered
+// 'settings' phase and the client's first paint always match before this
+// ever runs — see VerticalChunkSlidingExperience.tsx for the identical
+// pattern and its full rationale.
+export function pickSessionCategory(): FlashRecallSprintCategory {
+  const categories = FLASH_RECALL_SPRINT_CATEGORIES
+  let lastId: string | null = null
+  if (typeof window !== 'undefined') {
+    try {
+      lastId = localStorage.getItem(LAST_CATEGORY_STORAGE_KEY)
+    } catch {
+      lastId = null
+    }
+  }
+
+  const pool = lastId === null ? categories : categories.filter((category) => category.id !== lastId)
+  const eligiblePool = pool.length > 0 ? pool : categories
+  const picked = eligiblePool[Math.floor(Math.random() * eligiblePool.length)] ?? categories[0]!
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(LAST_CATEGORY_STORAGE_KEY, picked.id)
+    } catch {
+      // Best-effort only — a session still works perfectly without
+      // non-repeat tracking, it just can't remember last time's pick.
+    }
+  }
+
+  return picked
+}

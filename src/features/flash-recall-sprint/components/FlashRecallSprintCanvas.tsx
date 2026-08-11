@@ -77,6 +77,7 @@ type FlashRecallSprintCanvasProps = {
   targetWpm: number
   elapsedMs: number
   progressPercent: number
+  categoryLabel: string | null
   onPause: () => void
   onResume: () => void
   onRestart: () => void
@@ -104,6 +105,7 @@ export function FlashRecallSprintCanvas({
   targetWpm,
   elapsedMs,
   progressPercent,
+  categoryLabel,
   onPause,
   onResume,
   onRestart,
@@ -253,7 +255,8 @@ export function FlashRecallSprintCanvas({
   return (
     <ReadingLayout maxWidthClassName="max-w-2xl" onExit={onExit}>
       <div className="w-full max-w-md">
-        <p className="mb-3 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Flash Recall &amp; Retention Sprint™</p>
+        <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Flash Recall &amp; Retention Sprint™</p>
+        {categoryLabel && <p className="mb-3 text-center text-xs text-muted-foreground">Reading: {categoryLabel}</p>}
 
         <div className="grid grid-cols-3 gap-x-4 text-center">
           <ReadingStatTile label="Reading Pace" value={isWarmingUp ? 'Warming up…' : `${Math.round(animatedWpm)} wpm`} />
