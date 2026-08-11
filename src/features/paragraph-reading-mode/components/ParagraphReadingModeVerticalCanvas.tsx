@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
-import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
 import { measureWrappedWordYCentersPx } from '@/hooks/reading-engine/measureWrappedWordYCenters'
+import { computeUnitDwellMs } from '@/features/reading-engine/readingMetrics'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
@@ -16,15 +16,21 @@ import type { ParagraphReadingWidth, ParagraphFontSize } from './ParagraphReadin
 // (which show one discrete unit centered per fixed-height row), a
 // paragraph naturally wraps across several lines, so this Canvas scrolls
 // the REAL, naturally-wrapped multi-line text continuously upward, like an
-// actual teleprompter or end-credits crawl — the word currently being
-// read always sits vertically centered in the frosted-glass window, and
-// consecutive words on the same line share the same Y-center (measured,
-// not assumed), so the crawl only actually moves once reading advances to
-// a genuinely new line. That real per-word Y position depends on the
-// exact width/font the text renders at, which is why this Canvas leans on
-// the new measureWrappedWordYCentersPx utility (own hidden-probe
-// measurement, mirroring measureSingleLineWidthsPx's own established
+// actual teleprompter or end-credits crawl. That real per-word Y position
+// depends on the exact width/font the text renders at, which is why this
+// Canvas leans on the measureWrappedWordYCentersPx utility (own hidden-
+// probe measurement, mirroring measureSingleLineWidthsPx's own established
 // pattern) rather than any fixed-row arithmetic.
+//
+// Butter-Smooth Motion Fix — the first version of this crawl interpolated
+// only between the *previous* and *current* word's own measured Y-center.
+// Since many consecutive words share an identical Y (same line), that
+// produced long stretches of literally zero on-screen motion, then a
+// sudden whole-line jump compressed into one word's short dwell window —
+// real, measured jerk, not smooth crawling at all. A true teleprompter
+// instead scrolls at one constant velocity for the *entire* passage; see
+// computeConstantVelocityOffsetPx's own doc comment (own-copy, identical
+// to the horizontal Canvas's).
 const CHANNEL_WIDTH_PX: Record<ParagraphReadingWidth, number> = {
   compact: 560,
   comfortable: 720,
@@ -94,6 +100,17 @@ type ParagraphReadingModeVerticalCanvasProps = {
   onRestart: () => void
   onFinish: () => void
   onExit: () => void
+}
+
+// Own-copy of the horizontal Canvas's identical constant-velocity formula
+// — see that file's own doc comment for the full rationale. `startOffsetPx`
+// is the first word's Y-center, `endOffsetPx` the last word's, so the
+// whole passage crawls upward at one steady, sub-pixel rate for its
+// entire duration with zero per-line stepping.
+function computeConstantVelocityOffsetPx(startOffsetPx: number, endOffsetPx: number, totalDurationMs: number, elapsedMs: number): number {
+  if (totalDurationMs <= 0) return startOffsetPx
+  const fraction = Math.min(Math.max(elapsedMs / totalDurationMs, 0), 1)
+  return startOffsetPx + (endOffsetPx - startOffsetPx) * fraction
 }
 
 function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
@@ -168,6 +185,14 @@ export function ParagraphReadingModeVerticalCanvas({
     )
   }, [units, textWrapWidth, fontSizePx, lineHeight])
 
+  // The single constant-velocity duration for the whole passage — the sum
+  // of every word's own uniform dwell time, exactly matching how long the
+  // engine itself expects the full read to take at this target pace.
+  const totalDurationMs = useMemo(
+    () => units.reduce((sum, unit) => sum + computeUnitDwellMs(unit.text, targetWpm), 0),
+    [units, targetWpm],
+  )
+
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
@@ -184,9 +209,11 @@ export function ParagraphReadingModeVerticalCanvas({
   const currentUnitIndexRef = useRef(currentUnitIndex)
   const targetWpmRef = useRef(targetWpm)
   const isPausedRef = useRef(isPaused)
+  const totalDurationMsRef = useRef(totalDurationMs)
   currentUnitIndexRef.current = currentUnitIndex
   targetWpmRef.current = targetWpm
   isPausedRef.current = isPaused
+  totalDurationMsRef.current = totalDurationMs
 
   useEffect(() => {
     if (currentUnitIndex === lastHapticUnitIndexRef.current) return
@@ -267,35 +294,31 @@ export function ParagraphReadingModeVerticalCanvas({
 
   // The actual motion — a dedicated rAF loop writing translateY straight to
   // the track element via a ref, once real per-word Y-centers are known.
-  // Same GPU-composited direct-DOM pattern as every sibling Canvas, just
-  // driven by measured positions instead of closed-form row arithmetic.
+  // Every frame recomputes a fresh constant-velocity offset directly from
+  // elapsed time — there is no per-line branch left to hold or jump on, so
+  // this is structurally incapable of freezing or bursting (see
+  // computeConstantVelocityOffsetPx's own doc comment).
   useEffect(() => {
-    if (wordYCenters === null) return undefined
+    if (wordYCenters === null || wordYCenters.length === 0) return undefined
 
-    const offsetForIndex = (index: number): number => wordYCenters[index] ?? 0
+    const centers = wordYCenters
+    const startOffsetPx = centers[0] ?? 0
+    const endOffsetPx = centers[centers.length - 1] ?? 0
     let rafId: number
 
     function tick(): void {
       const track = trackRef.current
       if (track) {
         const offsetPx = prefersReducedMotion
-          ? offsetForIndex(currentUnitIndexRef.current)
+          ? (centers[currentUnitIndexRef.current] ?? 0)
           : isPausedRef.current
-            ? computeContinuousStreamOffsetPx({
-                units,
-                currentUnitIndex: currentUnitIndexRef.current,
-                targetWpm: targetWpmRef.current,
-                elapsedMs: lastEngineElapsedMsRef.current,
-                offsetForIndex,
-              })
-            : computeContinuousStreamOffsetPx({
-                units,
-                currentUnitIndex: currentUnitIndexRef.current,
-                targetWpm: targetWpmRef.current,
-                elapsedMs:
-                  lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
-                offsetForIndex,
-              })
+            ? computeConstantVelocityOffsetPx(startOffsetPx, endOffsetPx, totalDurationMsRef.current, lastEngineElapsedMsRef.current)
+            : computeConstantVelocityOffsetPx(
+                startOffsetPx,
+                endOffsetPx,
+                totalDurationMsRef.current,
+                lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
+              )
         track.style.transform = `translate3d(0, -${offsetPx}px, 0)`
       }
       rafId = requestAnimationFrame(tick)
@@ -303,7 +326,7 @@ export function ParagraphReadingModeVerticalCanvas({
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [wordYCenters, units, prefersReducedMotion])
+  }, [wordYCenters, prefersReducedMotion])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500

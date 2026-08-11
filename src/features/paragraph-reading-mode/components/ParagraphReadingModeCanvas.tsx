@@ -3,8 +3,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
-import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
 import { measureSingleLineWidthsPx } from '@/hooks/reading-engine/measureSingleLineWidths'
+import { computeUnitDwellMs } from '@/features/reading-engine/readingMetrics'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
@@ -88,6 +88,29 @@ type ParagraphReadingModeCanvasProps = {
   onExit: () => void
 }
 
+// Butter-Smooth Motion Fix — own-copy pure function (paragraph-mode-
+// specific, not the shared computeContinuousStreamOffsetPx every sibling
+// Reading Mode still correctly uses for their own, far-fewer/longer-
+// dwelling units). That shared utility interpolates only between the
+// *previous* and *current* unit's own offset — fine when a unit's dwell
+// spans real, perceptible seconds, but this mode's units are single words
+// with a uniform, very short dwell (60000/targetWpm ms each, constant
+// regardless of word length). Live profiling showed that model producing
+// long runs of literally zero on-screen motion punctuated by sudden
+// multi-pixel-per-frame catch-up bursts at every word boundary — real,
+// measurable jerk, not a perception issue. A true cinematic ticker instead
+// needs one single constant velocity for the *entire* passage: this maps
+// elapsed time linearly across the full first-word-to-last-word distance,
+// so every rAF frame advances by a small, steady, sub-pixel amount with
+// zero per-word stepping. `currentUnitIndex` from the engine still drives
+// stats/progress/haptics/completion untouched — only the visual offset
+// changes.
+function computeConstantVelocityOffsetPx(startOffsetPx: number, endOffsetPx: number, totalDurationMs: number, elapsedMs: number): number {
+  if (totalDurationMs <= 0) return startOffsetPx
+  const fraction = Math.min(Math.max(elapsedMs / totalDurationMs, 0), 1)
+  return startOffsetPx + (endOffsetPx - startOffsetPx) * fraction
+}
+
 function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   const length = Math.floor(audioContext.sampleRate * REVERB_DURATION_S)
   const impulse = audioContext.createBuffer(2, length, audioContext.sampleRate)
@@ -103,13 +126,13 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 // Horizontal Flow — the cinematic replacement for this mode's old plain
 // text box and hopping highlight (see this file's pre-overhaul history):
 // instead of a static, fully-visible paragraph with a background box
-// jumping between words, one word at a time glides continuously through a
-// frosted-glass, gradient-masked channel. Same word-level engine pacing as
-// the pre-overhaul version (computeUnitDwellMs per word), same proven rAF
-// direct-DOM motion model as every other streaming Reading Mode in this
-// app (measureSingleLineWidthsPx for each word's true rendered width,
-// computeContinuousStreamOffsetPx for the shared frame-by-frame glide
-// math — both imported unmodified).
+// jumping between words, the whole passage glides continuously through a
+// frosted-glass, gradient-masked channel at one constant velocity (see
+// computeConstantVelocityOffsetPx's own doc comment for why this mode
+// needed its own motion formula rather than the shared per-unit one).
+// Still uses measureSingleLineWidthsPx (imported unmodified) for each
+// word's true rendered width, since the constant-velocity distance is
+// still measured against real layout, not an estimate.
 export function ParagraphReadingModeCanvas({
   units,
   currentUnitIndex,
@@ -168,6 +191,14 @@ export function ParagraphReadingModeCanvas({
     return centers
   }, [unitWidths])
 
+  // The single constant-velocity duration for the whole passage — the sum
+  // of every word's own uniform dwell time, exactly matching how long the
+  // engine itself expects the full read to take at this target pace.
+  const totalDurationMs = useMemo(
+    () => units.reduce((sum, unit) => sum + computeUnitDwellMs(unit.text, targetWpm), 0),
+    [units, targetWpm],
+  )
+
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
@@ -184,9 +215,11 @@ export function ParagraphReadingModeCanvas({
   const currentUnitIndexRef = useRef(currentUnitIndex)
   const targetWpmRef = useRef(targetWpm)
   const isPausedRef = useRef(isPaused)
+  const totalDurationMsRef = useRef(totalDurationMs)
   currentUnitIndexRef.current = currentUnitIndex
   targetWpmRef.current = targetWpm
   isPausedRef.current = isPaused
+  totalDurationMsRef.current = totalDurationMs
 
   useEffect(() => {
     if (currentUnitIndex === lastHapticUnitIndexRef.current) return
@@ -267,34 +300,31 @@ export function ParagraphReadingModeCanvas({
 
   // The actual motion — a dedicated rAF loop, started once real widths are
   // known and re-created only if the unit list, font size, or reduced-
-  // motion preference itself changes.
+  // motion preference itself changes. Every frame recomputes a fresh
+  // constant-velocity offset directly from elapsed time — there is no
+  // per-word branch left to step or stall on, so this is structurally
+  // incapable of freezing or bursting (see computeConstantVelocityOffsetPx's
+  // own doc comment).
   useEffect(() => {
-    if (unitWidths === null) return undefined
+    if (unitWidths === null || cumulativeCenters.length === 0) return undefined
 
-    const offsetForIndex = (index: number): number => cumulativeCenters[index] ?? 0
+    const startOffsetPx = cumulativeCenters[0] ?? 0
+    const endOffsetPx = cumulativeCenters[cumulativeCenters.length - 1] ?? 0
     let rafId: number
 
     function tick(): void {
       const track = trackRef.current
       if (track) {
         const offsetPx = prefersReducedMotion
-          ? offsetForIndex(currentUnitIndexRef.current)
+          ? (cumulativeCenters[currentUnitIndexRef.current] ?? 0)
           : isPausedRef.current
-            ? computeContinuousStreamOffsetPx({
-                units,
-                currentUnitIndex: currentUnitIndexRef.current,
-                targetWpm: targetWpmRef.current,
-                elapsedMs: lastEngineElapsedMsRef.current,
-                offsetForIndex,
-              })
-            : computeContinuousStreamOffsetPx({
-                units,
-                currentUnitIndex: currentUnitIndexRef.current,
-                targetWpm: targetWpmRef.current,
-                elapsedMs:
-                  lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
-                offsetForIndex,
-              })
+            ? computeConstantVelocityOffsetPx(startOffsetPx, endOffsetPx, totalDurationMsRef.current, lastEngineElapsedMsRef.current)
+            : computeConstantVelocityOffsetPx(
+                startOffsetPx,
+                endOffsetPx,
+                totalDurationMsRef.current,
+                lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
+              )
         track.style.transform = `translate3d(-${offsetPx}px, 0, 0)`
       }
       rafId = requestAnimationFrame(tick)
@@ -304,9 +334,10 @@ export function ParagraphReadingModeCanvas({
     return () => cancelAnimationFrame(rafId)
     // cumulativeCenters is derived from unitWidths, which IS a dependency
     // — omitting it here is deliberate, not stale: it's read fresh via
-    // offsetForIndex's own closure on every single frame anyway.
+    // startOffsetPx/endOffsetPx captured once per effect run, which is
+    // exactly when cumulativeCenters itself last changed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitWidths, units, prefersReducedMotion])
+  }, [unitWidths, prefersReducedMotion])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
