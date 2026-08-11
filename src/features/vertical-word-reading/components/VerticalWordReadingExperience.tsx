@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
@@ -8,37 +8,48 @@ import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { VERTICAL_WORD_READING_UNITS } from '../verticalWordReadingDataset'
-import { VerticalWordReadingSettings } from './vertical-word-reading/VerticalWordReadingSettings'
-import { VerticalWordReadingCanvas } from './vertical-word-reading/VerticalWordReadingCanvas'
+import { buildUnitsForCategory, pickSessionCategory, type VerticalWordReadingCategory } from '../verticalWordReadingDataset'
+import { VerticalWordReadingSettings } from './VerticalWordReadingSettings'
+import { VerticalWordReadingCanvas } from './VerticalWordReadingCanvas'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 
-// Same literal storage key verticalWordReadingLocalHistory.ts used before
-// this migration — kept exact so an existing user's Best Record survives
-// the move to the shared readingLocalHistory.ts module.
+// Same literal storage key the pre-migration version used — kept exact so
+// an existing user's Best Record survives this reorganization into its
+// own feature folder.
 const BEST_WPM_STORAGE_KEY = 'qsr-vertical-word-reading-best'
 
-const UNIT_TEXTS = VERTICAL_WORD_READING_UNITS.map((unit) => unit.text)
-
 type VerticalWordReadingExperienceProps = {
-  // QSR Pro Circuit™ — additive, optional. See
-  // SchulteGridDrillExperience.tsx's identical seam for the full
-  // rationale. Standalone usage (this prop omitted) is unchanged.
+  // QSR Pro Circuit™ seam — additive, optional. RotatingQuantumReadingSprintPhase.tsx
+  // (Phase 3 of the Unified Quantum Session) renders this exercise directly
+  // with this prop as part of its Pro rotation pool — standalone usage
+  // (this prop omitted) is unaffected.
   onComplete?: (result: ReadingSessionResult) => void
 }
 
-// Top-level orchestrator for Vertical Word Reading Engine™. Sprint 3.1B —
-// migrated onto the Master Reading Engine™: the runtime, WPM/progress math,
-// pause discipline, session-save decision, and Best Record persistence all
-// now come from shared reading-engine modules; this file only wires them
-// together and owns the one thing that can't move — freezing a
-// ReadingSessionResult snapshot the instant the runtime completes, since
-// runtime.restart() (for "Read Again") zeroes the runtime's live fields
-// immediately and the Complete screen needs the frozen values.
+// Top-level orchestrator for Vertical Word Reading Engine™ — moved into
+// its own feature folder (previously scattered across
+// src/features/quantum-speed-reading/) and completely redesigned around a
+// genuine 25-category vocabulary library with per-session non-repeating
+// rotation, mirroring VerticalFlashRecallExperience.tsx / Vertical Chunk
+// Sliding's identical pattern: a category is picked fresh per mount via
+// pickSessionCategory (client-only, called only from this effect — never
+// a lazy useState initializer — see that function's own doc comment for
+// the full rationale). No comprehension quiz here — this exercise trains
+// instant word recognition and eye movement, not comprehension, matching
+// its original scope.
 export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadingExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
-  const runtime = useReadingRuntime(UNIT_TEXTS)
+
+  const [sessionCategory, setSessionCategory] = useState<VerticalWordReadingCategory | null>(null)
+  useEffect(() => {
+    setSessionCategory(pickSessionCategory())
+  }, [])
+
+  const sessionUnits = useMemo(() => (sessionCategory ? buildUnitsForCategory(sessionCategory) : []), [sessionCategory])
+  const sessionWords = useMemo(() => sessionUnits.map((unit) => unit.text), [sessionUnits])
+
+  const runtime = useReadingRuntime(sessionWords)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'vertical-word-reading' })
   const readingSession = useReadingSession(session)
 
@@ -78,6 +89,7 @@ export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadin
   ])
 
   function handleStart(): void {
+    if (sessionUnits.length === 0) return
     session.start()
     runtime.start()
   }
@@ -103,7 +115,14 @@ export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadin
   }
 
   if (runtime.phase === 'settings') {
-    return <VerticalWordReadingSettings targetWpm={runtime.targetWpm} onSelectTargetWpm={runtime.setTargetWpm} onStart={handleStart} />
+    return (
+      <VerticalWordReadingSettings
+        targetWpm={runtime.targetWpm}
+        onSelectTargetWpm={runtime.setTargetWpm}
+        onStart={handleStart}
+        categoryLabel={sessionCategory?.label ?? null}
+      />
+    )
   }
 
   if (runtime.phase === 'complete' && completedResult !== null) {
@@ -120,13 +139,14 @@ export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadin
 
   return (
     <VerticalWordReadingCanvas
-      units={VERTICAL_WORD_READING_UNITS}
+      units={sessionUnits}
       currentUnitIndex={runtime.currentUnitIndex}
       isPaused={runtime.phase === 'paused'}
       liveWpm={runtime.liveWpm}
       targetWpm={runtime.targetWpm}
       elapsedMs={runtime.elapsedMs}
       progressPercent={runtime.progressPercent}
+      categoryLabel={sessionCategory?.label ?? null}
       onPause={runtime.pause}
       onResume={runtime.resume}
       onRestart={handleRestart}

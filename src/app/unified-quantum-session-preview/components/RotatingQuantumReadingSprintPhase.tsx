@@ -6,7 +6,7 @@ import type { Phase3PoolExerciseId } from './qsrProCircuitRotation'
 import { RapidVisualSpanExpanderExperience } from '@/features/rapid-visual-span-expander/components/RapidVisualSpanExpanderExperience'
 import { DynamicChunkSlidingExperience } from '@/features/dynamic-chunk-sliding/components/DynamicChunkSlidingExperience'
 import { FlashRecallSprintExperience } from '@/features/flash-recall-sprint/components/FlashRecallSprintExperience'
-import { VerticalWordReadingExperience } from '@/features/quantum-speed-reading/components/VerticalWordReadingExperience'
+import { VerticalWordReadingExperience } from '@/features/vertical-word-reading/components/VerticalWordReadingExperience'
 import { GuidedParagraphReadingModeExperience } from '@/features/guided-paragraph-reading-mode/components/GuidedParagraphReadingModeExperience'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 
