@@ -56,6 +56,50 @@ describe('VERTICAL_CHUNK_SLIDING_CATEGORIES', () => {
     const unique = new Set(allSentences)
     expect(unique.size).toBe(allSentences.length)
   })
+
+  // A true 1-minute+ passage — at 250 WPM, 250 words takes 60s and 300
+  // words takes 72s, so every category's total word count must land in
+  // that band for the "60-75 second" spec to hold at a real target pace.
+  it('gives every category a 250-300 word passage (a true 1-minute+ read at 250 WPM)', () => {
+    for (const category of VERTICAL_CHUNK_SLIDING_CATEGORIES) {
+      const wordCount = category.sentences.join(' ').trim().split(/\s+/).length
+      expect(wordCount).toBeGreaterThanOrEqual(250)
+      expect(wordCount).toBeLessThanOrEqual(320)
+    }
+  })
+
+  it('gives every category exactly 3 comprehension questions', () => {
+    for (const category of VERTICAL_CHUNK_SLIDING_CATEGORIES) {
+      expect(category.questions.length).toBe(3)
+    }
+  })
+
+  it('gives every question exactly 4 options and a valid correct-answer index', () => {
+    for (const category of VERTICAL_CHUNK_SLIDING_CATEGORIES) {
+      for (const question of category.questions) {
+        expect(question.options.length).toBe(4)
+        expect(question.correctOptionIndex).toBeGreaterThanOrEqual(0)
+        expect(question.correctOptionIndex).toBeLessThanOrEqual(3)
+        expect(question.question.trim().length).toBeGreaterThan(0)
+        for (const option of question.options) {
+          expect(option.trim().length).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('gives every question a globally unique id', () => {
+    const ids = VERTICAL_CHUNK_SLIDING_CATEGORIES.flatMap((category) => category.questions.map((question) => question.id))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('never gives one question two identical options', () => {
+    for (const category of VERTICAL_CHUNK_SLIDING_CATEGORIES) {
+      for (const question of category.questions) {
+        expect(new Set(question.options).size).toBe(question.options.length)
+      }
+    }
+  })
 })
 
 describe('buildUnitsForCategory', () => {

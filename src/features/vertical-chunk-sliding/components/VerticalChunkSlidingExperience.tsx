@@ -11,6 +11,7 @@ import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type VerticalChunkSlidingCategory } from '../verticalChunkSlidingDataset'
 import { VerticalChunkSlidingSettings } from './VerticalChunkSlidingSettings'
 import { VerticalChunkSlidingCanvas } from './VerticalChunkSlidingCanvas'
+import { VerticalChunkSlidingQuiz } from './VerticalChunkSlidingQuiz'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
 const BEST_WPM_STORAGE_KEY = 'qsr-vertical-chunk-sliding-best'
@@ -46,6 +47,11 @@ export function VerticalChunkSlidingExperience({ onComplete }: VerticalChunkSlid
 
   const [bestWpm, setBestWpm] = useState(0)
   const [completedResult, setCompletedResult] = useState<ReadingSessionResult | null>(null)
+  // Comprehension quiz gate — see VerticalChunkSlidingQuiz.tsx's own doc
+  // comment on why this lives here rather than as a new phase inside the
+  // locked useReadingRuntime.ts. null means "not yet taken this session";
+  // reset alongside completedResult on every restart/read-again.
+  const [quizScore, setQuizScore] = useState<number | null>(null)
 
   useEffect(() => {
     setBestWpm(loadBestWpm(BEST_WPM_STORAGE_KEY))
@@ -88,6 +94,7 @@ export function VerticalChunkSlidingExperience({ onComplete }: VerticalChunkSlid
   function handleReadAgain(): void {
     readingSession.reset()
     setCompletedResult(null)
+    setQuizScore(null)
     session.start()
     runtime.restart()
   }
@@ -95,6 +102,7 @@ export function VerticalChunkSlidingExperience({ onComplete }: VerticalChunkSlid
   function handleRestart(): void {
     readingSession.reset()
     setCompletedResult(null)
+    setQuizScore(null)
     runtime.restart()
   }
 
@@ -116,10 +124,25 @@ export function VerticalChunkSlidingExperience({ onComplete }: VerticalChunkSlid
     )
   }
 
+  // The comprehension quiz gates the completion screen — it renders as
+  // soon as reading finishes and stays up until all 3 questions are
+  // answered, independent of completedResult's own timing (the quiz never
+  // needs that value, only the picked category's own questions).
+  if (runtime.phase === 'complete' && quizScore === null && sessionCategory !== null) {
+    return (
+      <VerticalChunkSlidingQuiz
+        questions={sessionCategory.questions}
+        categoryLabel={sessionCategory.label}
+        onComplete={(score) => setQuizScore(score)}
+        onExit={() => void handleExit()}
+      />
+    )
+  }
+
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        subtitle="Nice, steady vertical reading."
+        subtitle={quizScore !== null ? `Nice, steady vertical reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, steady vertical reading.'}
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
