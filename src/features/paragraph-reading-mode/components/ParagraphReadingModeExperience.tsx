@@ -1,184 +1,168 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
+import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
-import { computeWpm, countWords } from '@/features/reading-engine/readingMetrics'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { ComprehensionCheckpoint } from '@/features/reading-engine/components/ComprehensionCheckpoint'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { PARAGRAPH_READING_MODE_UNITS } from '../paragraphReadingModeDataset'
-import { PARAGRAPH_READING_MODE_COMPREHENSION_BLOCKS } from '../paragraphReadingModeComprehension'
-import { ParagraphReadingModeSettings, type ParagraphReadingWidth, type ParagraphFontSize } from './ParagraphReadingModeSettings'
-import { ParagraphReadingModeBlockRuntime } from './ParagraphReadingModeBlockRuntime'
+import { buildUnitsForCategory, pickSessionCategory, type ParagraphReadingModeCategory } from '../paragraphReadingModeDataset'
+import {
+  ParagraphReadingModeSettings,
+  type ParagraphReadingWidth,
+  type ParagraphFontSize,
+  type ParagraphFlowOrientation,
+} from './ParagraphReadingModeSettings'
+import { ParagraphReadingModeCanvas } from './ParagraphReadingModeCanvas'
+import { ParagraphReadingModeVerticalCanvas } from './ParagraphReadingModeVerticalCanvas'
+import { ParagraphReadingModeQuiz } from './ParagraphReadingModeQuiz'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
+
+// Same literal storage key the pre-overhaul version used — kept exact so an
+// existing user's Best Record survives this redesign.
 const BEST_WPM_STORAGE_KEY = 'qsr-paragraph-reading-mode-best'
-const DEFAULT_TARGET_WPM = 250
 
-// Comprehension Checkpoint Sprint — one block per passage (each of the 5
-// long-form, single-topic passages in paragraphReadingModeDataset.ts is
-// already a natural, self-contained block). Every block passes 5 hand-
-// authored questions (paragraphReadingModeComprehension.ts); at least 3
-// correct unlocks "Next," which both advances to the next passage AND
-// raises the target WPM for it — an honest, programmatic difficulty ramp,
-// not a manual re-selection.
-const TOTAL_BLOCKS = PARAGRAPH_READING_MODE_UNITS.length
-const PASS_THRESHOLD = 3
-const WPM_INCREMENT = 25
-const TOTAL_WORDS_ALL_BLOCKS = PARAGRAPH_READING_MODE_UNITS.reduce((sum, unit) => sum + countWords(unit.text), 0)
-
-type ExperiencePhase = 'settings' | 'block-reading' | 'comprehension-check' | 'complete'
-
-// Top-level orchestrator for Paragraph Reading Mode™. Comprehension
-// Checkpoint Sprint — restructured from a single continuous
-// useReadingRuntime session into a block-based flow: Settings (asked
-// once) → N × (ParagraphReadingModeBlockRuntime, each a fresh
-// useReadingRuntime instance paced word-by-word through exactly one long
-// passage, keyed by blockIndex so React remounts it cleanly per block —
-// see that file's own comment for why this is composition, not an engine
-// change) → ComprehensionCheckpoint (after each block completes
-// naturally) → the same shared ReadingSessionCompleteScreen once every
-// block is done. An honest early Finish inside any block skips straight
-// to the final completion screen (marked wasFinishedEarly) rather than
-// forcing a quiz on a session the learner explicitly ended.
+// Top-level orchestrator for Paragraph Reading Mode™ (10/10 Overhaul) — the
+// Master Reading Engine's fourth mode. Fully replaces the previous
+// block-gated architecture (5 fixed passages, each ending in a pass/retry
+// ComprehensionCheckpoint before unlocking the next) with a single
+// continuous useReadingRuntime session over one entire picked passage —
+// zero mid-stream pop-ups, one post-reading quiz, one recap screen.
+// Structurally mirrors SentenceReadingModeExperience.tsx (same engine,
+// same session pipeline, same local-history pattern, same single ungated
+// post-reading quiz gate), plus an orientation choice (horizontal/
+// vertical) that picks which Canvas renders — both feed the engine the
+// exact same word-level units/pacing. A category is picked fresh per
+// mount via pickSessionCategory (client-only, called only from this
+// effect — never a lazy useState initializer — see that function's own
+// doc comment for the full rationale).
 export function ParagraphReadingModeExperience(): React.JSX.Element {
   const router = useRouter()
+
+  const [sessionCategory, setSessionCategory] = useState<ParagraphReadingModeCategory | null>(null)
+  useEffect(() => {
+    setSessionCategory(pickSessionCategory())
+  }, [])
+
+  const sessionUnits = useMemo(() => (sessionCategory ? buildUnitsForCategory(sessionCategory) : []), [sessionCategory])
+  const sessionWords = useMemo(() => sessionUnits.map((unit) => unit.text), [sessionUnits])
+
+  const runtime = useReadingRuntime(sessionWords)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'paragraph-reading-mode' })
   const readingSession = useReadingSession(session)
 
-  const [phase, setPhase] = useState<ExperiencePhase>('settings')
-  const [blockIndex, setBlockIndex] = useState(0)
-  const [restartNonce, setRestartNonce] = useState(0)
-  const [currentTargetWpm, setCurrentTargetWpm] = useState(DEFAULT_TARGET_WPM)
   const [bestWpm, setBestWpm] = useState(0)
   const [completedResult, setCompletedResult] = useState<ReadingSessionResult | null>(null)
   const [readingWidth, setReadingWidth] = useState<ParagraphReadingWidth>('comfortable')
   const [fontSize, setFontSize] = useState<ParagraphFontSize>('medium')
-
-  const initialTargetWpmRef = useRef(DEFAULT_TARGET_WPM)
-  const accumulatedElapsedMsRef = useRef(0)
-  const accumulatedWordsReadRef = useRef(0)
+  const [orientation, setOrientation] = useState<ParagraphFlowOrientation>('horizontal')
+  // Comprehension quiz gate — see ParagraphReadingModeQuiz.tsx's own doc
+  // comment on why this lives here rather than as a new phase inside the
+  // locked useReadingRuntime.ts. null means "not yet taken this session";
+  // reset alongside completedResult on every restart/read-again.
+  const [quizScore, setQuizScore] = useState<number | null>(null)
 
   useEffect(() => {
     setBestWpm(loadBestWpm(BEST_WPM_STORAGE_KEY))
   }, [])
 
-  function finalizeSession(aggregate: { elapsedMs: number; wordsRead: number; targetWpmUsed: number; wasFinishedEarly: boolean }): void {
-    const totalWords = TOTAL_WORDS_ALL_BLOCKS
-    const averageWpm = computeWpm(aggregate.wordsRead, aggregate.elapsedMs)
-    const completionPercent = totalWords > 0 ? Math.round((aggregate.wordsRead / totalWords) * 100) : 0
+  useEffect(() => {
+    if (runtime.phase !== 'complete' || completedResult !== null) return
+
     const result: ReadingSessionResult = {
-      averageWpm,
-      targetWpm: aggregate.targetWpmUsed,
-      elapsedMs: aggregate.elapsedMs,
-      wordsRead: aggregate.wordsRead,
-      totalWords,
-      completionPercent,
-      wasFinishedEarly: aggregate.wasFinishedEarly,
+      averageWpm: runtime.liveWpm,
+      targetWpm: runtime.targetWpm,
+      elapsedMs: runtime.elapsedMs,
+      wordsRead: runtime.wordsRead,
+      totalWords: runtime.totalWords,
+      completionPercent: runtime.progressPercent,
+      wasFinishedEarly: runtime.wasFinishedEarly,
     }
     setCompletedResult(result)
     setBestWpm(recordBestWpmSession(BEST_WPM_STORAGE_KEY, result.averageWpm))
     readingSession.recordResult(result)
-    setPhase('complete')
-  }
+  }, [
+    runtime.phase,
+    runtime.liveWpm,
+    runtime.targetWpm,
+    runtime.elapsedMs,
+    runtime.wordsRead,
+    runtime.totalWords,
+    runtime.progressPercent,
+    runtime.wasFinishedEarly,
+    completedResult,
+    readingSession,
+  ])
 
   function handleStart(): void {
-    initialTargetWpmRef.current = currentTargetWpm
-    accumulatedElapsedMsRef.current = 0
-    accumulatedWordsReadRef.current = 0
-    setBlockIndex(0)
+    if (sessionUnits.length === 0) return
     session.start()
-    setPhase('block-reading')
-  }
-
-  function handleBlockComplete(result: ReadingSessionResult): void {
-    if (result.wasFinishedEarly) {
-      finalizeSession({
-        elapsedMs: accumulatedElapsedMsRef.current + result.elapsedMs,
-        wordsRead: accumulatedWordsReadRef.current + result.wordsRead,
-        targetWpmUsed: result.targetWpm,
-        wasFinishedEarly: true,
-      })
-      return
-    }
-
-    accumulatedElapsedMsRef.current += result.elapsedMs
-    accumulatedWordsReadRef.current += result.wordsRead
-    setPhase('comprehension-check')
-  }
-
-  function handleCheckpointPassContinue(): void {
-    const isLastBlock = blockIndex >= TOTAL_BLOCKS - 1
-    if (isLastBlock) {
-      finalizeSession({
-        elapsedMs: accumulatedElapsedMsRef.current,
-        wordsRead: accumulatedWordsReadRef.current,
-        targetWpmUsed: currentTargetWpm,
-        wasFinishedEarly: false,
-      })
-      return
-    }
-
-    setCurrentTargetWpm((wpm) => wpm + WPM_INCREMENT)
-    setBlockIndex((index) => index + 1)
-    setPhase('block-reading')
-  }
-
-  function handleExitRequested(elapsedMsInCurrentBlock: number): void {
-    void session.recordExit(accumulatedElapsedMsRef.current + elapsedMsInCurrentBlock)
-    router.push(LAB_HREF)
+    runtime.start()
   }
 
   function handleReadAgain(): void {
     readingSession.reset()
     setCompletedResult(null)
-    accumulatedElapsedMsRef.current = 0
-    accumulatedWordsReadRef.current = 0
-    setCurrentTargetWpm(initialTargetWpmRef.current)
-    setBlockIndex(0)
-    setRestartNonce((nonce) => nonce + 1)
+    setQuizScore(null)
     session.start()
-    setPhase('block-reading')
+    runtime.restart()
   }
 
-  if (phase === 'settings') {
+  function handleRestart(): void {
+    readingSession.reset()
+    setCompletedResult(null)
+    setQuizScore(null)
+    runtime.restart()
+  }
+
+  async function handleExit(): Promise<void> {
+    if (runtime.phase === 'reading' || runtime.phase === 'paused') {
+      await session.recordExit(runtime.elapsedMs)
+    }
+    router.push(LAB_HREF)
+  }
+
+  if (runtime.phase === 'settings') {
     return (
       <ParagraphReadingModeSettings
-        targetWpm={currentTargetWpm}
-        onSelectTargetWpm={setCurrentTargetWpm}
+        targetWpm={runtime.targetWpm}
+        onSelectTargetWpm={runtime.setTargetWpm}
         readingWidth={readingWidth}
         onSelectReadingWidth={setReadingWidth}
         fontSize={fontSize}
         onSelectFontSize={setFontSize}
+        orientation={orientation}
+        onSelectOrientation={setOrientation}
+        categoryLabel={sessionCategory?.label ?? null}
         onStart={handleStart}
       />
     )
   }
 
-  if (phase === 'comprehension-check') {
-    const block = PARAGRAPH_READING_MODE_COMPREHENSION_BLOCKS[blockIndex]
-    if (!block) return <></>
-    const isLastBlock = blockIndex >= TOTAL_BLOCKS - 1
+  // The comprehension quiz gates the completion/recap screen — it renders
+  // as soon as reading finishes and stays up until all 3 questions are
+  // answered, independent of completedResult's own timing (the quiz never
+  // needs that value, only the picked category's own questions). This is
+  // the ONLY quiz moment in the entire session, always after the full
+  // passage has streamed to completion.
+  if (runtime.phase === 'complete' && quizScore === null && sessionCategory !== null) {
     return (
-      <ComprehensionCheckpoint
-        blockLabel={`Passage ${blockIndex + 1} of ${TOTAL_BLOCKS}`}
-        questions={block.questions}
-        passThreshold={PASS_THRESHOLD}
-        isLastBlock={isLastBlock}
-        nextTargetWpm={currentTargetWpm + WPM_INCREMENT}
-        onPassContinue={handleCheckpointPassContinue}
-        onExit={() => handleExitRequested(0)}
+      <ParagraphReadingModeQuiz
+        questions={sessionCategory.questions}
+        categoryLabel={sessionCategory.label}
+        onComplete={(score) => setQuizScore(score)}
+        onExit={() => void handleExit()}
       />
     )
   }
 
-  if (phase === 'complete' && completedResult !== null) {
+  if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        subtitle="Nice, continuous reading."
+        subtitle={quizScore !== null ? `Nice, continuous reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, continuous reading.'}
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
@@ -186,18 +170,27 @@ export function ParagraphReadingModeExperience(): React.JSX.Element {
     )
   }
 
-  const blockUnit = PARAGRAPH_READING_MODE_UNITS[blockIndex]
-  if (!blockUnit) return <></>
+  const canvasProps = {
+    units: sessionUnits,
+    currentUnitIndex: runtime.currentUnitIndex,
+    readingWidth,
+    fontSize,
+    categoryLabel: sessionCategory?.label ?? null,
+    isPaused: runtime.phase === 'paused',
+    liveWpm: runtime.liveWpm,
+    targetWpm: runtime.targetWpm,
+    elapsedMs: runtime.elapsedMs,
+    progressPercent: runtime.progressPercent,
+    onPause: runtime.pause,
+    onResume: runtime.resume,
+    onRestart: handleRestart,
+    onFinish: runtime.finish,
+    onExit: () => void handleExit(),
+  }
 
-  return (
-    <ParagraphReadingModeBlockRuntime
-      key={`${blockIndex}-${restartNonce}`}
-      blockUnits={[blockUnit]}
-      targetWpm={currentTargetWpm}
-      readingWidth={readingWidth}
-      fontSize={fontSize}
-      onBlockComplete={handleBlockComplete}
-      onExitRequested={handleExitRequested}
-    />
+  return orientation === 'vertical' ? (
+    <ParagraphReadingModeVerticalCanvas {...canvasProps} />
+  ) : (
+    <ParagraphReadingModeCanvas {...canvasProps} />
   )
 }

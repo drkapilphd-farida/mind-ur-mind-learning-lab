@@ -1,52 +1,60 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
-import { measureSingleLineWidthsPx } from '@/hooks/reading-engine/measureSingleLineWidths'
+import { measureWrappedWordYCentersPx } from '@/hooks/reading-engine/measureWrappedWordYCenters'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
 import type { ReadingUnit } from '@/features/reading-engine/types'
 import type { ParagraphReadingWidth, ParagraphFontSize } from './ParagraphReadingModeSettings'
 
-// "How much of the cinematic line is visible" — applied as a `maxWidth` on
-// a `w-full` element (not a literal `width`) so it shrinks safely on
-// narrow viewports instead of forcing horizontal page overflow.
+// Vertical Infinite Paragraph Stream — the genuinely cinematic piece of
+// this overhaul: unlike every other streaming Reading Mode in this app
+// (which show one discrete unit centered per fixed-height row), a
+// paragraph naturally wraps across several lines, so this Canvas scrolls
+// the REAL, naturally-wrapped multi-line text continuously upward, like an
+// actual teleprompter or end-credits crawl — the word currently being
+// read always sits vertically centered in the frosted-glass window, and
+// consecutive words on the same line share the same Y-center (measured,
+// not assumed), so the crawl only actually moves once reading advances to
+// a genuinely new line. That real per-word Y position depends on the
+// exact width/font the text renders at, which is why this Canvas leans on
+// the new measureWrappedWordYCentersPx utility (own hidden-probe
+// measurement, mirroring measureSingleLineWidthsPx's own established
+// pattern) rather than any fixed-row arithmetic.
 const CHANNEL_WIDTH_PX: Record<ParagraphReadingWidth, number> = {
-  compact: 420,
-  comfortable: 620,
-  wide: 860,
+  compact: 560,
+  comfortable: 720,
+  wide: 900,
 }
 
-const LINE_HEIGHT_PX = 72
+const CHANNEL_HORIZONTAL_PADDING_PX = 40
 
-// Responsive per tier, same rationale as every other streaming Canvas in
-// this app's Reading Modes family — the top breakpoint value is the
-// tier's "true" desktop size; smaller breakpoints keep the longest real
-// words safely inside the channel on narrow mobile viewports.
-const FONT_SIZE_TEXT_CLASSES: Record<ParagraphFontSize, string> = {
-  small: 'text-xl sm:text-2xl md:text-3xl font-semibold whitespace-nowrap',
-  medium: 'text-2xl sm:text-3xl md:text-4xl font-semibold whitespace-nowrap',
-  large: 'text-3xl sm:text-4xl md:text-5xl font-semibold whitespace-nowrap',
+const FONT_SIZE_STYLE: Record<ParagraphFontSize, { fontSize: number; lineHeight: number }> = {
+  small: { fontSize: 20, lineHeight: 34 },
+  medium: { fontSize: 24, lineHeight: 40 },
+  large: { fontSize: 30, lineHeight: 48 },
 }
 
-const UNIT_GAP_PX = 48
+// How many lines of the wrapped passage stay visible inside the frosted
+// window at once — enough to show real context (a line just read, the
+// current line, a line still coming) without turning into an unreadably
+// tall page-filling block.
+const VISIBLE_LINES = 5
+
 const ENGINE_TICK_MS = 100
 const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
-// Cinematic Reader Sprint — the frosted-glass palette every sibling Reading
-// Mode in this app shares (own-copy, not a shared import), plus a soft
-// left/right gradient mask on this axis (Vertical Canvas uses the same
-// treatment on the top/bottom axis instead) — the card's own pixels fade
-// to transparent at its horizontal edges rather than clipping hard, so
-// words visibly dissolve in and out of the channel instead of popping.
-// `WebkitMaskImage` is required alongside the standard `maskImage` for
-// broad engine support; both target the exact same gradient.
+// Same frosted-glass palette as the horizontal Canvas (own-copy), with the
+// gradient mask now on the top/bottom axis — a soft cinematic vignette
+// where lines dissolve as they scroll in from below and out above, rather
+// than a hard cut.
 const CARD_CLASS_NAME = 'bg-[#FBF9F4]/95 dark:bg-[#16171A]/95 backdrop-blur-md'
-const CARD_MASK_IMAGE = 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)'
+const CARD_MASK_IMAGE = 'linear-gradient(to bottom, transparent, black 18%, black 82%, transparent)'
 const TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
 
 // The exact tuned drone recipe every sibling exercise in this app
@@ -70,7 +78,7 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 
 type HarmonicVoice = { oscillator: OscillatorNode }
 
-type ParagraphReadingModeCanvasProps = {
+type ParagraphReadingModeVerticalCanvasProps = {
   units: readonly ReadingUnit[]
   currentUnitIndex: number
   readingWidth: ParagraphReadingWidth
@@ -100,17 +108,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   return impulse
 }
 
-// Horizontal Flow — the cinematic replacement for this mode's old plain
-// text box and hopping highlight (see this file's pre-overhaul history):
-// instead of a static, fully-visible paragraph with a background box
-// jumping between words, one word at a time glides continuously through a
-// frosted-glass, gradient-masked channel. Same word-level engine pacing as
-// the pre-overhaul version (computeUnitDwellMs per word), same proven rAF
-// direct-DOM motion model as every other streaming Reading Mode in this
-// app (measureSingleLineWidthsPx for each word's true rendered width,
-// computeContinuousStreamOffsetPx for the shared frame-by-frame glide
-// math — both imported unmodified).
-export function ParagraphReadingModeCanvas({
+export function ParagraphReadingModeVerticalCanvas({
   units,
   currentUnitIndex,
   readingWidth,
@@ -126,11 +124,14 @@ export function ParagraphReadingModeCanvas({
   onRestart,
   onFinish,
   onExit,
-}: ParagraphReadingModeCanvasProps): React.JSX.Element {
+}: ParagraphReadingModeVerticalCanvasProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
   const channelWidth = CHANNEL_WIDTH_PX[readingWidth]
-  const textClassName = FONT_SIZE_TEXT_CLASSES[fontSize]
+  const textWrapWidth = channelWidth - CHANNEL_HORIZONTAL_PADDING_PX * 2
+  const { fontSize: fontSizePx, lineHeight } = FONT_SIZE_STYLE[fontSize]
+  const channelHeight = lineHeight * VISIBLE_LINES
+  const textClassName = TEXT_COLOR_CLASS_NAME
 
   const [isChromeVisible, setIsChromeVisible] = useState(true)
   const chromeHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -151,22 +152,21 @@ export function ParagraphReadingModeCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
 
-  const [unitWidths, setUnitWidths] = useState<number[] | null>(null)
+  // Real, per-word vertical centers within the naturally-wrapped passage —
+  // measured against a hidden probe sharing the exact width/font/style the
+  // text below actually renders with (see measureWrappedWordYCentersPx's
+  // own doc comment).
+  const [wordYCenters, setWordYCenters] = useState<number[] | null>(null)
   useLayoutEffect(() => {
-    setUnitWidths(measureSingleLineWidthsPx(units.map((unit) => unit.text), textClassName))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, fontSize])
-
-  const cumulativeCenters = useMemo(() => {
-    if (!unitWidths) return []
-    const centers: number[] = []
-    let cursor = 0
-    for (const width of unitWidths) {
-      centers.push(cursor + width / 2)
-      cursor += width + UNIT_GAP_PX
-    }
-    return centers
-  }, [unitWidths])
+    setWordYCenters(
+      measureWrappedWordYCentersPx(
+        units.map((unit) => unit.text),
+        textWrapWidth,
+        '',
+        { fontSize: `${fontSizePx}px`, lineHeight: `${lineHeight}px`, fontWeight: '600' },
+      ),
+    )
+  }, [units, textWrapWidth, fontSizePx, lineHeight])
 
   const trackRef = useRef<HTMLDivElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -265,13 +265,14 @@ export function ParagraphReadingModeCanvas({
     }
   }, [])
 
-  // The actual motion — a dedicated rAF loop, started once real widths are
-  // known and re-created only if the unit list, font size, or reduced-
-  // motion preference itself changes.
+  // The actual motion — a dedicated rAF loop writing translateY straight to
+  // the track element via a ref, once real per-word Y-centers are known.
+  // Same GPU-composited direct-DOM pattern as every sibling Canvas, just
+  // driven by measured positions instead of closed-form row arithmetic.
   useEffect(() => {
-    if (unitWidths === null) return undefined
+    if (wordYCenters === null) return undefined
 
-    const offsetForIndex = (index: number): number => cumulativeCenters[index] ?? 0
+    const offsetForIndex = (index: number): number => wordYCenters[index] ?? 0
     let rafId: number
 
     function tick(): void {
@@ -295,25 +296,21 @@ export function ParagraphReadingModeCanvas({
                   lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
                 offsetForIndex,
               })
-        track.style.transform = `translate3d(-${offsetPx}px, 0, 0)`
+        track.style.transform = `translate3d(0, -${offsetPx}px, 0)`
       }
       rafId = requestAnimationFrame(tick)
     }
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-    // cumulativeCenters is derived from unitWidths, which IS a dependency
-    // — omitting it here is deliberate, not stale: it's read fresh via
-    // offsetForIndex's own closure on every single frame anyway.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitWidths, units, prefersReducedMotion])
+  }, [wordYCenters, units, prefersReducedMotion])
 
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
   const chromeClassName = `transition-opacity duration-500 ease-out ${isChromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`
 
   return (
-    <ReadingLayout maxWidthClassName="max-w-6xl" onExit={onExit}>
+    <ReadingLayout maxWidthClassName="max-w-4xl" onExit={onExit}>
       <div
         className="flex w-full flex-col items-center"
         onPointerMove={revealChromeAndScheduleHide}
@@ -321,7 +318,7 @@ export function ParagraphReadingModeCanvas({
         onFocus={revealChromeAndScheduleHide}
       >
         <div className={`w-full max-w-md ${chromeClassName}`}>
-          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Paragraph Reading Mode™ · Horizontal</p>
+          <p className="mb-1 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Paragraph Reading Mode™ · Vertical</p>
           {categoryLabel && <p className="mb-3 text-center text-xs text-muted-foreground">Reading: {categoryLabel}</p>}
 
           <div className="grid grid-cols-3 gap-x-4 text-center">
@@ -341,18 +338,18 @@ export function ParagraphReadingModeCanvas({
           </div>
         </div>
 
-        {/* The cinematic focus channel — a marquee the track can never wrap
-            out of (whitespace-nowrap per word + overflow-hidden on the
-            frame), gradient-masked at its left/right edges so words
-            visibly dissolve in and out rather than popping. `maxWidth` +
+        {/* The cinematic teleprompter crawl — a fixed-height window
+            (overflow-hidden) showing several lines of the real,
+            naturally-wrapped passage, gradient-masked top/bottom so lines
+            dissolve in and out rather than clipping hard. `maxWidth` +
             `w-full` (not a literal `width`) so it shrinks safely on narrow
-            viewports instead of overflowing. */}
+            viewports. */}
         <div
           className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
           style={{
             maxWidth: channelWidth,
-            height: LINE_HEIGHT_PX,
-            visibility: unitWidths === null ? 'hidden' : 'visible',
+            height: channelHeight,
+            visibility: wordYCenters === null ? 'hidden' : 'visible',
             WebkitMaskImage: CARD_MASK_IMAGE,
             maskImage: CARD_MASK_IMAGE,
           }}
@@ -360,12 +357,19 @@ export function ParagraphReadingModeCanvas({
         >
           <div
             ref={trackRef}
-            className="absolute top-0 flex h-full items-center will-change-transform"
-            style={{ left: '50%', gap: UNIT_GAP_PX }}
+            className="absolute will-change-transform"
+            style={{
+              top: '50%',
+              left: CHANNEL_HORIZONTAL_PADDING_PX,
+              width: textWrapWidth,
+              fontSize: fontSizePx,
+              lineHeight: `${lineHeight}px`,
+              fontWeight: 600,
+            }}
           >
             {units.map((unit) => (
-              <span key={unit.id} className={`${textClassName} ${TEXT_COLOR_CLASS_NAME}`}>
-                {unit.text}
+              <span key={unit.id} className={textClassName}>
+                {unit.text}{' '}
               </span>
             ))}
           </div>
