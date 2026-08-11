@@ -118,6 +118,15 @@ export const READING_HUB_MODES: readonly ReadingHubMode[] = [
     exerciseId: 'guided-paragraph-reading-mode',
     storageKey: 'qsr-guided-paragraph-reading-mode-best',
   },
+  {
+    id: 'subvocalization-destroyer',
+    title: 'Subvocalization Destroyer™',
+    purpose: 'Ultra-high-speed True RSVP, 600-1200 WPM, to break the habit of silently sounding out every word.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/subvocalization-destroyer',
+    exerciseId: 'subvocalization-destroyer',
+    storageKey: 'qsr-subvocalization-destroyer-best',
+  },
 ] as const
 
 export const READING_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = READING_HUB_MODES.filter(
