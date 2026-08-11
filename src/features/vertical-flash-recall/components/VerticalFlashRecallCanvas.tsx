@@ -1,74 +1,55 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
+import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
 import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessionEngine'
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
+import type { ReadingUnit } from '@/features/reading-engine/types'
 
-// Vertical Flash Recall & Retention Sprint™ — a distinct third RSVP
-// mechanic in this app, deliberately different from both existing
-// vertical modes:
-//   - Vertical Chunk Sliding / Vertical Word Reading stream text past a
-//     fixed viewport with continuous motion — the text moves, the eye
-//     stays still.
-//   - Horizontal Flash Recall Sprint flashes one word at a single fixed
-//     point — nothing moves at all, not even between words.
-// This mode instead flashes one word at a time (true RSVP, no motion —
-// nothing slides or fades between positions), but the flash *location*
-// cycles top-to-bottom through a fixed column of slots, wrapping back to
-// the top after the last one. That's the whole point: it deliberately
-// trains the eye to make fast, predictable vertical jumps between known
-// positions — "vertical eye-span" — rather than training it to stay
-// perfectly still (the horizontal sibling's goal) or to track smooth
-// motion (the sliding modes' goal).
-const SLOT_COUNT = 5
-const SLOT_HEIGHT_PX = 72
-const SLOT_GAP_PX = 14
-const CARD_WIDTH_PX = 640
-const CARD_HEIGHT_PX = SLOT_HEIGHT_PX * SLOT_COUNT + SLOT_GAP_PX * (SLOT_COUNT - 1)
-
-// Responsive, unlike a fixed pixel width: on a narrow phone viewport the
-// card itself renders far narrower than its 640px desktop maxWidth (see
-// ReadingLayout's own padding), and a fixed-width row wider than the
-// card would overflow and get clipped by the card's own overflow-hidden
-// — losing the left-edge dot markers entirely on mobile. These shrink in
-// lockstep with the font size below so the whole row's natural width
-// always fits comfortably inside the card at every breakpoint.
-const GUTTER_WIDTH_CLASS_NAME = 'w-5 sm:w-6 md:w-7'
-const ZONE_WIDTH_CLASS_NAME = 'w-[110px] sm:w-[160px] md:w-[200px]'
-// A fixed width, not just shrink-0, so an empty (inactive) slot occupies
-// the exact same footprint as one showing a pivot character — otherwise
-// a row's natural width would subtly change the instant it goes from
-// inactive to active, which could nudge the flanking zones (and the
-// pivot itself) by a pixel or two depending on how flexbox resolves
-// stretch-alignment across sibling rows. Fixed width makes every row's
-// layout identical regardless of active state, so the pivot is at the
-// exact same X on every row, every time, with zero exceptions.
-const PIVOT_WIDTH_CLASS_NAME = 'w-[26px] sm:w-[32px] md:w-[40px]'
-const WORD_TEXT_CLASS_NAME = 'text-2xl sm:text-3xl md:text-4xl font-bold whitespace-nowrap'
+// Vertical Flash Recall & Retention Sprint™ — redesigned around a smooth,
+// professional vertical teleprompter waterfall, replacing the previous
+// 5-slot dot-cycling mechanic entirely (no more jumping between fixed
+// positions). This is now architecturally the same proven pattern as
+// Vertical Chunk Sliding™: GPU-accelerated requestAnimationFrame drives a
+// direct-DOM translateY, interpolating between the locked
+// useReadingRuntime's own discrete ticks via the shared, unmodified
+// computeContinuousStreamOffsetPx utility (the same one Dynamic/Vertical
+// Chunk Sliding use). The one real difference from that sibling: each row
+// holds a single RSVP word (this exercise's own underlying content
+// granularity, preserved from before) rather than a 2-3 word chunk, and
+// every row gets a fixed height, so — like Vertical Chunk Sliding — no
+// DOM measurement is needed at all; offsetForIndex below is pure
+// closed-form arithmetic.
+const CHANNEL_WIDTH_PX = 640
+const UNIT_ROW_HEIGHT_PX = 96
+const UNIT_GAP_PX = 20
+const VISIBLE_ROWS = 3
+const CHANNEL_HEIGHT_PX = UNIT_ROW_HEIGHT_PX * VISIBLE_ROWS + UNIT_GAP_PX * (VISIBLE_ROWS - 1)
+// Responsive, unlike a fixed size: a single word is generally shorter
+// than the 2-3 word chunks Vertical Chunk Sliding renders, but this still
+// shrinks on narrow viewports for the same reason that sibling's does —
+// the channel itself renders narrower than its 640px desktop maxWidth on
+// a phone, and a handful of the dataset's own longer words (e.g.
+// "eventually.", "confidence") need the safety margin.
+const WORD_TEXT_CLASS_NAME = 'text-3xl sm:text-4xl md:text-5xl font-bold whitespace-nowrap'
 
 const ENGINE_TICK_MS = 100
 
-// Same literal high-contrast palette as Flash Recall Sprint / Vertical
-// Chunk Sliding (own-copy, not a shared import — see those files' own
-// comments on why these are static literal Tailwind classes).
-const CARD_CLASS_NAME = 'bg-[#FBF9F4] dark:bg-[#16171A]'
+// A spacious, high-contrast "frosted glass" card — the same literal
+// palette established across this app's reading exercises (own-copy, not
+// a shared import), just with a touch of translucency and backdrop blur
+// layered on top for the requested frosted-glass focus window, while
+// staying close enough to fully opaque that text contrast is unaffected.
+const CARD_CLASS_NAME = 'bg-[#FBF9F4]/95 dark:bg-[#16171A]/95 backdrop-blur-md'
 const WORD_TEXT_COLOR_CLASS_NAME = 'text-[#17181C] dark:text-[#F5F5F2]'
 
-// Own-copy of FlashRecallSprintCanvas.tsx's identical Optimal Recognition
-// Point heuristic — even though the flash position itself cycles
-// vertically here, each word within its slot still gets the same
-// horizontal fixation-point treatment, so the only thing the eye ever has
-// to do is jump to a known row; it never has to hunt left-right too.
-function computeOrpIndex(word: string): number {
-  const length = word.length
-  if (length <= 1) return 0
-  if (length <= 5) return 1
-  if (length <= 9) return 2
-  if (length <= 13) return 3
-  return 4
+// Every row is the same fixed height, so a unit's vertical center is pure
+// arithmetic — no measurement of any kind needed (see file header comment).
+function offsetForIndex(index: number): number {
+  return index * (UNIT_ROW_HEIGHT_PX + UNIT_GAP_PX) + UNIT_ROW_HEIGHT_PX / 2
 }
 
 // The exact tuned drone recipe every sibling exercise this session
@@ -94,7 +75,7 @@ const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: numbe
 type HarmonicVoice = { oscillator: OscillatorNode }
 
 type VerticalFlashRecallCanvasProps = {
-  words: readonly string[]
+  units: readonly ReadingUnit[]
   currentUnitIndex: number
   isPaused: boolean
   liveWpm: number
@@ -122,7 +103,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 }
 
 export function VerticalFlashRecallCanvas({
-  words,
+  units,
   currentUnitIndex,
   isPaused,
   liveWpm,
@@ -139,14 +120,7 @@ export function VerticalFlashRecallCanvas({
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedWpm = useCountUp(liveWpm, 400, prefersReducedMotion)
 
-  // The word actually flashing right now — own-copy of
-  // FlashRecallSprintCanvas.tsx's identical precise rAF-interpolated
-  // index (see that file's doc comment for the full rationale: the
-  // locked useReadingRuntime only updates its own index on a 100ms tick
-  // boundary, precise enough for streaming motion but not for a discrete
-  // flash moment).
-  const [displayedIndex, setDisplayedIndex] = useState(0)
-  const displayedIndexRef = useRef(0)
+  const trackRef = useRef<HTMLDivElement | null>(null)
 
   const lastEngineElapsedMsRef = useRef(elapsedMs)
   const lastEngineTickAtRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -155,38 +129,12 @@ export function VerticalFlashRecallCanvas({
     lastEngineTickAtRef.current = performance.now()
   }, [elapsedMs])
 
-  const isPausedRef = useRef(isPaused)
-  const targetWpmRef = useRef(targetWpm)
   const currentUnitIndexRef = useRef(currentUnitIndex)
-  isPausedRef.current = isPaused
-  targetWpmRef.current = targetWpm
+  const targetWpmRef = useRef(targetWpm)
+  const isPausedRef = useRef(isPaused)
   currentUnitIndexRef.current = currentUnitIndex
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setDisplayedIndex(currentUnitIndex)
-      return
-    }
-
-    let rafId: number
-
-    function tick(): void {
-      const perWordDwellMs = 60000 / targetWpmRef.current
-      const interpolatedElapsedMs = isPausedRef.current
-        ? lastEngineElapsedMsRef.current
-        : lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS)
-      const expectedIndex = Math.max(0, Math.min(Math.floor(interpolatedElapsedMs / perWordDwellMs), words.length - 1))
-
-      if (expectedIndex !== displayedIndexRef.current) {
-        displayedIndexRef.current = expectedIndex
-        setDisplayedIndex(expectedIndex)
-      }
-      rafId = requestAnimationFrame(tick)
-    }
-
-    rafId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafId)
-  }, [words.length, prefersReducedMotion, currentUnitIndex])
+  targetWpmRef.current = targetWpm
+  isPausedRef.current = isPaused
 
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
@@ -262,15 +210,45 @@ export function VerticalFlashRecallCanvas({
     }
   }, [])
 
+  // The actual motion — a dedicated rAF loop writing translateY straight
+  // to the track element via a ref, the same GPU-composited direct-DOM
+  // pattern Dynamic/Vertical Chunk Sliding use, reusing their exact
+  // shared computeContinuousStreamOffsetPx (unmodified) for the lerp math.
+  useEffect(() => {
+    let rafId: number
+
+    function tick(): void {
+      const track = trackRef.current
+      if (track) {
+        const offsetPx = prefersReducedMotion
+          ? offsetForIndex(currentUnitIndexRef.current)
+          : isPausedRef.current
+            ? computeContinuousStreamOffsetPx({
+                units,
+                currentUnitIndex: currentUnitIndexRef.current,
+                targetWpm: targetWpmRef.current,
+                elapsedMs: lastEngineElapsedMsRef.current,
+                offsetForIndex,
+              })
+            : computeContinuousStreamOffsetPx({
+                units,
+                currentUnitIndex: currentUnitIndexRef.current,
+                targetWpm: targetWpmRef.current,
+                elapsedMs:
+                  lastEngineElapsedMsRef.current + Math.min(performance.now() - lastEngineTickAtRef.current, ENGINE_TICK_MS),
+                offsetForIndex,
+              })
+        track.style.transform = `translate3d(0, -${offsetPx}px, 0)`
+      }
+      rafId = requestAnimationFrame(tick)
+    }
+
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [units, prefersReducedMotion])
+
   const clampedProgress = Math.min(100, Math.max(0, progressPercent))
   const isWarmingUp = elapsedMs < 1_500
-
-  const currentWord = words[displayedIndex] ?? ''
-  const orpIndex = computeOrpIndex(currentWord)
-  const prefix = currentWord.slice(0, orpIndex)
-  const pivotChar = currentWord.charAt(orpIndex)
-  const suffix = currentWord.slice(orpIndex + 1)
-  const activeSlotIndex = displayedIndex % SLOT_COUNT
 
   return (
     <ReadingLayout maxWidthClassName="max-w-2xl" onExit={onExit}>
@@ -295,44 +273,26 @@ export function VerticalFlashRecallCanvas({
         </div>
       </div>
 
-      {/* The vertical flash column — 5 fixed slots, always visible as a
-          faint dot column, so the eye can see the whole structure and
-          anticipate the next flash position. Exactly one slot is ever lit
-          with a word at a time; the rest sit empty. The lit slot cycles
-          top-to-bottom, wrapping back to the top, at the WPM-paced dwell
-          of a real RSVP word. */}
+      {/* The teleprompter waterfall — a fixed 3-row window (previous /
+          current / next, current centered) the track can never wrap or
+          spill out of (overflow-hidden on the frame). One word per row,
+          flowing smoothly downward at a constant, WPM-paced rate — no
+          jumps, no discrete flashes, no fixation point to hunt for. */}
       <div
-        className={`relative mx-auto mt-8 flex w-full flex-col items-center justify-center overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
-        style={{ maxWidth: CARD_WIDTH_PX, height: CARD_HEIGHT_PX }}
+        className={`relative mx-auto mt-8 w-full overflow-hidden rounded-3xl border border-black/10 shadow-sm dark:border-white/10 ${CARD_CLASS_NAME}`}
+        style={{ maxWidth: CHANNEL_WIDTH_PX, height: CHANNEL_HEIGHT_PX }}
         aria-live="off"
       >
-        <div className="flex flex-col" style={{ gap: SLOT_GAP_PX }}>
-          {Array.from({ length: SLOT_COUNT }, (_, slotIndex) => {
-            const isActive = slotIndex === activeSlotIndex
-            return (
-              <div key={slotIndex} className="flex items-center justify-center" style={{ height: SLOT_HEIGHT_PX }}>
-                <div className={`flex shrink-0 items-center justify-center ${GUTTER_WIDTH_CLASS_NAME}`}>
-                  <span
-                    aria-hidden="true"
-                    className={`size-1.5 rounded-full transition-colors ${isActive ? 'bg-red-500 dark:bg-red-400' : 'bg-foreground/15'}`}
-                  />
-                </div>
-                <span
-                  className={`${WORD_TEXT_CLASS_NAME} ${WORD_TEXT_COLOR_CLASS_NAME} ${ZONE_WIDTH_CLASS_NAME} block shrink-0 overflow-visible text-right`}
-                >
-                  {isActive ? prefix : ''}
-                </span>
-                <span className={`${WORD_TEXT_CLASS_NAME} ${PIVOT_WIDTH_CLASS_NAME} block shrink-0 text-center text-red-500 dark:text-red-400`}>
-                  {isActive ? pivotChar : ''}
-                </span>
-                <span
-                  className={`${WORD_TEXT_CLASS_NAME} ${WORD_TEXT_COLOR_CLASS_NAME} ${ZONE_WIDTH_CLASS_NAME} block shrink-0 overflow-visible text-left`}
-                >
-                  {isActive ? suffix : ''}
-                </span>
-              </div>
-            )
-          })}
+        <div
+          ref={trackRef}
+          className="absolute left-0 flex w-full flex-col items-center will-change-transform"
+          style={{ top: '50%', gap: UNIT_GAP_PX }}
+        >
+          {units.map((unit) => (
+            <div key={unit.id} className="flex items-center justify-center px-6" style={{ height: UNIT_ROW_HEIGHT_PX, width: '100%' }}>
+              <span className={`${WORD_TEXT_CLASS_NAME} ${WORD_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
+            </div>
+          ))}
         </div>
       </div>
 

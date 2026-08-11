@@ -7,9 +7,9 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import type { ReadingSessionResult } from '@/features/reading-engine/types'
+import type { ReadingSessionResult, ReadingUnit } from '@/features/reading-engine/types'
 // The quiz screen is fully generic (questions/categoryLabel/callbacks,
-// nothing coupled to the horizontal RSVP mechanic) and this exercise
+// nothing coupled to the vertical streaming mechanic) and this exercise
 // deliberately reuses the exact same 25-module content library — reusing
 // the same quiz component too avoids maintaining a byte-for-byte
 // duplicate of the same ~140 lines for no behavioral difference.
@@ -29,13 +29,17 @@ type VerticalFlashRecallExperienceProps = {
 }
 
 // Top-level orchestrator for Vertical Flash Recall & Retention Sprint™ —
-// mirrors FlashRecallSprintExperience.tsx exactly (same Master Reading
-// Engine, same session pipeline, same client-only per-session category
-// pick via pickSessionCategory — see that function's own doc comment for
-// why it's called only from this effect, never a lazy useState
-// initializer). The one real difference is VerticalFlashRecallCanvas's
-// own vertical cycling-slot rendering in place of the horizontal
-// single-point flash.
+// mirrors FlashRecallSprintExperience.tsx (same Master Reading Engine,
+// same session pipeline, same client-only per-session category pick via
+// pickSessionCategory — see that function's own doc comment for why it's
+// called only from this effect, never a lazy useState initializer). The
+// Canvas itself now streams continuously top-to-bottom (own-copy of
+// Vertical Chunk Sliding's proven pattern) rather than cycling through
+// fixed flash slots, which is why sessionUnits below exists alongside
+// sessionWords: the runtime engine still paces itself on plain word
+// strings (unchanged), but the Canvas's streaming math needs real
+// ReadingUnit objects (an id per word, for React keys and for the shared
+// computeContinuousStreamOffsetPx utility's own type).
 export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecallExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
 
@@ -45,6 +49,10 @@ export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecal
   }, [])
 
   const sessionWords = useMemo(() => (sessionCategory ? buildWordsForCategory(sessionCategory) : []), [sessionCategory])
+  const sessionUnits: readonly ReadingUnit[] = useMemo(
+    () => sessionWords.map((text, index) => ({ id: `word-${index}`, text })),
+    [sessionWords],
+  )
 
   const runtime = useReadingRuntime(sessionWords)
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'vertical-flash-recall' })
@@ -157,7 +165,7 @@ export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecal
 
   return (
     <VerticalFlashRecallCanvas
-      words={sessionWords}
+      units={sessionUnits}
       currentUnitIndex={runtime.currentUnitIndex}
       isPaused={runtime.phase === 'paused'}
       liveWpm={runtime.liveWpm}
