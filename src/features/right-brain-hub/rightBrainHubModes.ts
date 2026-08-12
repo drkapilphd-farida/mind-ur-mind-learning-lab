@@ -52,6 +52,15 @@ export const RIGHT_BRAIN_HUB_MODES: readonly RightBrainHubMode[] = [
     exerciseId: 'after-image-gazing',
     storageKey: 'qsr-after-image-gazing-best',
   },
+  {
+    id: 'dot-memory-grid',
+    title: 'Dot Memory Grid™',
+    purpose: 'A cluster of glowing dots flashes across a grid — memorize their positions, then tap them from memory, 5 escalating rounds.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/dot-memory-grid',
+    exerciseId: 'dot-memory-grid',
+    storageKey: 'qsr-dot-memory-grid-best',
+  },
 ] as const
 
 export const RIGHT_BRAIN_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = RIGHT_BRAIN_HUB_MODES.filter(
