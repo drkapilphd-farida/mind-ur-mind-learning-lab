@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult, ReadingUnit } from '@/features/reading-engine/types'
 // The quiz screen is fully generic (questions/categoryLabel/callbacks,
 // nothing coupled to the vertical streaming mechanic) and this exercise
@@ -42,6 +44,7 @@ type VerticalFlashRecallExperienceProps = {
 // computeContinuousStreamOffsetPx utility's own type).
 export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecallExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('vertical-flash-recall', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<FlashRecallSprintCategory | null>(null)
   useEffect(() => {
@@ -123,7 +126,7 @@ export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecal
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('vertical-flash-recall', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -158,7 +161,11 @@ export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecal
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+        {...(curriculumSession.isActiveStep
+          ? { onContinue: curriculumSession.advance }
+          : onComplete
+            ? { onContinue: () => onComplete(completedResult) }
+            : {})}
       />
     )
   }

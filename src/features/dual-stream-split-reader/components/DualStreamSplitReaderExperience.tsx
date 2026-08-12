@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildDualStreamsForCategory, pickSessionCategory, type FlashRecallSprintCategory } from '../dualStreamSplitReaderDataset'
 import { DualStreamSplitReaderSettings } from './DualStreamSplitReaderSettings'
@@ -42,6 +44,7 @@ type DualStreamSplitReaderExperienceProps = {
 // purely for display, via the exact same index the engine already tracks.
 export function DualStreamSplitReaderExperience({ onComplete }: DualStreamSplitReaderExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('dual-stream-split-reader', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<FlashRecallSprintCategory | null>(null)
   useEffect(() => {
@@ -125,7 +128,7 @@ export function DualStreamSplitReaderExperience({ onComplete }: DualStreamSplitR
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('dual-stream-split-reader', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -166,7 +169,11 @@ export function DualStreamSplitReaderExperience({ onComplete }: DualStreamSplitR
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+        {...(curriculumSession.isActiveStep
+          ? { onContinue: curriculumSession.advance }
+          : onComplete
+            ? { onContinue: () => onComplete(completedResult) }
+            : {})}
       />
     )
   }

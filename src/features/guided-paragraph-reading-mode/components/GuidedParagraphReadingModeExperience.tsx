@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type GuidedParagraphReadingModeCategory } from '../guidedParagraphReadingModeDataset'
 import {
@@ -53,6 +55,7 @@ type GuidedParagraphReadingModeExperienceProps = {
 // own doc comment for the full rationale).
 export function GuidedParagraphReadingModeExperience({ onComplete }: GuidedParagraphReadingModeExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('guided-paragraph-reading-mode', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<GuidedParagraphReadingModeCategory | null>(null)
   useEffect(() => {
@@ -134,7 +137,7 @@ export function GuidedParagraphReadingModeExperience({ onComplete }: GuidedParag
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('guided-paragraph-reading-mode', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -177,7 +180,11 @@ export function GuidedParagraphReadingModeExperience({ onComplete }: GuidedParag
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+        {...(curriculumSession.isActiveStep
+          ? { onContinue: curriculumSession.advance }
+          : onComplete
+            ? { onContinue: () => onComplete(completedResult) }
+            : {})}
       />
     )
   }

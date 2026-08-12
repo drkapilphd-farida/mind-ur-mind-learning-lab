@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
 import { getHologramGoalById, HOLOGRAM_GOALS } from '../hologramDatabase'
@@ -49,6 +51,7 @@ type SensoryHologramBuilderExperienceProps = {
 }
 
 export function SensoryHologramBuilderExperience({ onComplete }: SensoryHologramBuilderExperienceProps = {}): React.JSX.Element {
+  const curriculumSession = useCurriculumSessionCompletion('sensory-hologram-builder', LAB_HREF)
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'sensory-hologram-builder' })
 
@@ -96,7 +99,7 @@ export function SensoryHologramBuilderExperience({ onComplete }: SensoryHologram
       recordSensoryHologramBuilderEarlyExit(BEST_STATS_STORAGE_KEY)
       void session.recordExit(elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('sensory-hologram-builder', LAB_HREF))
   }
 
   function handlePlayAgain(): void {
@@ -140,9 +143,9 @@ export function SensoryHologramBuilderExperience({ onComplete }: SensoryHologram
           bestStreakAllTime={bestStats.bestStreak}
           onPlayAgain={handlePlayAgain}
         />
-        {onComplete && (
+        {(curriculumSession.isActiveStep || onComplete) && (
           <div className="mx-auto mt-4 max-w-sm px-4">
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => onComplete(completedResult.immersionScorePercent)}>
+            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => (curriculumSession.isActiveStep ? curriculumSession.advance() : onComplete?.(completedResult.immersionScorePercent))}>
               Continue Session →
             </Button>
           </div>

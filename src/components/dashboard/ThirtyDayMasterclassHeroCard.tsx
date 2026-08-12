@@ -2,39 +2,26 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, GraduationCap, Loader2, Sparkles } from 'lucide-react'
+import { GraduationCap, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { joinLiveMasterclassWaitlist } from '@/app/unified-quantum-session-preview/actions/joinLiveMasterclassWaitlist'
 import { getCurriculumDayTheme } from '@/features/thirty-day-curriculum/curriculumDatabase'
 import { computeConsistencyPercent, getHighestUnlockedDay, loadCurriculumProgress } from '@/features/thirty-day-curriculum/curriculumProgress'
+import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
 
 const CURRICULUM_ROUTE = '/labs/quantum-speed-reading/thirty-day-curriculum'
 
-type ThirtyDayMasterclassHeroCardProps = {
-  // Resolved server-side by page.tsx (getLiveMasterclassWaitlistStatus) —
-  // same initial-prop pattern the standalone LiveMasterclassBannerCard
-  // used before its waitlist UI was folded into this flagship hero.
-  initialHasJoinedWaitlist: boolean
-}
-
-type JoinState = 'idle' | 'joining' | 'joined' | 'error'
-
 // Tier 3 · Flagship Mastery Program — the 3-Tier Value Ladder's premium
-// hero card, deliberately merging two previously-separate cards
-// (ThirtyDayCurriculumDashboardCard + LiveMasterclassBannerCard) into one:
-// the real, free, self-paced 30-Day Curriculum (client-only progress, no
-// payment gate — see curriculumProgress.ts) presented alongside the real
-// Live Cohort mentorship waitlist (live_masterclass_waitlist, unchanged
-// mechanism). The ₹4,999 badge is honest marketing copy for the live
-// cohort, NOT a live checkout — no price is ever charged here; "Reserve
-// Your Seat" only records a real interest signal, exactly like the
-// waitlist banner it replaces, and says so explicitly in its own helper
-// copy so nobody mistakes it for a completed purchase.
-export function ThirtyDayMasterclassHeroCard({ initialHasJoinedWaitlist }: ThirtyDayMasterclassHeroCardProps): React.JSX.Element {
+// hero card, presenting the real, free, self-paced 30-Day Curriculum
+// (client-only progress, no payment gate — see curriculumProgress.ts)
+// alongside a direct Live Cohort enrollment CTA. The ₹4,999 checkout
+// opens Razorpay's real hosted payment link in a new tab — completing it
+// takes real payment; it does not automatically unlock anything in this
+// app (no entitlement is wired to it), so this card only ever promises
+// what's true: enrollment/scheduling happens after payment, not before.
+export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
   const [nextDay, setNextDay] = useState<number | null>(null)
   const [hasStarted, setHasStarted] = useState(false)
   const [consistencyPercent, setConsistencyPercent] = useState(0)
-  const [joinState, setJoinState] = useState<JoinState>(initialHasJoinedWaitlist ? 'joined' : 'idle')
 
   useEffect(() => {
     const progress = loadCurriculumProgress()
@@ -42,12 +29,6 @@ export function ThirtyDayMasterclassHeroCard({ initialHasJoinedWaitlist }: Thirt
     setNextDay(getHighestUnlockedDay(progress))
     setConsistencyPercent(computeConsistencyPercent(progress))
   }, [])
-
-  async function handleJoinWaitlist(): Promise<void> {
-    setJoinState('joining')
-    const result = await joinLiveMasterclassWaitlist()
-    setJoinState(result.success ? 'joined' : 'error')
-  }
 
   const theme = nextDay !== null ? getCurriculumDayTheme(nextDay) : null
 
@@ -75,7 +56,17 @@ export function ThirtyDayMasterclassHeroCard({ initialHasJoinedWaitlist }: Thirt
               </p>
             </div>
           </div>
-          <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-bold tabular-nums text-primary">₹4,999 · Live Cohort</span>
+          <Button
+            asChild
+            size="lg"
+            className="brand-gradient shrink-0 rounded-full text-white shadow-lg hover:opacity-90"
+            data-enroll-button="true"
+          >
+            <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
+              <Sparkles className="size-4" aria-hidden="true" />
+              Enroll Now for ₹4,999 →
+            </a>
+          </Button>
         </div>
 
         <ul className="grid grid-cols-1 gap-2 text-sm text-foreground sm:grid-cols-3">
@@ -106,42 +97,13 @@ export function ThirtyDayMasterclassHeroCard({ initialHasJoinedWaitlist }: Thirt
           </Button>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="max-w-sm">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Live Cohort Mentorship</p>
-            <p className="text-[11px] text-muted-foreground">
-              Free to reserve your seat — we&rsquo;ll notify you the moment a batch is scheduled. No payment is taken today.
-            </p>
-          </div>
-          {joinState === 'joined' ? (
-            <div className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400 sm:w-auto">
-              <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-              You&rsquo;re on the waitlist
-            </div>
-          ) : (
-            <Button
-              type="button"
-              size="lg"
-              disabled={joinState === 'joining'}
-              onClick={() => void handleJoinWaitlist()}
-              className="brand-gradient w-full shrink-0 rounded-full text-white shadow-lg hover:opacity-90 sm:w-auto"
-              data-join-waitlist-button="true"
-            >
-              {joinState === 'joining' ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Reserving…
-                </>
-              ) : (
-                <>
-                  <Sparkles className="size-4" aria-hidden="true" />
-                  Reserve Your Seat
-                </>
-              )}
-            </Button>
-          )}
+        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
+          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Live Cohort Mentorship</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            7 live sessions with Dr. Kapil Dev Sharma. Enrollment is via secure Razorpay checkout — your batch schedule follows by email after
+            payment.
+          </p>
         </div>
-        {joinState === 'error' && <p className="text-xs text-destructive">Something went wrong. Please try again.</p>}
 
         <Link href="/pricing" className="text-xs font-medium text-primary hover:underline">
           View all plans &amp; pricing →

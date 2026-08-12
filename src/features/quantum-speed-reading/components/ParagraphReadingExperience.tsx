@@ -77,6 +77,7 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent every mission in this pack already established.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 
 const EXERCISE_ID = 'paragraph-reading'
 const LAB_HREF = '/labs/quantum-speed-reading'
@@ -578,7 +579,7 @@ function ParagraphReadingSession({
       )}
 
       <button
-        onClick={() => { clearTimer(); router.push(LAB_HREF) }}
+        onClick={() => { clearTimer(); router.push(getCurriculumSmartExitHref('paragraph-reading', LAB_HREF)) }}
         className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
         aria-label="Exit exercise"
       >
@@ -766,6 +767,9 @@ function ParagraphReadingSession({
           coachMessage={coachMessage}
           extraContent={extraContent}
           labels={RESULT_LABELS}
+          {...(isCurriculumSessionCurrentExercise('paragraph-reading')
+            ? { onNext: () => router.push(getCurriculumSmartCompleteHref('paragraph-reading', LAB_HREF)) }
+            : {})}
         />
       )}
     </div>

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
 import {
@@ -49,6 +51,7 @@ type ColorSceneTransformationExperienceProps = {
 }
 
 export function ColorSceneTransformationExperience({ onComplete }: ColorSceneTransformationExperienceProps = {}): React.JSX.Element {
+  const curriculumSession = useCurriculumSessionCompletion('color-scene-transformation', LAB_HREF)
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'color-scene-transformation' })
 
@@ -87,7 +90,7 @@ export function ColorSceneTransformationExperience({ onComplete }: ColorSceneTra
 
   function handleExitRequested(elapsedMs: number): void {
     void session.recordExit(elapsedMs)
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('color-scene-transformation', LAB_HREF))
   }
 
   function handlePlayAgain(): void {
@@ -116,9 +119,9 @@ export function ColorSceneTransformationExperience({ onComplete }: ColorSceneTra
           bestStreakAllTime={bestStats.bestStreak}
           onPlayAgain={handlePlayAgain}
         />
-        {onComplete && (
+        {(curriculumSession.isActiveStep || onComplete) && (
           <div className="mx-auto mt-4 max-w-sm px-4">
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => onComplete(completedResult.accuracyPercent)}>
+            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => (curriculumSession.isActiveStep ? curriculumSession.advance() : onComplete?.(completedResult.accuracyPercent))}>
               Continue Session →
             </Button>
           </div>

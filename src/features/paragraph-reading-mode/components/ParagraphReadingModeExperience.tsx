@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type ParagraphReadingModeCategory } from '../paragraphReadingModeDataset'
 import {
@@ -41,6 +43,7 @@ const BEST_WPM_STORAGE_KEY = 'qsr-paragraph-reading-mode-best'
 // doc comment for the full rationale).
 export function ParagraphReadingModeExperience(): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('paragraph-reading-mode', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<ParagraphReadingModeCategory | null>(null)
   useEffect(() => {
@@ -122,7 +125,7 @@ export function ParagraphReadingModeExperience(): React.JSX.Element {
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('paragraph-reading-mode', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -162,6 +165,7 @@ export function ParagraphReadingModeExperience(): React.JSX.Element {
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
         subtitle={quizScore !== null ? `Nice, continuous reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, continuous reading.'}
         result={completedResult}
         bestWpm={bestWpm}

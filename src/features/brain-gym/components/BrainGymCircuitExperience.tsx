@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { BrainGymDrillExperience } from './BrainGymDrillExperience'
 import { SACCADIC_EYE_JUMP_CONFIG } from '../configs/saccadicEyeJumpConfig'
 import { PERIPHERAL_EXPANDING_CIRCLE_CONFIG } from '../configs/peripheralExpandingCircleConfig'
@@ -36,12 +37,17 @@ type BrainGymCircuitExperienceProps = {
 // only ever composes them via BrainGymDrillExperience's existing,
 // unmodified props.
 export function BrainGymCircuitExperience({ onComplete }: BrainGymCircuitExperienceProps = {}): React.JSX.Element {
+  const curriculumSession = useCurriculumSessionCompletion('brain-gym-circuit', '/labs/quantum-speed-reading')
   const [hasStarted, setHasStarted] = useState(false)
   const [segmentIndex, setSegmentIndex] = useState(0)
 
   function handleSegmentComplete(): void {
     const nextIndex = segmentIndex + 1
     if (nextIndex >= CIRCUIT_SEGMENTS.length) {
+      if (curriculumSession.isActiveStep) {
+        curriculumSession.advance()
+        return
+      }
       onComplete?.()
       return
     }

@@ -8,6 +8,8 @@ import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { buildUnitsForCategory, pickSessionCategory, type PhraseReadingModeCategory } from '../phraseReadingModeDataset'
 import { PhraseReadingModeSettings, type PhraseSize, type PhraseFlowOrientation } from './PhraseReadingModeSettings'
 import { PhraseReadingModeCanvas } from './PhraseReadingModeCanvas'
@@ -31,6 +33,7 @@ const BEST_WPM_STORAGE_KEY = 'qsr-phrase-reading-mode-best'
 // comment for the full rationale).
 export function PhraseReadingModeExperience(): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('phrase-reading-mode', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<PhraseReadingModeCategory | null>(null)
   useEffect(() => {
@@ -104,7 +107,7 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('phrase-reading-mode', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -129,6 +132,7 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
+        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
       />
     )
   }

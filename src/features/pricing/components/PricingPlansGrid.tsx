@@ -6,6 +6,7 @@ import { Check, ExternalLink, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
+import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
 import { RAZORPAY_SUBSCRIPTION_LINKS, type BillingPeriod } from '../razorpaySubscriptionLinks'
 
 // Real prices haven't been supplied yet — this is a single, clearly-
@@ -184,9 +185,31 @@ export function PricingPlansGrid(): React.JSX.Element {
         />
       </div>
 
+      {/* 30-Day Quantum Speed Reading Mastery + Live Cohort™ — a one-time
+          enrollment, not a recurring plan, so it's deliberately its own
+          banner rather than a fifth grid card fighting the billing-period
+          toggle above (which only makes sense for subscriptions). Same
+          real, honest posture as every SubscribeButton above: a real
+          Razorpay Payment Link, no promise of automatic access — the
+          batch schedule follows by email after payment. */}
+      <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-3xl border border-primary/30 bg-primary/[0.03] p-8 sm:flex-row">
+        <div>
+          <p className="text-lg font-semibold text-foreground">30-Day Quantum Speed Reading Mastery + Live Cohort</p>
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+            The self-paced 30-day curriculum, paired with 7 live mentorship sessions from Dr. Kapil Dev Sharma. One-time enrollment — ₹4,999.
+          </p>
+        </div>
+        <Button asChild size="lg" className="w-full shrink-0 rounded-full sm:w-auto">
+          <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
+            Enroll Now for ₹4,999
+            <ExternalLink className="size-4" aria-hidden="true" />
+          </a>
+        </Button>
+      </div>
+
       <p className="mx-auto mt-10 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
         <Sparkles className="size-3.5" aria-hidden="true" />
-        Subscribing opens Razorpay&rsquo;s secure checkout in a new tab.
+        Subscribing or enrolling opens Razorpay&rsquo;s secure checkout in a new tab.
       </p>
     </div>
   )

@@ -8,12 +8,14 @@ import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { CURRICULUM_CATEGORY_LABELS, type CurriculumCatalogExercise, type CurriculumExerciseCategory } from '../curriculumExerciseCatalog'
 import { buildCurriculumDayPlan, getCurriculumPhase, isCheckpointDay, type CurriculumDayExercises } from '../curriculumDatabase'
 import type { CurriculumProgress } from '../curriculumProgress'
+import { DaySessionRunner } from './DaySessionRunner'
 
 const CARD_CLASS_NAME = 'relative rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 shadow-sm backdrop-blur-md dark:bg-[#16171A]/95'
 
 type ThirtyDayCurriculumDayDetailProps = {
   day: number
   progress: CurriculumProgress
+  justCompletedDay?: boolean
   onBack: () => void
   onMarkComplete: (day: number) => void
   onLaunchAssessment: (day: number) => void
@@ -21,7 +23,14 @@ type ThirtyDayCurriculumDayDetailProps = {
 
 const CATEGORY_ORDER: readonly CurriculumExerciseCategory[] = ['brain-gym', 'right-brain-intuition', 'visualization', 'reading-intelligence']
 
-export function ThirtyDayCurriculumDayDetail({ day, progress, onBack, onMarkComplete, onLaunchAssessment }: ThirtyDayCurriculumDayDetailProps): React.JSX.Element {
+export function ThirtyDayCurriculumDayDetail({
+  day,
+  progress,
+  justCompletedDay = false,
+  onBack,
+  onMarkComplete,
+  onLaunchAssessment,
+}: ThirtyDayCurriculumDayDetailProps): React.JSX.Element {
   const plan = buildCurriculumDayPlan(day)
   const phase = getCurriculumPhase(plan.phase)
   const isCompleted = progress.completedDays.includes(day)
@@ -38,6 +47,16 @@ export function ThirtyDayCurriculumDayDetail({ day, progress, onBack, onMarkComp
         <ArrowLeft className="size-3.5" aria-hidden="true" />
         All 30 Days
       </button>
+
+      {justCompletedDay && (
+        <div
+          className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400"
+          data-day-complete-celebration="true"
+        >
+          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+          Playlist complete — Day {day} finished! Day {day + 1} is now unlocked.
+        </div>
+      )}
 
       <div className={`${CARD_CLASS_NAME} p-6`}>
         <BrandWatermark className="absolute top-4 left-6" />
@@ -63,6 +82,8 @@ export function ThirtyDayCurriculumDayDetail({ day, progress, onBack, onMarkComp
           <p className="text-sm text-muted-foreground">{plan.theme.focus}</p>
         </div>
       </div>
+
+      {!isCompleted && <DaySessionRunner day={day} />}
 
       <ExerciseCategoryList exercises={plan.exercises} />
 
@@ -117,7 +138,8 @@ function ExerciseCategoryList({ exercises }: { exercises: CurriculumDayExercises
 
   return (
     <div className={`${CARD_CLASS_NAME} p-6`}>
-      <h2 className="font-heading text-lg font-bold tracking-tight text-foreground">Today&apos;s Circuit</h2>
+      <h2 className="font-heading text-lg font-bold tracking-tight text-foreground">Or Jump to a Specific Exercise</h2>
+      <p className="mt-0.5 text-xs text-muted-foreground">Same 4 exercises as the playlist above, in case you want to skip straight to one.</p>
       <div className="mt-4 flex flex-col gap-4">
         {CATEGORY_ORDER.map((category) => (
           <div key={category} className="flex flex-col gap-2">

@@ -1,6 +1,7 @@
 'use client'
 
 import { BrainGymDrillExperience } from './BrainGymDrillExperience'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { FAST_PATTERN_BLINKING_CONFIG } from '../configs/fastPatternBlinkingConfig'
 
 type FastPatternBlinkingExperienceProps = {
@@ -8,5 +9,9 @@ type FastPatternBlinkingExperienceProps = {
 }
 
 export function FastPatternBlinkingExperience({ onComplete }: FastPatternBlinkingExperienceProps = {}): React.JSX.Element {
-  return <BrainGymDrillExperience config={FAST_PATTERN_BLINKING_CONFIG} {...(onComplete !== undefined ? { onComplete } : {})} />
+  const curriculumSession = useCurriculumSessionCompletion('fast-pattern-blinking', '/labs/quantum-speed-reading')
+  return <BrainGymDrillExperience
+      config={FAST_PATTERN_BLINKING_CONFIG}
+      {...(curriculumSession.isActiveStep ? { onComplete: curriculumSession.advance } : onComplete !== undefined ? { onComplete } : {})}
+    />
 }

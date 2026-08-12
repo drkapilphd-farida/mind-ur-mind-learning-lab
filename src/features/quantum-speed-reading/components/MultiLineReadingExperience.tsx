@@ -57,6 +57,7 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent PCR/Phrase already established for this exact function.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { computeReadingReadiness } from '../../flash-intelligence/wordFlashInsights'
 
 const EXERCISE_ID = 'multi-line-reading'
@@ -540,7 +541,7 @@ function MultiLineReadingSession({
       )}
 
       <button
-        onClick={() => { clearTimer(); router.push(LAB_HREF) }}
+        onClick={() => { clearTimer(); router.push(getCurriculumSmartExitHref('multi-line-reading', LAB_HREF)) }}
         className="absolute top-4 right-6 text-xs text-muted-foreground transition-colors hover:text-foreground"
         aria-label="Exit exercise"
       >
@@ -708,6 +709,9 @@ function MultiLineReadingSession({
           coachMessage={coachMessage}
           extraContent={extraContent}
           labels={RESULT_LABELS}
+          {...(isCurriculumSessionCurrentExercise('multi-line-reading')
+            ? { onNext: () => router.push(getCurriculumSmartCompleteHref('multi-line-reading', LAB_HREF)) }
+            : {})}
         />
       )}
     </div>

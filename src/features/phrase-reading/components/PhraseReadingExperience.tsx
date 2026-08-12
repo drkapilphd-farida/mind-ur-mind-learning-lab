@@ -101,6 +101,8 @@ import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/di
 // Reused, read-only, from Word Flash — same precedent PCR already
 // established for this exact function.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 
 const EXERCISE_ID = 'phrase-reading'
 const LAB_HREF = '/labs/quantum-speed-reading'
@@ -309,6 +311,7 @@ function PhraseReadingSession({
 }): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('phrase-reading', LAB_HREF)
   const resolvedExitHref = exitHref ?? LAB_HREF
   const startingLevel = phraseReadingLevel(tier)
   const startingProfile = getPhraseReadingProfile(tier)
@@ -734,7 +737,7 @@ function PhraseReadingSession({
       )}
 
       <button
-        onClick={() => { clearTimer(); router.push(resolvedExitHref) }}
+        onClick={() => { clearTimer(); router.push(getCurriculumSmartExitHref('phrase-reading', resolvedExitHref)) }}
         className="absolute top-4 right-6 text-xs text-muted-foreground transition-colors hover:text-foreground"
         aria-label="Exit exercise"
       >
@@ -920,7 +923,11 @@ function PhraseReadingSession({
           coachMessage={coachMessage}
           extraContent={extraContent}
           labels={RESULT_LABELS}
-          {...(onComplete !== undefined ? { onNext: () => onComplete(result) } : {})}
+          {...(curriculumSession.isActiveStep
+            ? { onNext: curriculumSession.advance }
+            : onComplete !== undefined
+              ? { onNext: () => onComplete(result) }
+              : {})}
         />
       )}
     </div>

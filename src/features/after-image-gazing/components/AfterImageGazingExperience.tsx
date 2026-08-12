@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { loadBestAfterImageGazingStats, recordBestAfterImageGazingStats } from '../afterImageGazingLocalHistory'
 import { ROUNDS_PER_SESSION, type GazeCategorySelection } from '../afterImageGazingDataset'
@@ -69,7 +70,7 @@ export function AfterImageGazingExperience(): React.JSX.Element {
 
   function handleExitRequested(elapsedMs: number): void {
     void session.recordExit(elapsedMs)
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('after-image-gazing', LAB_HREF))
   }
 
   function handlePlayAgain(): void {

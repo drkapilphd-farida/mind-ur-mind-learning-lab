@@ -28,7 +28,6 @@ import { getFixationStats } from '@/features/visual-intelligence/fixation/querie
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
-import { getLiveMasterclassWaitlistStatus } from '@/app/unified-quantum-session-preview/actions/getLiveMasterclassWaitlistStatus'
 import { getNextJourneyDay } from '@/features/quantum-journey/streakMotivation'
 import { ParentFeedbackPrompt } from '@/features/school-dashboard/components/ParentFeedbackPrompt'
 
@@ -65,7 +64,6 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     recentQuantumDocuments,
     quantumDocumentSessionHistory,
     fixationSessions,
-    hasJoinedLiveMasterclassWaitlist,
   ] = await Promise.all([
     getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
     getPracticeSessions('quantum-speed-reading'),
@@ -76,7 +74,6 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
     getQuantumDocumentHistory(),
     getQuantumDocumentSessionHistory(),
     getFixationSessions(),
-    getLiveMasterclassWaitlistStatus(),
   ])
 
   // The next real 21-Day Journey day (1-21) — daily_quantum_sessions has
@@ -196,7 +193,7 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           description="Sequential, multi-day programs for building a real daily reading habit — from a self-paced foundation to flagship mastery with live mentorship."
         />
         <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
-        <ThirtyDayMasterclassHeroCard initialHasJoinedWaitlist={hasJoinedLiveMasterclassWaitlist} />
+        <ThirtyDayMasterclassHeroCard />
       </section>
 
       {/* Mind Score™ */}

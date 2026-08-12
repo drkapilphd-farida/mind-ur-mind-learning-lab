@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import type { ExerciseDefinition } from '@/lib/exercises/types'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { ExerciseIntroScreen } from './ExerciseIntroScreen'
 import { ExerciseCompletionScreen } from './ExerciseCompletionScreen'
 
@@ -54,8 +55,13 @@ export function ExerciseRunner({
     await recordExit(durationMs)
     // router.back() can serve a stale cached render of the page we're
     // returning to; pushing to a known labHref forces a fresh fetch instead.
+    // Immersive Daily Session Playlist™ — an early abandon during an
+    // active curriculum session ends the playlist and returns to the day
+    // view instead of the generic lab index; getCurriculumSmartExitHref
+    // falls back to the real `labHref` unchanged outside a matching
+    // session, so standalone usage is untouched.
     if (labHref !== undefined) {
-      router.push(labHref)
+      router.push(getCurriculumSmartExitHref(definition.exerciseId, labHref))
       return
     }
     router.back()
@@ -74,8 +80,12 @@ export function ExerciseRunner({
       router.push(nextExercise.href)
       return
     }
+    // Immersive Daily Session Playlist™ — natural completion during an
+    // active curriculum session advances to the next exercise (or, on the
+    // final one, marks the day complete) instead of exiting to the lab
+    // index; falls back to `labHref` unchanged outside a matching session.
     if (labHref !== undefined) {
-      router.push(labHref)
+      router.push(getCurriculumSmartCompleteHref(definition.exerciseId, labHref))
       return
     }
     router.back()

@@ -1,6 +1,7 @@
 'use client'
 
 import { BrainGymDrillExperience } from './BrainGymDrillExperience'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { SACCADIC_EYE_JUMP_CONFIG } from '../configs/saccadicEyeJumpConfig'
 
 type SaccadicEyeJumpExperienceProps = {
@@ -8,5 +9,9 @@ type SaccadicEyeJumpExperienceProps = {
 }
 
 export function SaccadicEyeJumpExperience({ onComplete }: SaccadicEyeJumpExperienceProps = {}): React.JSX.Element {
-  return <BrainGymDrillExperience config={SACCADIC_EYE_JUMP_CONFIG} {...(onComplete !== undefined ? { onComplete } : {})} />
+  const curriculumSession = useCurriculumSessionCompletion('saccadic-eye-jump', '/labs/quantum-speed-reading')
+  return <BrainGymDrillExperience
+      config={SACCADIC_EYE_JUMP_CONFIG}
+      {...(curriculumSession.isActiveStep ? { onComplete: curriculumSession.advance } : onComplete !== undefined ? { onComplete } : {})}
+    />
 }

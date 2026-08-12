@@ -82,6 +82,8 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent every mission in this pack already established.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 
 const EXERCISE_ID = 'sentence-reading'
 const LAB_HREF = '/labs/quantum-speed-reading'
@@ -390,6 +392,7 @@ function SentenceReadingSession({
 }): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('sentence-reading', LAB_HREF)
   const resolvedExitHref = exitHref ?? LAB_HREF
   const startingLevel = sentenceReadingLevel(tier)
   const startingProfile = getSentenceReadingProfile(tier)
@@ -728,7 +731,7 @@ function SentenceReadingSession({
       )}
 
       <button
-        onClick={() => { clearTimer(); router.push(resolvedExitHref) }}
+        onClick={() => { clearTimer(); router.push(getCurriculumSmartExitHref('sentence-reading', resolvedExitHref)) }}
         className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
         aria-label="Exit exercise"
       >
@@ -924,7 +927,11 @@ function SentenceReadingSession({
           coachMessage={coachMessage}
           extraContent={extraContent}
           labels={RESULT_LABELS}
-          {...(onComplete !== undefined ? { onNext: () => onComplete(result) } : {})}
+          {...(curriculumSession.isActiveStep
+            ? { onNext: curriculumSession.advance }
+            : onComplete !== undefined
+              ? { onNext: () => onComplete(result) }
+              : {})}
         />
       )}
     </div>

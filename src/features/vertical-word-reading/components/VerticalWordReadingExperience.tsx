@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type VerticalWordReadingCategory } from '../verticalWordReadingDataset'
 import { VerticalWordReadingSettings } from './VerticalWordReadingSettings'
@@ -40,6 +42,7 @@ type VerticalWordReadingExperienceProps = {
 // its original scope.
 export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadingExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('vertical-word-reading', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<VerticalWordReadingCategory | null>(null)
   useEffect(() => {
@@ -111,7 +114,7 @@ export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadin
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('vertical-word-reading', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -132,7 +135,11 @@ export function VerticalWordReadingExperience({ onComplete }: VerticalWordReadin
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+        {...(curriculumSession.isActiveStep
+          ? { onContinue: curriculumSession.advance }
+          : onComplete
+            ? { onContinue: () => onComplete(completedResult) }
+            : {})}
       />
     )
   }

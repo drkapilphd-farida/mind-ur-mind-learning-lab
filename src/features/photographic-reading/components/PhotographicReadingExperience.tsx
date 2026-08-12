@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildSpatialClustersForCategory, pickSessionCategory, type FlashRecallSprintCategory } from '../photographicReadingDataset'
 import { assignSpatialQuadrants } from '../spatialQuadrantAssignment'
@@ -36,6 +38,7 @@ type PhotographicReadingExperienceProps = {
 // gating the completion screen.
 export function PhotographicReadingExperience({ onComplete }: PhotographicReadingExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('photographic-reading', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<FlashRecallSprintCategory | null>(null)
   useEffect(() => {
@@ -118,7 +121,7 @@ export function PhotographicReadingExperience({ onComplete }: PhotographicReadin
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('photographic-reading', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -159,7 +162,11 @@ export function PhotographicReadingExperience({ onComplete }: PhotographicReadin
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(onComplete ? { onContinue: () => onComplete(completedResult) } : {})}
+        {...(curriculumSession.isActiveStep
+          ? { onContinue: curriculumSession.advance }
+          : onComplete
+            ? { onContinue: () => onComplete(completedResult) }
+            : {})}
       />
     )
   }

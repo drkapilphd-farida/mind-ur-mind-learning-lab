@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
 import { loadBestEspStats, recordBestEspStats } from '../espZenerLocalHistory'
@@ -45,6 +47,7 @@ type EspZenerTelepathyExperienceProps = {
 }
 
 export function EspZenerTelepathyExperience({ onComplete }: EspZenerTelepathyExperienceProps = {}): React.JSX.Element {
+  const curriculumSession = useCurriculumSessionCompletion('esp-zener-telepathy-sprint', LAB_HREF)
   const router = useRouter()
   const session = useExerciseSession({ labId: 'quantum-speed-reading', exerciseId: 'esp-zener-telepathy-sprint' })
 
@@ -76,7 +79,7 @@ export function EspZenerTelepathyExperience({ onComplete }: EspZenerTelepathyExp
 
   function handleExitRequested(elapsedMs: number): void {
     void session.recordExit(elapsedMs)
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('esp-zener-telepathy-sprint', LAB_HREF))
   }
 
   function handlePlayAgain(): void {
@@ -103,9 +106,9 @@ export function EspZenerTelepathyExperience({ onComplete }: EspZenerTelepathyExp
           bestStreakAllTime={bestStats.bestStreak}
           onPlayAgain={handlePlayAgain}
         />
-        {onComplete && (
+        {(curriculumSession.isActiveStep || onComplete) && (
           <div className="mx-auto mt-4 max-w-sm px-4">
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => onComplete(completedResult.accuracyPercent)}>
+            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => (curriculumSession.isActiveStep ? curriculumSession.advance() : onComplete?.(completedResult.accuracyPercent))}>
               Continue Session →
             </Button>
           </div>

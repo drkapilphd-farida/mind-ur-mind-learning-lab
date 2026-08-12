@@ -22,6 +22,7 @@ import { RuntimeResultScreen, type RuntimeResultExtraStat, type RuntimeResultLab
 import { SpeedControl } from './SpeedControl'
 import { MicroVictoryMoment } from '@/components/exercises/MicroVictoryMoment'
 import { useMicroVictoryReveal } from '@/hooks/exercises/useMicroVictoryReveal'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import type { ExerciseDefinition, SessionItem, ItemResponse, SpeedMs } from '@/types/exercise-engine'
 
 type ItemPhase = 'flash' | 'response' | 'feedback' | 'gap'
@@ -276,11 +277,11 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') { clearTimer(); router.push(definition.labHref) }
+      if (e.key === 'Escape') { clearTimer(); router.push(getCurriculumSmartExitHref(definition.id, definition.labHref)) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [router, definition.labHref])
+  }, [router, definition.id, definition.labHref])
 
   useEffect(() => () => clearTimer(), [])
 
@@ -306,6 +307,14 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
         </div>
       )
     }
+    // Immersive Daily Session Playlist™ — when this exercise is the
+    // active step of a curriculum day session, the "Continue to Next
+    // Step" action takes over the completion screen's onNext seam
+    // (imperative, click-triggered — never bound as a passive href, since
+    // getCurriculumSmartCompleteHref mutates session storage as it
+    // computes its result) and advances the real playlist instead of
+    // whatever generic next-exercise recommendation would otherwise show.
+    const isCurriculumStep = isCurriculumSessionCurrentExercise(definition.id)
     return (
       <RuntimeResultScreen
         exerciseName={definition.title}
@@ -317,7 +326,11 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
         {...(computeCoachMessage !== undefined ? { coachMessage: computeCoachMessage(completedResult) } : {})}
         {...(computeResultExtraContent !== undefined ? { extraContent: computeResultExtraContent(completedResult) } : {})}
         {...(resultLabels !== undefined ? { labels: resultLabels } : {})}
-        {...(onNext !== undefined ? { onNext: () => onNext(completedResult) } : {})}
+        {...(isCurriculumStep
+          ? { onNext: () => router.push(getCurriculumSmartCompleteHref(definition.id, definition.labHref)) }
+          : onNext !== undefined
+            ? { onNext: () => onNext(completedResult) }
+            : {})}
       />
     )
   }

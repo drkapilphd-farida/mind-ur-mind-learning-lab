@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { loadBestEssenceSprintStats, recordBestEssenceSprintStats } from '../pictorialEssenceSprintLocalHistory'
 import { ROUNDS_PER_SESSION } from '../pictorialEssenceSprintDataset'
@@ -99,7 +100,7 @@ export function PictorialEssenceSprintExperience(): React.JSX.Element {
 
   function handleExitRequested(elapsedMs: number): void {
     void session.recordExit(elapsedMs)
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('pictorial-essence-sprint', LAB_HREF))
   }
 
   function handlePlayAgain(): void {

@@ -7,6 +7,8 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type SentenceReadingModeCategory } from '../sentenceReadingModeDataset'
 import { SentenceReadingModeSettings, type SentenceWidth, type SentenceFlowOrientation } from './SentenceReadingModeSettings'
@@ -35,6 +37,7 @@ const BEST_WPM_STORAGE_KEY = 'qsr-sentence-reading-mode-best'
 // that function's own doc comment for the full rationale).
 export function SentenceReadingModeExperience(): React.JSX.Element {
   const router = useRouter()
+  const curriculumSession = useCurriculumSessionCompletion('sentence-reading-mode', LAB_HREF)
 
   const [sessionCategory, setSessionCategory] = useState<SentenceReadingModeCategory | null>(null)
   useEffect(() => {
@@ -115,7 +118,7 @@ export function SentenceReadingModeExperience(): React.JSX.Element {
     if (runtime.phase === 'reading' || runtime.phase === 'paused') {
       await session.recordExit(runtime.elapsedMs)
     }
-    router.push(LAB_HREF)
+    router.push(getCurriculumSmartExitHref('sentence-reading-mode', LAB_HREF))
   }
 
   if (runtime.phase === 'settings') {
@@ -153,6 +156,7 @@ export function SentenceReadingModeExperience(): React.JSX.Element {
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
         subtitle={quizScore !== null ? `Nice, natural sentence reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, natural sentence reading.'}
         result={completedResult}
         bestWpm={bestWpm}
