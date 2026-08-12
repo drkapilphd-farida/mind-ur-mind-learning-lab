@@ -23,6 +23,7 @@ import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-tr
 import { getFixationSessions } from '@/features/visual-intelligence/fixation/queries/getFixationSessions'
 import { getFixationStats } from '@/features/visual-intelligence/fixation/queries/getFixationStats'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
+import { ThirtyDayCurriculumDashboardCard } from '@/features/thirty-day-curriculum/components/ThirtyDayCurriculumDashboardCard'
 import { LiveMasterclassBannerCard } from '@/components/dashboard/LiveMasterclassBannerCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
@@ -170,6 +171,12 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
       {/* 21-Day Transformation Journey™ — above Mind Score to prioritize
           daily habit progression. */}
       <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
+
+      {/* 30-Day Quantum Speed Reading Mastery Curriculum™ — a separate,
+          longer-form structured roadmap sitting alongside the 21-Day
+          Journey rather than replacing it; client-only progress (see the
+          card's own doc comment), so it renders nothing until mounted. */}
+      <ThirtyDayCurriculumDashboardCard />
 
       {/* Mind Score™ */}
       <MindScoreCard
