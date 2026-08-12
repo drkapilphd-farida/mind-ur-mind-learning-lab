@@ -61,6 +61,15 @@ export const RIGHT_BRAIN_HUB_MODES: readonly RightBrainHubMode[] = [
     exerciseId: 'dot-memory-grid',
     storageKey: 'qsr-dot-memory-grid-best',
   },
+  {
+    id: 'number-flash-grid',
+    title: 'Number Flash Grid™',
+    purpose: 'Digits flash briefly across the grid — memorize both where and what they were, then tap and type them back, 5 escalating rounds.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/number-flash-grid',
+    exerciseId: 'number-flash-grid',
+    storageKey: 'qsr-number-flash-grid-best',
+  },
 ] as const
 
 export const RIGHT_BRAIN_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = RIGHT_BRAIN_HUB_MODES.filter(

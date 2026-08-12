@@ -10,6 +10,7 @@ import { loadBestEssenceSprintStats } from '@/features/pictorial-essence-sprint/
 import { loadBestHemisphericColorSyncStats } from '@/features/hemispheric-color-sync/hemisphericColorSyncLocalHistory'
 import { loadBestAfterImageGazingStats } from '@/features/after-image-gazing/afterImageGazingLocalHistory'
 import { loadBestDotMemoryGridStats } from '@/features/dot-memory-grid/dotMemoryGridLocalHistory'
+import { loadBestNumberFlashGridStats } from '@/features/number-flash-grid/numberFlashGridLocalHistory'
 import type { RightBrainHubMode } from '../rightBrainHubModes'
 
 type RightBrainHubModeCardProps = {
@@ -44,6 +45,7 @@ const BEST_STATS_LOADERS: Record<string, (storageKey: string) => { bestScorePerc
     return { bestScorePercent: stats.bestClarityPercent, bestStreak: stats.bestStreak }
   },
   'dot-memory-grid': loadBestDotMemoryGridStats,
+  'number-flash-grid': loadBestNumberFlashGridStats,
 }
 
 // Visually mirrors ReadingHubModeCard.tsx/IntuitionHubModeCard.tsx's own
