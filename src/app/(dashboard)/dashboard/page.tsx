@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
@@ -17,14 +18,14 @@ import { GreetingHeading } from '@/components/dashboard/GreetingHeading'
 import { AIMentorSection, AIMentorSkeleton } from '@/components/dashboard/AIMentorSection'
 import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
+import { DashboardSectionHeader } from '@/components/dashboard/DashboardSectionHeader'
+import { ThirtyDayMasterclassHeroCard } from '@/components/dashboard/ThirtyDayMasterclassHeroCard'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { getQuantumDocumentHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
 import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
 import { getFixationSessions } from '@/features/visual-intelligence/fixation/queries/getFixationSessions'
 import { getFixationStats } from '@/features/visual-intelligence/fixation/queries/getFixationStats'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
-import { ThirtyDayCurriculumDashboardCard } from '@/features/thirty-day-curriculum/components/ThirtyDayCurriculumDashboardCard'
-import { LiveMasterclassBannerCard } from '@/components/dashboard/LiveMasterclassBannerCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
 import { getLiveMasterclassWaitlistStatus } from '@/app/unified-quantum-session-preview/actions/getLiveMasterclassWaitlistStatus'
@@ -146,37 +147,57 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         </div>
       </div>
 
-      {/* Live Masterclass™ — a premium upsell banner, deliberately its own
-          standalone card rather than a second competing CTA crammed into
-          the Hero — the Hero's own daily-practice momentum (AI Mentor,
-          streak) stays uninterrupted, and the dashboard's one daily-habit
-          CTA is the 21-Day Journey card below, not this. Reuses the exact
-          same real waitlist mechanism the QSR Pro Circuit's completion
-          screen already uses (joinLiveMasterclassWaitlist/
-          getLiveMasterclassWaitlistStatus, live_masterclass_waitlist
-          table) — no new backend, no fake registration flow. */}
-      <LiveMasterclassBannerCard initialHasJoined={hasJoinedLiveMasterclassWaitlist} />
-
-      {/* AI Document Transformer™ — anchor target for Choose Your Path™'s
+      {/* 3-Tier Value Ladder™ — Tier 1: My Document Tools. AI Document
+          Transformer™ is the anchor target for Choose Your Path™'s
           "Upload & Learn™" card (/dashboard#upload-document), the direct,
-          one-click destination for uploading a document from onboarding. */}
-      <div id="upload-document">
-        <AIDocumentTransformerWidget
-          isPro={isPaidUser}
-          initialDocumentCount={quantumDocumentCount}
-          recentDocuments={recentQuantumDocuments.slice(0, 1)}
+          one-click destination for uploading a document from onboarding.
+          The pricing chips below are honest, display-only marketing copy
+          (Standard/Pro aren't wired to a live checkout yet — see
+          PricingPlansGrid's own "price pending" placeholder) — the real
+          CTA is the "/pricing" link, never a fabricated purchase flow
+          here. */}
+      <section aria-labelledby="document-tools-heading">
+        <DashboardSectionHeader
+          id="document-tools-heading"
+          eyebrow="Tier 1 · Utility Hub"
+          title="My Document Tools"
+          description="Turn any document into Spider Notes, Memory Techniques, and Quantum Speed Reading sessions."
+        >
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground">Standard · ₹399</span>
+            <span className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground">Pro · ₹699</span>
+            <Link href="/pricing" className="font-medium text-primary hover:underline">
+              View plans →
+            </Link>
+          </div>
+        </DashboardSectionHeader>
+        <div id="upload-document">
+          <AIDocumentTransformerWidget
+            isPro={isPaidUser}
+            initialDocumentCount={quantumDocumentCount}
+            recentDocuments={recentQuantumDocuments.slice(0, 1)}
+          />
+        </div>
+      </section>
+
+      {/* 3-Tier Value Ladder™ — Tier 2 (21-Day habit foundation) and Tier
+          3 (30-Day Mastery + Live Cohort) grouped under one "Masterclass
+          & Programs" section so the two structured, multi-day programs
+          never compete visually with the one-shot document tools above.
+          ThirtyDayMasterclassHeroCard deliberately merges what used to be
+          two separate cards (ThirtyDayCurriculumDashboardCard +
+          LiveMasterclassBannerCard) into a single flagship Tier 3 hero —
+          see that component's own doc comment for why. */}
+      <section aria-labelledby="programs-heading" className="space-y-4 sm:space-y-6">
+        <DashboardSectionHeader
+          id="programs-heading"
+          eyebrow="Tier 2 & 3 · Structured Programs"
+          title="Masterclass & Programs"
+          description="Sequential, multi-day programs for building a real daily reading habit — from a self-paced foundation to flagship mastery with live mentorship."
         />
-      </div>
-
-      {/* 21-Day Transformation Journey™ — above Mind Score to prioritize
-          daily habit progression. */}
-      <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
-
-      {/* 30-Day Quantum Speed Reading Mastery Curriculum™ — a separate,
-          longer-form structured roadmap sitting alongside the 21-Day
-          Journey rather than replacing it; client-only progress (see the
-          card's own doc comment), so it renders nothing until mounted. */}
-      <ThirtyDayCurriculumDashboardCard />
+        <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
+        <ThirtyDayMasterclassHeroCard initialHasJoinedWaitlist={hasJoinedLiveMasterclassWaitlist} />
+      </section>
 
       {/* Mind Score™ */}
       <MindScoreCard
