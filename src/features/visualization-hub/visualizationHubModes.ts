@@ -35,6 +35,15 @@ export const VISUALIZATION_HUB_MODES: readonly VisualizationHubMode[] = [
     exerciseId: 'color-scene-transformation',
     storageKey: 'qsr-color-scene-transformation-best',
   },
+  {
+    id: 'sensory-hologram-builder',
+    title: 'Sensory Hologram Builder™',
+    purpose: 'A guided, bilingual voice-narrated journey through sight, touch, and scent — building a vivid mental hologram of a life goal you choose.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/sensory-hologram-builder',
+    exerciseId: 'sensory-hologram-builder',
+    storageKey: 'qsr-sensory-hologram-builder-best',
+  },
 ] as const
 
 export const VISUALIZATION_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = VISUALIZATION_HUB_MODES.filter(
