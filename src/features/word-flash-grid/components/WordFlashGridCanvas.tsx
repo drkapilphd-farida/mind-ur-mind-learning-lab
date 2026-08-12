@@ -354,10 +354,7 @@ export function WordFlashGridCanvas({ gridSize, onComplete, onExitRequested }: W
                 className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border p-0.5 text-center text-[9px] leading-none font-bold uppercase transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 sm:p-1 sm:text-[11px] ${cellBorderClassName(state, roundPhase)}`}
               >
                 {state === 'flash-target' && wordLabel !== null && (
-                  <span
-                    aria-hidden="true"
-                    className="text-cyan-500 drop-shadow-[0_0_8px_rgba(34,211,238,0.75)] dark:text-cyan-300 dark:drop-shadow-[0_0_10px_rgba(103,232,249,0.6)]"
-                  >
+                  <span aria-hidden="true" className="text-[11px] font-extrabold text-slate-950 sm:text-sm">
                     {wordLabel}
                   </span>
                 )}
@@ -401,6 +398,12 @@ function cellBorderClassName(state: CellState, phase: RoundPhase): string {
   if (state === 'correct') return 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
   if (state === 'wrong') return 'border-red-500/60 bg-red-500/10 text-red-700 dark:text-red-300'
   if (state === 'missed') return 'border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+  // The flashing cell needs to instantly "pop" for the eye to catch it in
+  // peripheral vision, not just the glyph inside it — a vivid, solid cell
+  // background plus a matching glow reads correctly at a glance in both
+  // themes, unlike relying on light-colored text (which had poor contrast
+  // against the light paper-card background).
+  if (state === 'flash-target') return 'border-cyan-500 bg-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.6)] dark:border-cyan-300 dark:bg-cyan-400 dark:shadow-[0_0_18px_rgba(103,232,249,0.55)]'
   if (state === 'active') return 'border-primary bg-accent/30'
   if (phase === 'recall') return 'border-border bg-background hover:border-primary/40 hover:bg-accent/20 cursor-pointer'
   return 'border-border bg-background'

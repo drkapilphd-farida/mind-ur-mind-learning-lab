@@ -401,6 +401,12 @@ function cellBorderClassName(state: CellState, phase: RoundPhase): string {
   if (state === 'correct') return 'border-emerald-500/50 bg-emerald-500/10'
   if (state === 'wrong') return 'border-red-500/60 bg-red-500/10'
   if (state === 'missed') return 'border-amber-500/60 bg-amber-500/10'
+  // The flashing cell needs to instantly "pop" for the eye to catch it in
+  // peripheral vision, not just the icon inside it — a vivid, solid cell
+  // background plus a matching glow reads correctly at a glance in both
+  // themes, matching the identical fix in WordFlashGridCanvas.tsx /
+  // NumberFlashGridCanvas.tsx.
+  if (state === 'flash-target') return 'border-cyan-500 bg-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.6)] dark:border-cyan-300 dark:bg-cyan-400 dark:shadow-[0_0_18px_rgba(103,232,249,0.55)]'
   if (state === 'active') return 'border-primary bg-accent/30'
   if (phase === 'recall') return 'border-border bg-background hover:border-primary/40 hover:bg-accent/20 cursor-pointer'
   return 'border-border bg-background'
