@@ -70,6 +70,15 @@ export const RIGHT_BRAIN_HUB_MODES: readonly RightBrainHubMode[] = [
     exerciseId: 'number-flash-grid',
     storageKey: 'qsr-number-flash-grid-best',
   },
+  {
+    id: 'word-flash-grid',
+    title: 'Word Flash Grid™',
+    purpose: 'Short, punchy words flash briefly across the grid — memorize both where and what they said, then tap and pick them back, 5 escalating rounds.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/word-flash-grid',
+    exerciseId: 'word-flash-grid',
+    storageKey: 'qsr-word-flash-grid-best',
+  },
 ] as const
 
 export const RIGHT_BRAIN_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = RIGHT_BRAIN_HUB_MODES.filter(
