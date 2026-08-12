@@ -44,6 +44,15 @@ export const VISUALIZATION_HUB_MODES: readonly VisualizationHubMode[] = [
     exerciseId: 'sensory-hologram-builder',
     storageKey: 'qsr-sensory-hologram-builder-best',
   },
+  {
+    id: 'fluid-energy-balancer',
+    title: 'Fluid Energy Balancer™',
+    purpose: 'Hold two opposing energies — Earth & Gold, Air & Water — in perfect harmony against drifting fluctuations, 5 rounds of tightening focus.',
+    status: 'available',
+    href: '/labs/quantum-speed-reading/fluid-energy-balancer',
+    exerciseId: 'fluid-energy-balancer',
+    storageKey: 'qsr-fluid-energy-balancer-best',
+  },
 ] as const
 
 export const VISUALIZATION_HUB_AVAILABLE_EXERCISE_IDS: readonly string[] = VISUALIZATION_HUB_MODES.filter(
