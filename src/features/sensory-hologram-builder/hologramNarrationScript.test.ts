@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HOLOGRAM_GOALS, getHologramGoalById } from './hologramDatabase'
-import { HOLOGRAM_PHASE_IDS, buildNarrationPhases, countTotalNarrationLines } from './hologramNarrationScript'
+import { HOLOGRAM_PHASE_IDS, applyBreathingPauses, buildNarrationPhases, countTotalNarrationLines } from './hologramNarrationScript'
 
 describe('buildNarrationPhases', () => {
   it('produces exactly the 5 spec-named phases, in order', () => {
@@ -22,7 +22,7 @@ describe('buildNarrationPhases', () => {
     }
   })
 
-  it("splices the goal's own sensory lines into the correct phases", () => {
+  it("splices the goal's own sensory lines (with breathing pauses applied) into the correct phases", () => {
     const goal = getHologramGoalById('ocean-waves')!
     const phases = buildNarrationPhases(goal)
     const sightPhase = phases.find((phase) => phase.id === 'sight')!
@@ -30,10 +30,10 @@ describe('buildNarrationPhases', () => {
     const tasteSmellPhase = phases.find((phase) => phase.id === 'taste-smell')!
     const synthesisPhase = phases.find((phase) => phase.id === 'synthesis')!
 
-    expect(sightPhase.lines.some((line) => line.en === goal.sight.en)).toBe(true)
-    expect(touchPhase.lines.some((line) => line.en === goal.touch.en)).toBe(true)
-    expect(tasteSmellPhase.lines.some((line) => line.en === goal.tasteSmell.en)).toBe(true)
-    expect(synthesisPhase.lines.some((line) => line.en === goal.affirmation.en)).toBe(true)
+    expect(sightPhase.lines.some((line) => line.en === applyBreathingPauses(goal.sight.en))).toBe(true)
+    expect(touchPhase.lines.some((line) => line.en === applyBreathingPauses(goal.touch.en))).toBe(true)
+    expect(tasteSmellPhase.lines.some((line) => line.en === applyBreathingPauses(goal.tasteSmell.en))).toBe(true)
+    expect(synthesisPhase.lines.some((line) => line.en === applyBreathingPauses(goal.affirmation.en))).toBe(true)
   })
 
   it("mentions the goal's own title in the sight and synthesis framing lines", () => {
@@ -75,5 +75,47 @@ describe('countTotalNarrationLines', () => {
     const phases = buildNarrationPhases(getHologramGoalById('crisp-apple')!)
     const manualSum = phases.reduce((sum, phase) => sum + phase.lines.length, 0)
     expect(countTotalNarrationLines(phases)).toBe(manualSum)
+  })
+})
+
+describe('applyBreathingPauses', () => {
+  it('inserts an ellipsis breathing pause after every comma clause', () => {
+    expect(applyBreathingPauses('You see the light, the water, the sky.')).toBe('You see the light, ... the water, ... the sky.')
+  })
+
+  it('leaves text with no commas completely untouched', () => {
+    const text = 'You are safe here.'
+    expect(applyBreathingPauses(text)).toBe(text)
+  })
+
+  it('is idempotent — running it twice never produces a doubled ellipsis', () => {
+    const once = applyBreathingPauses('A calm mind, a steady breath.')
+    const twice = applyBreathingPauses(once)
+    expect(twice).toBe(once)
+    expect(twice).not.toContain('......')
+  })
+
+  it('applies equally to Hindi text using the same ASCII comma', () => {
+    expect(applyBreathingPauses('अपने शरीर को शिथिल होने दें, और अपने मन को शांत होने दें।')).toBe(
+      'अपने शरीर को शिथिल होने दें, ... और अपने मन को शांत होने दें।',
+    )
+  })
+
+  it('never disturbs an ellipsis that already exists in the source text', () => {
+    const withExistingEllipsis = applyBreathingPauses('Take a slow, deep breath in... and let it go.')
+    expect(withExistingEllipsis).toBe('Take a slow, ... deep breath in... and let it go.')
+    expect(withExistingEllipsis).not.toContain('......')
+  })
+})
+
+describe('buildNarrationPhases — breathing pauses baked into every generated line', () => {
+  it('every comma-bearing generated line actually contains an injected pause', () => {
+    const phases = buildNarrationPhases(getHologramGoalById('luxury-car')!)
+    const allLines = phases.flatMap((phase) => phase.lines)
+    const commaLines = allLines.filter((line) => line.en.includes(','))
+    expect(commaLines.length).toBeGreaterThan(0)
+    for (const line of commaLines) {
+      expect(line.en).toContain('...')
+    }
   })
 })

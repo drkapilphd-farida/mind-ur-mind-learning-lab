@@ -28,6 +28,25 @@ function midSentence(titleEn: string): string {
   return titleEn.charAt(0).toLowerCase() + titleEn.slice(1)
 }
 
+// Inserts a soft breathing-pause ellipsis after every comma-separated
+// clause — a comma's own default TTS pause reads as clipped and
+// businesslike, not like a real guide taking an in-breath between
+// instructions. The negative lookahead skips any comma that's already
+// followed by "..." (whether hand-authored or injected by an earlier
+// call), which is what makes this genuinely idempotent — without it, a
+// comma already followed by "..." would still match on `,\s+` alone and
+// pick up a second, doubled ellipsis on re-application. Applies equally
+// to English and Hindi text, since this app's own Hindi content uses the
+// same ASCII comma for clause breaks (Devanagari has no distinct comma
+// glyph in common use).
+export function applyBreathingPauses(text: string): string {
+  return text.replace(/,\s+(?!\.\.\.)/g, ', ... ')
+}
+
+function withPauses(line: NarrationLine): NarrationLine {
+  return { en: applyBreathingPauses(line.en), hi: applyBreathingPauses(line.hi) }
+}
+
 const GROUNDING_LINES: NarrationLine[] = [
   {
     en: 'Find a comfortable position, and gently close your eyes.',
@@ -102,25 +121,29 @@ function synthesisIntroLine(goal: HologramGoal): NarrationLine {
 }
 
 // Composes the fixed framing script with one goal's own sensory lines
-// into the session's full 5-phase narration. Pure and deterministic —
-// the same goal always produces the same script, so the Canvas can
-// safely rebuild it from a stored goal id without re-deriving randomness.
+// into the session's full 5-phase narration, then runs every line
+// through applyBreathingPauses as the final generation step — this is
+// what makes both the spoken utterance AND its on-screen caption
+// naturally paced, since they're the exact same text. Pure and
+// deterministic — the same goal always produces the same script, so the
+// Canvas can safely rebuild it from a stored goal id without re-deriving
+// randomness.
 export function buildNarrationPhases(goal: HologramGoal): NarrationPhase[] {
   return [
-    { id: 'grounding', labelEn: 'Grounding', labelHi: 'स्थिरता', lines: [...GROUNDING_LINES] },
-    { id: 'sight', labelEn: 'Sight', labelHi: 'दृष्टि', lines: [sightIntroLine(goal), goal.sight, SIGHT_OUTRO_LINE] },
-    { id: 'touch', labelEn: 'Touch', labelHi: 'स्पर्श', lines: [TOUCH_INTRO_LINE, goal.touch, TOUCH_OUTRO_LINE] },
+    { id: 'grounding', labelEn: 'Grounding', labelHi: 'स्थिरता', lines: GROUNDING_LINES.map(withPauses) },
+    { id: 'sight', labelEn: 'Sight', labelHi: 'दृष्टि', lines: [sightIntroLine(goal), goal.sight, SIGHT_OUTRO_LINE].map(withPauses) },
+    { id: 'touch', labelEn: 'Touch', labelHi: 'स्पर्श', lines: [TOUCH_INTRO_LINE, goal.touch, TOUCH_OUTRO_LINE].map(withPauses) },
     {
       id: 'taste-smell',
       labelEn: 'Smell & Taste',
       labelHi: 'सुगंध और स्वाद',
-      lines: [TASTE_SMELL_INTRO_LINE, goal.tasteSmell, TASTE_SMELL_OUTRO_LINE],
+      lines: [TASTE_SMELL_INTRO_LINE, goal.tasteSmell, TASTE_SMELL_OUTRO_LINE].map(withPauses),
     },
     {
       id: 'synthesis',
       labelEn: 'Full Hologram Synthesis',
       labelHi: 'पूर्ण होलोग्राम संश्लेषण',
-      lines: [synthesisIntroLine(goal), goal.affirmation, SYNTHESIS_HOLD_LINE, SYNTHESIS_CARRY_LINE, SYNTHESIS_CLOSE_LINE],
+      lines: [synthesisIntroLine(goal), goal.affirmation, SYNTHESIS_HOLD_LINE, SYNTHESIS_CARRY_LINE, SYNTHESIS_CLOSE_LINE].map(withPauses),
     },
   ]
 }

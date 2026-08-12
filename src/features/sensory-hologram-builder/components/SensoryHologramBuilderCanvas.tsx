@@ -11,7 +11,13 @@ import { estimateSpeechDurationMs } from '../hologramSpeechTiming'
 import { NARRATION_LANGUAGE_TAGS, pickVoiceForLanguage, type NarrationLanguage } from '../hologramVoiceSelection'
 
 const TICK_MS = 100
-const SPEECH_RATE = 0.85
+// Locked deliberately slow and low — a calm 0.75 rate and a 0.85 pitch
+// are what actually separate a "studio-grade meditation guide" reading
+// from a default text-to-speech voice reading the same words quickly and
+// flatly. Both apply identically to en-IN and hi-IN (see
+// hologramVoiceSelection.ts's own NARRATION_LANGUAGE_TAGS).
+const SPEECH_RATE = 0.75
+const SPEECH_PITCH = 0.85
 // Pause between consecutive lines within a phase, and the longer pause at
 // a phase boundary — both purely pacing/breathing room, independent of
 // however long the actual utterance itself takes to speak.
@@ -182,6 +188,7 @@ export function SensoryHologramBuilderCanvas({ goal, language, onComplete, onExi
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = NARRATION_LANGUAGE_TAGS[language]
       utterance.rate = SPEECH_RATE
+      utterance.pitch = SPEECH_PITCH
       const voice = pickVoiceForLanguage(voicesRef.current, language)
       if (voice) utterance.voice = voice
       utterance.onend = scheduleAdvance
