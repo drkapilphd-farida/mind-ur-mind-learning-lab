@@ -157,8 +157,8 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
         <DashboardSectionHeader
           id="document-tools-heading"
           eyebrow="Tier 1 · Utility Hub"
-          title="My Document Tools"
-          description="Turn any document into Spider Notes, Memory Techniques, and Quantum Speed Reading sessions."
+          title="📄 AI Document Supercharger™ (Upload & Learn)"
+          description="Drop any PDF, textbook, or research paper. Our AI instantly converts it into Quantum Speed Reading drills, Mind Maps, and Spider Notes."
         >
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
             <span className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground">Standard · ₹399</span>

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { GraduationCap, Sparkles } from 'lucide-react'
+import { GraduationCap, MessageCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurriculumDayTheme } from '@/features/thirty-day-curriculum/curriculumDatabase'
 import { computeConsistencyPercent, getHighestUnlockedDay, loadCurriculumProgress } from '@/features/thirty-day-curriculum/curriculumProgress'
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
+import { WHATSAPP_MASTERCLASS_INQUIRY_LINK } from '@/config/whatsappSupportLink'
 
 const CURRICULUM_ROUTE = '/labs/quantum-speed-reading/thirty-day-curriculum'
 
@@ -41,32 +42,54 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
       <div className="pointer-events-none absolute -bottom-28 -left-14 size-64 rounded-full bg-indigo-500/10 blur-3xl" aria-hidden="true" />
 
       <div className="relative flex flex-col gap-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-5">
           <div className="flex items-start gap-4">
             <div className="brand-gradient flex size-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg">
               <GraduationCap className="size-6" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-widest text-primary uppercase">Tier 3 · Flagship Mastery Program</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold tracking-widest text-primary uppercase">Tier 3 · Flagship Mastery Program</p>
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"
+                  data-urgency-badge="true"
+                >
+                  🟢 Batch 01 Filling Fast
+                </span>
+              </div>
               <h2 className="mt-1 font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                30-Day Quantum Speed Reading Mastery + Live Cohort
+                ⚡ 30-Day Quantum Speed Reading Mastery™ + Live Mentorship
               </h2>
               <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-                A structured 30-day roadmap paired with live mentorship from Dr. Kapil Dev Sharma — real-time coaching, not a recording.
+                Unlock superhuman reading speed (1000+ WPM), photographic memory, and direct live coaching with Dr. Kapil Dev Sharma.
               </p>
             </div>
           </div>
-          <Button
-            asChild
-            size="lg"
-            className="brand-gradient shrink-0 rounded-full text-white shadow-lg hover:opacity-90"
-            data-enroll-button="true"
-          >
-            <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
-              <Sparkles className="size-4" aria-hidden="true" />
-              Enroll Now for ₹4,999 →
-            </a>
-          </Button>
+
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+            <Button
+              asChild
+              size="lg"
+              className="brand-gradient w-full rounded-full text-white shadow-lg hover:opacity-90 sm:w-auto"
+              data-enroll-button="true"
+            >
+              <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
+                <Sparkles className="size-4" aria-hidden="true" />
+                Enroll Now for ₹4,999 →
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              className="w-full rounded-full bg-[#25D366] text-white shadow-lg hover:bg-[#1EBE5B] sm:w-auto"
+              data-whatsapp-button="true"
+            >
+              <a href={WHATSAPP_MASTERCLASS_INQUIRY_LINK} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="size-4" aria-hidden="true" />
+                💬 Chat with Dr. Kapil on WhatsApp
+              </a>
+            </Button>
+          </div>
         </div>
 
         <ul className="grid grid-cols-1 gap-2 text-sm text-foreground sm:grid-cols-3">
