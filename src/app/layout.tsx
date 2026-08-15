@@ -51,8 +51,13 @@ export const metadata: Metadata = {
 
 // themeColor lives on the separate `viewport` export, not `metadata` —
 // Next.js deprecated (and warns/build-errors on) putting it there.
+// viewportFit: 'cover' — Immersive Exercise Mode™'s prerequisite: without
+// it, iOS Safari's env(safe-area-inset-*) always resolves to 0, silently
+// making every safe-area padding rule in ReadingLayout.tsx/
+// ExercisePracticeLayout.tsx/ThetaBreathingAnchor.tsx a no-op.
 export const viewport: Viewport = {
   themeColor: '#2B4CE8',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

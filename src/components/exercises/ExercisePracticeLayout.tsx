@@ -38,13 +38,18 @@ export function ExercisePracticeLayout({
   }, [])
 
   return (
-    <div className="flex min-h-[100dvh] flex-col px-6 py-6 sm:px-10 sm:py-8">
+    // Immersive Exercise Mode™ — max() keeps the original 1.5rem/2rem
+    // padding on non-notched devices; on a device with a notch/dynamic
+    // island, env(safe-area-inset-*) grows the padding instead of the
+    // header sitting underneath it. Requires viewportFit: 'cover' in
+    // app/layout.tsx — without it these env() calls always resolve to 0.
+    <div className="flex min-h-[100dvh] flex-col px-[max(1.5rem,env(safe-area-inset-left))] py-[max(1.5rem,env(safe-area-inset-top))] sm:px-[max(2.5rem,env(safe-area-inset-left))] sm:py-[max(2rem,env(safe-area-inset-top))]">
       <div className="flex w-full items-center gap-4">
         <button
           type="button"
           onClick={onExit}
           aria-label="End practice early"
-          className="shrink-0 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="shrink-0 rounded-full p-2 text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <X className="size-5" aria-hidden="true" />
         </button>
@@ -53,7 +58,7 @@ export function ExercisePracticeLayout({
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center">{children}</div>
+      <div className="flex flex-1 items-center justify-center pb-[env(safe-area-inset-bottom)]">{children}</div>
     </div>
   )
 }

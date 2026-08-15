@@ -327,8 +327,28 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   const isInhale = breathPhase === 'inhale'
 
   return (
-    <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
-      <BrandWatermark className="absolute top-4 left-6" />
+    // Immersive Exercise Mode™ — min-h-[100dvh] (not 70vh) for a genuine
+    // full-screen feel; max()'d safe-area padding on the watermark so it
+    // clears a notch/dynamic island without shrinking below its original
+    // spacing on non-notched devices (requires viewportFit: 'cover' in
+    // app/layout.tsx).
+    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
+      <BrandWatermark className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))]" />
+      {/* Immersive Exercise Mode™ — persistent, always-visible Exit
+          (not just during the intro phase) so a student mid-breathing-
+          cycle never feels trapped; "Finish Early" below is a different
+          action (advances the Visual Activation Suite via onComplete),
+          this one calls onExit directly regardless of phase. */}
+      {phase !== 'complete' && (
+        <button
+          type="button"
+          onClick={onExit}
+          aria-label="Exit exercise"
+          className="absolute right-6 top-[max(1rem,env(safe-area-inset-top))] rounded-md px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground"
+        >
+          Exit
+        </button>
+      )}
       {/* Rich, layered ambient wash — deep indigo bleeding into electric
           violet and a luminous cyan core, static (only the orb itself
           carries motion) but saturated enough to read as premium in both
@@ -365,13 +385,10 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
           <button
             type="button"
             onClick={handleStart}
-            className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/30"
+            className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-[box-shadow,transform] duration-300 active:scale-95 hover:shadow-xl hover:shadow-primary/30"
           >
             Begin
             <ArrowRight className="size-4" aria-hidden="true" />
-          </button>
-          <button type="button" onClick={onExit} className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
-            Exit
           </button>
         </motion.div>
       )}
@@ -418,7 +435,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
           <button
             type="button"
             onClick={handleSkip}
-            className="flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-4 py-2 text-xs font-medium text-muted-foreground transition-colors duration-200 hover:border-primary/40 hover:text-foreground"
+            className="flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-4 py-2 text-xs font-medium text-muted-foreground transition-[color,border-color,transform] duration-200 active:scale-95 hover:border-primary/40 hover:text-foreground"
           >
             Finish Early
             <SkipForward className="size-3.5" aria-hidden="true" />
@@ -441,7 +458,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
           <button
             type="button"
             onClick={onComplete}
-            className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/30"
+            className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-[box-shadow,transform] duration-300 active:scale-95 hover:shadow-xl hover:shadow-primary/30"
           >
             Continue
             <ArrowRight className="size-4" aria-hidden="true" />
