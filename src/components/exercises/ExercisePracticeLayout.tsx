@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { useImmersiveExerciseLock } from '@/hooks/exercises/useImmersiveExerciseLock'
 import { ExerciseProgressBar } from './ExerciseProgressBar'
 
 type ExercisePracticeLayoutProps = {
@@ -32,6 +33,9 @@ export function ExercisePracticeLayout({
   children,
 }: ExercisePracticeLayoutProps): React.JSX.Element {
   const isEmbedded = useIsEmbeddedExercise()
+  // Embedded: DayMasterPlayer.tsx locks the body itself once per wizard
+  // session — a second lock here (remounting per step) would fight it.
+  useImmersiveExerciseLock(!isEmbedded)
 
   // `onExit` is typically recreated every render by a canvas re-rendering on
   // every animation frame — keep the listener mount-once via a ref instead of

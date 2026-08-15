@@ -12,6 +12,7 @@ import { isCurriculumExerciseGated } from '../curriculumGatedExercises'
 import { getEmbeddableComponent } from '../curriculumExerciseComponentRegistry'
 import { markCurriculumDayComplete } from '../curriculumProgress'
 import { EmbeddedExerciseProvider } from '../embeddedExerciseContext'
+import { useImmersiveExerciseLock } from '@/hooks/exercises/useImmersiveExerciseLock'
 
 const CARD_CLASS_NAME = 'relative overflow-hidden rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 shadow-sm backdrop-blur-md dark:bg-[#16171A]/95'
 
@@ -60,6 +61,15 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
 
   const [stepIndex, setStepIndex] = useState<number | null>(null)
   const [mode, setMode] = useState<WizardMode>('playing')
+
+  // True Full-Screen Viewport Lock™ — only while 'playing' (the fixed
+  // inset-0 mode below); 'celebrating'/'ready-for-checkpoint' render as
+  // normal in-flow cards, not full-screen, so locking body there would
+  // be inconsistent with what's actually on screen. Each embedded
+  // exercise's own ReadingLayout/ExercisePracticeLayout defers its own
+  // lock to this one (see their `useImmersiveExerciseLock(!isEmbedded)`
+  // calls) rather than re-locking on every step's mount.
+  useImmersiveExerciseLock(mode === 'playing')
 
   // Resolve the starting step exactly once per day: resume where a real
   // navigation to a gated exercise left off, else start fresh at step 0.

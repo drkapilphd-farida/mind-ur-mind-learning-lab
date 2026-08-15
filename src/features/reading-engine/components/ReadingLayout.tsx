@@ -2,6 +2,7 @@
 
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { useImmersiveExerciseLock } from '@/hooks/exercises/useImmersiveExerciseLock'
 
 type ReadingLayoutProps = {
   maxWidthClassName?: string
@@ -38,6 +39,9 @@ const SAFE_TOP = 'top-[max(1rem,env(safe-area-inset-top))]'
 // fills its parent instead of the viewport, and renders only children.
 export function ReadingLayout({ maxWidthClassName = 'max-w-md', onExit, children }: ReadingLayoutProps): React.JSX.Element {
   const isEmbedded = useIsEmbeddedExercise()
+  // Embedded: DayMasterPlayer.tsx locks the body itself once per wizard
+  // session — a second lock here (remounting per step) would fight it.
+  useImmersiveExerciseLock(!isEmbedded)
 
   if (isEmbedded) {
     return (

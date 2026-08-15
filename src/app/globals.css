@@ -418,12 +418,46 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    /* True Full-Screen Viewport Lock™ — global, always-on: stops the
+       mobile browser's own pull-to-refresh and rubber-band bounce
+       gesture chaining site-wide, not just during exercises (an
+       app-like PWA shouldn't rubber-band on an ordinary dashboard
+       scroll either). -webkit-overflow-scrolling: touch is the legacy
+       iOS Safari momentum-scroll hint — a no-op on modern iOS, kept for
+       older WebKit. Exercise-specific body locking is a separate,
+       additive rule — see .exercise-active below. */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
   }
+}
+
+/* True Full-Screen Viewport Lock™ — applied to <body> only while an
+ * exercise is actively mounted (see useImmersiveExerciseLock.ts),
+ * additive defense-in-depth on top of the fixed inset-0 overlay every
+ * exercise layout (ReadingLayout.tsx/ExercisePracticeLayout.tsx/
+ * DayMasterPlayer.tsx) already renders. Some mobile browsers resolve
+ * pull-to-refresh/rubber-band gestures above the DOM's own event
+ * handling, so even a fixed full-screen overlay on top doesn't always
+ * suppress them — locking the real scroll root (body) closes that gap.
+ * `top` is set inline by the hook (not here) to the negative of the
+ * page's scroll position at lock time, so a position:fixed body doesn't
+ * visually snap to the top — and restoring scroll position on unlock is
+ * what actually undoes that offset.
+ */
+.exercise-active {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100dvh;
 }
 
 @keyframes exercise-reduced-motion-pulse {
