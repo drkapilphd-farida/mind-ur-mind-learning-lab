@@ -1,14 +1,12 @@
-// Live Razorpay Subscription Links™ — the single source of truth for
-// every "Subscribe"/"Upgrade" CTA in the app. Deliberately centralized
-// here rather than scattered as string literals across the pricing page
-// and every in-app upsell — auditing "does every button point at the
-// right plan" means checking one file, not grepping the whole repo.
-//
-// These are Razorpay's hosted Payment/Subscription Links
-// (api.razorpay.com/v1/l/subscriptions/<id>) — real, live, plain URLs
-// that need no client-side SDK, API key, or server round trip to use; a
-// plain <a target="_blank"> is the correct, complete integration for
-// this link format.
+import { FAMILY_PRO_MONTHLY_699, FAMILY_PRO_YEARLY, STARTER_MONTHLY_399, STARTER_YEARLY } from '@/config/pricingLinks'
+
+// Live Razorpay Subscription Links™ — grouped by plan/period for the
+// pricing grid's billing-period toggle. The underlying URLs live in
+// src/config/pricingLinks.ts (this app's single source of truth for
+// every real Razorpay checkout link); this file just re-shapes them into
+// the { plan: { monthly, yearly } } lookup PricingPlansGrid.tsx wants —
+// auditing "does every button point at the right plan" still only means
+// checking one file for the actual literal URLs.
 //
 // Scope, disclosed: these links only take a payer to Razorpay's hosted
 // checkout and back. Nothing in this app yet listens for the resulting
@@ -21,12 +19,12 @@
 // included here.
 export const RAZORPAY_SUBSCRIPTION_LINKS = {
   starter: {
-    monthly: 'https://api.razorpay.com/v1/l/subscriptions/sub_TLgFpFD4K5xNPU',
-    yearly: 'https://api.razorpay.com/v1/l/subscriptions/sub_TLgF04HiTKMPsP',
+    monthly: STARTER_MONTHLY_399,
+    yearly: STARTER_YEARLY,
   },
   family: {
-    monthly: 'https://api.razorpay.com/v1/l/subscriptions/sub_TLgGZWko1Bpq5v',
-    yearly: 'https://api.razorpay.com/v1/l/subscriptions/sub_TLgH5ZTb2slwOc',
+    monthly: FAMILY_PRO_MONTHLY_699,
+    yearly: FAMILY_PRO_YEARLY,
   },
   // Institutional/School (50+ students) — a single Yearly/Custom link,
   // not split by billing period like the two plans above.

@@ -9,13 +9,14 @@ import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transforme
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
 import { RAZORPAY_SUBSCRIPTION_LINKS, type BillingPeriod } from '../razorpaySubscriptionLinks'
 
-// Real prices haven't been supplied yet — this is a single, clearly-
-// marked placeholder (not a guessed number) so nothing on a page with
-// real payment buttons implies a price that isn't confirmed. Replace
-// with the real ₹ amount per plan/period once available; Razorpay's own
-// checkout page always shows the real, authoritative price regardless of
-// what this label says.
-const PRICE_PENDING = 'See price at checkout'
+// Real Monthly prices — Yearly pricing hasn't been supplied yet, so that
+// case still falls back to a clearly-marked placeholder (not a guessed
+// number) rather than implying a yearly price that isn't confirmed.
+// Razorpay's own checkout page always shows the real, authoritative
+// price regardless of what this label says.
+function priceLabelFor(monthlyPrice: string, billingPeriod: BillingPeriod): string {
+  return billingPeriod === 'monthly' ? `${monthlyPrice}/month` : 'Billed yearly — see price at checkout'
+}
 
 type PlanCardProps = {
   id?: string
@@ -134,7 +135,7 @@ export function PricingPlansGrid(): React.JSX.Element {
           name="Starter"
           subtitle="Individual"
           description="For one student who wants to transform without limits."
-          priceLabel={PRICE_PENDING}
+          priceLabel={priceLabelFor('₹399', billingPeriod)}
           features={[
             'Unlimited AI document transformations',
             'Unlimited Spider Notes & AI summaries',
@@ -155,7 +156,7 @@ export function PricingPlansGrid(): React.JSX.Element {
           name="Family"
           subtitle="Pro"
           description="For families with more than one student learning together."
-          priceLabel={PRICE_PENDING}
+          priceLabel={priceLabelFor('₹699', billingPeriod)}
           features={[
             'Everything in Starter, for every child on the plan',
             'Individual progress & Mind Score per child',

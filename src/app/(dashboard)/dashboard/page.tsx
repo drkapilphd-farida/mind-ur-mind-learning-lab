@@ -20,6 +20,7 @@ import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
 import { DashboardSectionHeader } from '@/components/dashboard/DashboardSectionHeader'
 import { ThirtyDayMasterclassHeroCard } from '@/components/dashboard/ThirtyDayMasterclassHeroCard'
+import { FAMILY_PRO_MONTHLY_699, STARTER_MONTHLY_399 } from '@/config/pricingLinks'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { getQuantumDocumentHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
 import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
@@ -161,8 +162,24 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           description="Drop any PDF, textbook, or research paper. Our AI instantly converts it into Quantum Speed Reading drills, Mind Maps, and Spider Notes."
         >
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground">Standard · ₹399</span>
-            <span className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground">Pro · ₹699</span>
+            <a
+              href={STARTER_MONTHLY_399}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              data-starter-pricing-link="true"
+            >
+              Standard · ₹399
+            </a>
+            <a
+              href={FAMILY_PRO_MONTHLY_699}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              data-family-pro-pricing-link="true"
+            >
+              Pro · ₹699
+            </a>
             <Link href="/pricing" className="font-medium text-primary hover:underline">
               View plans →
             </Link>
