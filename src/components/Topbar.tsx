@@ -16,11 +16,22 @@ import { UserMenu } from '@/components/UserMenu'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { InstallButton } from '@/components/InstallButton'
+import { interpolateHexColor } from '@/lib/color/interpolateHex'
+
+const BRAND_A = '#2b4ce8'
+const BRAND_B = '#0fd9a0'
+const WARNING_RED = '#ef4444'
 
 type TopbarProps = {
   fullName: string | null
   avatarUrl: string | null
   email: string
+  // Brand Logo Warmth™ — real, 0–1, computed once in (dashboard)/layout.tsx
+  // via computeStreakWarmthIntensity — see AppSidebar.tsx's identical
+  // prop. Mobile users only ever see this header (AppSidebar is
+  // `hidden md:flex`), so without this the streak-urgency tint never
+  // shows on mobile regardless of actual streak state.
+  warmthIntensity: number
   // School Dashboard white-labeling — see AppSidebar.tsx's identical props.
   brandName?: string | null
   brandLogoUrl?: string | null
@@ -30,10 +41,13 @@ export function Topbar({
   fullName,
   avatarUrl,
   email,
+  warmthIntensity,
   brandName = null,
   brandLogoUrl = null,
 }: TopbarProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
+  const glowA = interpolateHexColor(BRAND_A, WARNING_RED, warmthIntensity)
+  const glowB = interpolateHexColor(BRAND_B, WARNING_RED, warmthIntensity)
 
   return (
     <header className="bg-background flex h-14 shrink-0 items-center gap-4 border-b px-4 lg:px-6">
@@ -69,17 +83,27 @@ export function Topbar({
       {/* Branding Header™ — always visible on mobile (desktop already has
           the persistent AppSidebar wordmark, so this stays md:hidden to
           avoid showing the logo twice). Same brand-logo-wrap/brand-
-          gradient-text technique as AppSidebar.tsx and the Document
-          Detail page header — the CSS's own fallback values mean the
-          breathing glow renders correctly here too, with no missedDays
-          prop needed. Sized at 36px (w-9) — real Android device testing
-          found the previous 22px mark read as barely-there next to the
-          hamburger icon and the header's other 36-40px touch targets. */}
+          gradient-text/Brand Logo Warmth™ technique as AppSidebar.tsx,
+          driven by the same real warmthIntensity prop — mobile users only
+          ever see this header, so this is the surface where the
+          streak-urgency tint actually matters most. Sized at 36px (w-9) —
+          real Android device testing found the previous 22px mark read as
+          barely-there next to the hamburger icon and the header's other
+          36-40px touch targets. */}
       <Link href="/dashboard" className="flex shrink-0 items-center gap-2 md:hidden">
         {brandLogoUrl !== null ? (
           <Image src={brandLogoUrl} alt="" width={36} height={36} className="size-9 shrink-0 rounded object-contain" unoptimized />
         ) : (
-          <span className="brand-logo-wrap shrink-0">
+          <span
+            className="brand-logo-wrap shrink-0"
+            style={
+              {
+                '--missed-intensity': warmthIntensity * 0.8,
+                '--logo-glow-a': `${glowA}aa`,
+                '--logo-glow-b': `${glowB}88`,
+              } as React.CSSProperties
+            }
+          >
             <LivingBrainLogo size={36} className="size-9" decorative={false} animated={false} />
             <span className="brand-logo-warmth" aria-hidden="true" />
           </span>

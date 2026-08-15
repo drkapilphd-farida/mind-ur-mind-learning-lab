@@ -41,6 +41,11 @@ function supabaseOrigin(): string | null {
 // Stories playlist via youtube-nocookie.com's videoseries iframe — the
 // privacy-enhanced embed domain YouTube itself documents for sites that
 // don't want the embed to set cookies before playback starts.
+//
+// worker-src: needed for the Static Shell Cache service worker
+// (public/sw.js, registered by ServiceWorkerRegistration.tsx) — some
+// browsers don't fall back to default-src for worker registration, so
+// this needs to be explicit rather than assumed.
 function buildContentSecurityPolicy(): string {
   const isDev = process.env.NODE_ENV !== 'production'
   const supabase = supabaseOrigin()
@@ -55,6 +60,7 @@ function buildContentSecurityPolicy(): string {
     'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", ...(supabase ? [supabase, supabase.replace('https://', 'wss://')] : []), 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
     'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com', 'https://www.youtube-nocookie.com'],
+    'worker-src': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],

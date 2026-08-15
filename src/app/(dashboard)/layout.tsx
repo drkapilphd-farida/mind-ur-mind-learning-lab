@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
-import { computeDailyStreak, computeMissedDaysSinceLastPractice } from '@/lib/exercises/practiceHistory'
+import { computeDailyStreak, computeStreakWarmthIntensity, computeTodaysProgress } from '@/lib/exercises/practiceHistory'
 import { getTenantBrandingForUser } from '@/features/school-dashboard/queries/getTenantBrandingForUser'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Topbar } from '@/components/Topbar'
@@ -35,19 +35,23 @@ export default async function DashboardLayout({
     getTenantBrandingForUser(user.id),
   ])
 
-  // Brand Logo Warmth™ — the persistent sidebar logo's streak-based tint
-  // (see AppSidebar.tsx) needs a real missed-days figure on every
-  // dashboard-group page, not just /dashboard — same streak data that
-  // page already computes for itself, fetched here once for the shared
-  // chrome instead of duplicating the query per-page.
+  // Brand Logo Warmth™ — the header logo's streak-based tint needs a real
+  // intensity figure on every dashboard-group page, not just /dashboard —
+  // same streak data that page already computes for itself, fetched here
+  // once for the shared chrome instead of duplicating the query per-page.
+  // Computed once and passed to BOTH AppSidebar (desktop) and Topbar
+  // (mobile) — Topbar used to render with no missedDays prop at all, so
+  // the warmth effect was inert for every mobile user regardless of
+  // actual streak state.
   const labStreak = computeDailyStreak(labSessions)
-  const missedDays = computeMissedDaysSinceLastPractice(labStreak)
+  const todaysProgress = computeTodaysProgress(labSessions)
+  const warmthIntensity = computeStreakWarmthIntensity(labStreak, todaysProgress)
 
   return (
     <div className={`bg-muted/30 flex h-screen overflow-hidden ${plusJakartaSans.variable} ${inter.variable}`}>
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
-        <AppSidebar missedDays={missedDays} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} />
+        <AppSidebar warmthIntensity={warmthIntensity} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} />
       </div>
 
       {/* Main column */}
@@ -56,6 +60,7 @@ export default async function DashboardLayout({
           fullName={profile?.fullName ?? null}
           avatarUrl={profile?.avatarUrl ?? null}
           email={user.email ?? ''}
+          warmthIntensity={warmthIntensity}
           brandName={tenantBranding?.name ?? null}
           brandLogoUrl={tenantBranding?.logoUrl ?? null}
         />

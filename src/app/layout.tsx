@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { Toaster } from '@/components/ui/sonner'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import './globals.css'
 
 const geistSans = Geist({
@@ -62,6 +63,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Providers>{children}</Providers>
         <Toaster />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )

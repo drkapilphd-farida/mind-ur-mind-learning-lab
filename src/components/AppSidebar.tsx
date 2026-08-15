@@ -8,15 +8,13 @@ const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
 const WARNING_RED = '#ef4444'
 
-// Brand Logo Warmth™ — missedDays reaches full warning intensity by 5
-// consecutive missed days; a cap, not a hard wall, so the effect reads as
-// "increasingly urgent" rather than snapping straight to alarming after a
-// single missed day. --missed-intensity caps at 0.8 (see globals.css) so
-// the brand mark is never fully replaced by red.
-const MAX_WARNING_MISSED_DAYS = 5
-
 type AppSidebarProps = {
-  missedDays: number
+  // Brand Logo Warmth™ — real, 0–1, computed once in (dashboard)/layout.tsx
+  // via computeStreakWarmthIntensity so this and Topbar.tsx can never
+  // silently disagree on what counts as "urgent." --missed-intensity caps
+  // at 0.8 (see globals.css) so the brand mark is never fully replaced by
+  // red.
+  warmthIntensity: number
   // School Dashboard white-labeling — set only for a student who belongs
   // to a school/franchise partner that has uploaded a logo; falls back
   // to the default Quantum Mind mark otherwise (the vast majority of
@@ -25,10 +23,9 @@ type AppSidebarProps = {
   brandLogoUrl?: string | null
 }
 
-export function AppSidebar({ missedDays, brandName = null, brandLogoUrl = null }: AppSidebarProps): React.JSX.Element {
-  const intensity = Math.min(missedDays / MAX_WARNING_MISSED_DAYS, 1)
-  const glowA = interpolateHexColor(BRAND_A, WARNING_RED, intensity)
-  const glowB = interpolateHexColor(BRAND_B, WARNING_RED, intensity)
+export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = null }: AppSidebarProps): React.JSX.Element {
+  const glowA = interpolateHexColor(BRAND_A, WARNING_RED, warmthIntensity)
+  const glowB = interpolateHexColor(BRAND_B, WARNING_RED, warmthIntensity)
 
   return (
     <aside className="flex h-full w-60 flex-col border-r bg-card/80">
@@ -44,7 +41,7 @@ export function AppSidebar({ missedDays, brandName = null, brandLogoUrl = null }
               className="brand-logo-wrap"
               style={
                 {
-                  '--missed-intensity': intensity * 0.8,
+                  '--missed-intensity': warmthIntensity * 0.8,
                   '--logo-glow-a': `${glowA}aa`,
                   '--logo-glow-b': `${glowB}88`,
                 } as React.CSSProperties
