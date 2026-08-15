@@ -22,7 +22,12 @@ import { RuntimeResultScreen, type RuntimeResultExtraStat, type RuntimeResultLab
 import { SpeedControl } from './SpeedControl'
 import { MicroVictoryMoment } from '@/components/exercises/MicroVictoryMoment'
 import { useMicroVictoryReveal } from '@/hooks/exercises/useMicroVictoryReveal'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import {
+  getCurriculumSmartCompleteHref,
+  getCurriculumSmartExitHref,
+  getWizardAwareBackHref,
+  isCurriculumSessionCurrentExercise,
+} from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import type { ExerciseDefinition, SessionItem, ItemResponse, SpeedMs } from '@/types/exercise-engine'
 
 type ItemPhase = 'flash' | 'response' | 'feedback' | 'gap'
@@ -320,7 +325,7 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
         exerciseName={definition.title}
         trainsAbility={definition.trainsAbility}
         result={completedResult}
-        labHref={definition.labHref}
+        labHref={getWizardAwareBackHref(definition.id, definition.labHref)}
         onPracticeAgain={handlePracticeAgain}
         {...(computeExtraStats !== undefined ? { extraStats: computeExtraStats(completedResult) } : {})}
         {...(computeCoachMessage !== undefined ? { coachMessage: computeCoachMessage(completedResult) } : {})}
@@ -377,7 +382,7 @@ export function UniversalExercisePlayer<TConfig = Record<string, unknown>>({
 
       {/* Exit */}
       <button
-        onClick={() => { clearTimer(); router.push(definition.labHref) }}
+        onClick={() => { clearTimer(); router.push(getCurriculumSmartExitHref(definition.id, definition.labHref)) }}
         className="absolute top-4 right-6 text-xs text-muted-foreground transition-colors hover:text-foreground"
         aria-label={copy?.exit ?? 'Exit exercise'}
       >

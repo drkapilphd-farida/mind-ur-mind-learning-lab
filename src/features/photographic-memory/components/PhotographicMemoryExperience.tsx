@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
@@ -97,6 +97,7 @@ export function PhotographicMemoryExperience({ onComplete }: PhotographicMemoryE
     return (
       <>
         <PhotographicMemoryCompleteScreen
+          backHref={getWizardAwareBackHref('photographic-memory', LAB_HREF)}
           elapsedMs={completedResult.elapsedMs}
           correctCount={completedResult.correctCount}
           totalScore={completedResult.totalScore}

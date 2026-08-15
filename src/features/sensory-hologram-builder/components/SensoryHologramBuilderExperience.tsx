@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
@@ -135,6 +135,7 @@ export function SensoryHologramBuilderExperience({ onComplete }: SensoryHologram
     return (
       <>
         <SensoryHologramBuilderCompleteScreen
+          backHref={getWizardAwareBackHref('sensory-hologram-builder', LAB_HREF)}
           goalTitle={language === 'hi' ? activeGoal.titleHi : activeGoal.titleEn}
           elapsedMs={completedResult.elapsedMs}
           immersionScorePercent={completedResult.immersionScorePercent}

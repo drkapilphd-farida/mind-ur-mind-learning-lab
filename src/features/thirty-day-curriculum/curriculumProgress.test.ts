@@ -83,6 +83,28 @@ describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
     expect(getHighestUnlockedDay({ completedDays: [1, 3], checkpoints: {} })).toBe(2)
     expect(getHighestUnlockedDay({ completedDays: [], checkpoints: {} })).toBe(1)
   })
+
+  describe('dev/test unlock override (NEXT_PUBLIC_DEV_UNLOCK)', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    it('unlocks every day, regardless of completion, when the platform-wide dev/test bypass is on', () => {
+      vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'true')
+      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {} }
+      expect(isCurriculumDayUnlocked(1, emptyProgress)).toBe(true)
+      expect(isCurriculumDayUnlocked(15, emptyProgress)).toBe(true)
+      expect(isCurriculumDayUnlocked(30, emptyProgress)).toBe(true)
+      expect(getHighestUnlockedDay(emptyProgress)).toBe(30)
+    })
+
+    it('leaves the real sequential gate untouched when the bypass is off', () => {
+      vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'false')
+      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {} }
+      expect(isCurriculumDayUnlocked(15, emptyProgress)).toBe(false)
+      expect(getHighestUnlockedDay(emptyProgress)).toBe(1)
+    })
+  })
 })
 
 describe('recordCurriculumCheckpoint', () => {

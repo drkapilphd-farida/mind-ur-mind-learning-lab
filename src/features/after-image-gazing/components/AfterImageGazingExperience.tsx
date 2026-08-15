@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { loadBestAfterImageGazingStats, recordBestAfterImageGazingStats } from '../afterImageGazingLocalHistory'
 import { ROUNDS_PER_SESSION, type GazeCategorySelection } from '../afterImageGazingDataset'
@@ -88,6 +88,7 @@ export function AfterImageGazingExperience(): React.JSX.Element {
   if (phase === 'complete' && completedResult !== null) {
     return (
       <AfterImageGazingCompleteScreen
+          backHref={getWizardAwareBackHref('after-image-gazing', LAB_HREF)}
         elapsedMs={completedResult.elapsedMs}
         clearCount={completedResult.clearCount}
         totalScore={completedResult.totalScore}

@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { DYNAMIC_CHUNK_SLIDING_UNITS } from '../dynamicChunkSlidingDataset'
@@ -107,6 +107,7 @@ export function DynamicChunkSlidingExperience({ onComplete }: DynamicChunkSlidin
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('dynamic-chunk-sliding', LAB_HREF)}
         subtitle="Nice, fluid chunk reading."
         result={completedResult}
         bestWpm={bestWpm}

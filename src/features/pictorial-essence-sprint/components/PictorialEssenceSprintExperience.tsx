@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { loadBestEssenceSprintStats, recordBestEssenceSprintStats } from '../pictorialEssenceSprintLocalHistory'
 import { ROUNDS_PER_SESSION } from '../pictorialEssenceSprintDataset'
@@ -118,6 +118,7 @@ export function PictorialEssenceSprintExperience(): React.JSX.Element {
   if (phase === 'complete' && completedResult !== null) {
     return (
       <PictorialEssenceSprintCompleteScreen
+          backHref={getWizardAwareBackHref('pictorial-essence-sprint', LAB_HREF)}
         variant={completedResult.variant}
         elapsedMs={completedResult.elapsedMs}
         correctCount={completedResult.correctCount}

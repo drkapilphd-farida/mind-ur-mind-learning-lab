@@ -57,7 +57,12 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent PCR/Phrase already established for this exact function.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import {
+  getCurriculumSmartCompleteHref,
+  getCurriculumSmartExitHref,
+  getWizardAwareBackHref,
+  isCurriculumSessionCurrentExercise,
+} from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { computeReadingReadiness } from '../../flash-intelligence/wordFlashInsights'
 
 const EXERCISE_ID = 'multi-line-reading'
@@ -703,7 +708,7 @@ function MultiLineReadingSession({
           exerciseName={MULTI_LINE_READING_DEFINITION.title}
           trainsAbility={MULTI_LINE_READING_DEFINITION.trainsAbility}
           result={result}
-          labHref={LAB_HREF}
+          labHref={getWizardAwareBackHref('multi-line-reading', LAB_HREF)}
           onPracticeAgain={handlePracticeAgain}
           extraStats={extraStats}
           coachMessage={coachMessage}

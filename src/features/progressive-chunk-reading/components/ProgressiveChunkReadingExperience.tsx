@@ -123,7 +123,7 @@ import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
 // and fixed in Mixed Flash.
 import '../../chunk-reading/chunkDataset'
 import '../../phrase-reading/phraseDataset'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 
 const EXERCISE_ID = 'progressive-chunk-reading'
@@ -880,7 +880,7 @@ function ProgressiveChunkReadingSession({
           exerciseName={resolvedDefinition.title}
           trainsAbility={resolvedDefinition.trainsAbility}
           result={result}
-          labHref={resolvedExitHref}
+          labHref={getWizardAwareBackHref('progressive-chunk-reading', resolvedExitHref)}
           onPracticeAgain={handlePracticeAgain}
           extraStats={extraStats}
           coachMessage={coachMessage}

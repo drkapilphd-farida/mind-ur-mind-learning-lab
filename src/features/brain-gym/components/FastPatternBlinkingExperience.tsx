@@ -6,12 +6,14 @@ import { FAST_PATTERN_BLINKING_CONFIG } from '../configs/fastPatternBlinkingConf
 
 type FastPatternBlinkingExperienceProps = {
   onComplete?: () => void
+  onExit?: () => void
 }
 
-export function FastPatternBlinkingExperience({ onComplete }: FastPatternBlinkingExperienceProps = {}): React.JSX.Element {
+export function FastPatternBlinkingExperience({ onComplete, onExit }: FastPatternBlinkingExperienceProps = {}): React.JSX.Element {
   const curriculumSession = useCurriculumSessionCompletion('fast-pattern-blinking', '/labs/quantum-speed-reading')
   return <BrainGymDrillExperience
       config={FAST_PATTERN_BLINKING_CONFIG}
       {...(curriculumSession.isActiveStep ? { onComplete: curriculumSession.advance } : onComplete !== undefined ? { onComplete } : {})}
+      {...(onExit !== undefined ? { onExit } : {})}
     />
 }

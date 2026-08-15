@@ -6,12 +6,14 @@ import { CROSS_LATERAL_TAP_CONFIG } from '../configs/crossLateralTapConfig'
 
 type CrossLateralTapExperienceProps = {
   onComplete?: () => void
+  onExit?: () => void
 }
 
-export function CrossLateralTapExperience({ onComplete }: CrossLateralTapExperienceProps = {}): React.JSX.Element {
+export function CrossLateralTapExperience({ onComplete, onExit }: CrossLateralTapExperienceProps = {}): React.JSX.Element {
   const curriculumSession = useCurriculumSessionCompletion('cross-lateral-tap', '/labs/quantum-speed-reading')
   return <BrainGymDrillExperience
       config={CROSS_LATERAL_TAP_CONFIG}
       {...(curriculumSession.isActiveStep ? { onComplete: curriculumSession.advance } : onComplete !== undefined ? { onComplete } : {})}
+      {...(onExit !== undefined ? { onExit } : {})}
     />
 }

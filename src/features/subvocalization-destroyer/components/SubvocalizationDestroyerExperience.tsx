@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildWordsForCategory, pickSessionCategory, type FlashRecallSprintCategory } from '../subvocalizationDestroyerDataset'
@@ -157,6 +157,7 @@ export function SubvocalizationDestroyerExperience({ onComplete }: Subvocalizati
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('subvocalization-destroyer', LAB_HREF)}
         subtitle={quizScore !== null ? `Ultra-high-speed stream complete — retention: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Ultra-high-speed stream complete.'}
         result={completedResult}
         bestWpm={bestWpm}

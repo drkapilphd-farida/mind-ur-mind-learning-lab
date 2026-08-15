@@ -71,6 +71,31 @@ export function isCurriculumSessionCurrentExercise(exerciseId: string): boolean 
   return isThisExerciseTheActiveSessionStep(exerciseId)
 }
 
+// Pure, side-effect-free (unlike getCurriculumSmartExitHref/CompleteHref,
+// which both mutate) — this is specifically for the OTHER, previously
+// unfixed source of "dumped to the lab root": nearly every shared
+// completion screen in this app (ReadingSessionCompleteScreen,
+// RuntimeResultScreen, the per-exercise `*CompleteScreen` family,
+// ExerciseCompletionScreen) renders an unconditional, always-visible
+// "Back to Lab" link from a static `backHref`/`labHref` prop, entirely
+// separate from the onComplete/onNext seam used for auto-advance. That
+// static link was never wired to curriculum context at all, so clicking
+// it — a completely reasonable thing for a learner to do once they see
+// their result — bypassed the wizard/gated hand-off return path and went
+// straight to the real lab root regardless of how the exercise was
+// reached. Safe to bind directly to any passive href prop, in both the
+// in-page wizard (`activeWizardDay`) and the real-navigation hand-off to
+// a gated exercise (the persisted session) cases — falls back to
+// `fallbackHref` unchanged outside both.
+export function getWizardAwareBackHref(exerciseId: string, fallbackHref: string): string {
+  if (activeWizardDay !== null) return buildDayReturnUrl(activeWizardDay, false)
+  const session = loadActiveCurriculumSession()
+  if (session !== null && session.exerciseIds[session.currentIndex] === exerciseId) {
+    return buildDayReturnUrl(session.day, false)
+  }
+  return fallbackHref
+}
+
 // Early abandon — ends the playlist (no credit, no advance) and returns
 // to the day view. Falls back to `fallbackHref` unchanged outside an
 // active matching session.

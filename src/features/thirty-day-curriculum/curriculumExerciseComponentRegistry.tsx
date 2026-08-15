@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import type { ComponentType } from 'react'
 
-export type EmbeddableExerciseProps = { onComplete: () => void }
+export type EmbeddableExerciseProps = { onComplete: () => void; onExit?: () => void }
 
 // Every registry entry is lazy-loaded (next/dynamic, ssr: false) — the
 // wizard only ever mounts ONE of these 41 heavy exercise engines at a
@@ -15,7 +15,12 @@ export type EmbeddableExerciseProps = { onComplete: () => void }
 // wherever more parameters are declared (verified throughout this
 // feature's own components), so this is a real, safe compatibility, not
 // a loophole; the cast just lets the registry hold one uniform type
-// instead of 41 bespoke ones.
+// instead of 41 bespoke ones. `onExit` is genuinely optional at this
+// level: most of the 41 don't declare it at all (their own internal exit
+// path already returns to the day view via curriculumReturnRouting.ts's
+// wizard-day flag — see DayMasterPlayer.tsx), so an unused extra prop is
+// simply ignored by React; only the 10 Visual Activation Suite drills
+// below actually require it.
 function lazy(importFn: () => Promise<{ default: ComponentType<never> }>): ComponentType<EmbeddableExerciseProps> {
   return dynamic(importFn, { ssr: false }) as unknown as ComponentType<EmbeddableExerciseProps>
 }
@@ -24,26 +29,35 @@ function lazyNamed<T extends ComponentType<never>>(importFn: () => Promise<Recor
   return lazy(() => importFn().then((mod) => ({ default: mod[exportName] as ComponentType<never> })))
 }
 
-// Brain Gym — 10 Visual Activation Suite ids all share ONE component
-// (no deep-linking to a single drill exists — see that component's own
-// doc comment); the wizard renders the full suite as that day's Brain
-// Gym step regardless of which of the 10 the day's plan nominally named.
-const VISUAL_ACTIVATION_SUITE_COMPONENT = lazyNamed(
-  () => import('@/components/qsr/visual-activation/VisualActivationSuiteExperience'),
-  'VisualActivationSuiteExperience',
-)
-
 export const CURRICULUM_EMBEDDABLE_COMPONENTS: Readonly<Record<string, ComponentType<EmbeddableExerciseProps>>> = {
-  'theta-breathing-anchor': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'cardinal-oculomotor-stretches': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'infinity-figure-eight-gliding': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'peripheral-flash-expander': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'quantum-tachistoscope-multi-word-blast': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'aura-edge-color-pulsing': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'blink-trigger-micro-recall': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'tratak-afterimage-stretches': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'schulte-grid-speed-drill': VISUAL_ACTIVATION_SUITE_COMPONENT,
-  'rapid-visual-span-expander': VISUAL_ACTIVATION_SUITE_COMPONENT,
+  // Brain Gym — Visual Activation Suite™. Each of these 10 catalog ids
+  // gets its OWN specific drill component directly (NOT the shared
+  // `VisualActivationSuiteExperience` orchestrator, which internally runs
+  // all 10 drills back-to-back before ever calling onComplete — mounting
+  // that as a single wizard step was the exact cause of the "loops
+  // through Brain Gym forever" bug: a learner picking a Brain Gym slot
+  // that landed on any of these 10 ids would sit through the whole
+  // 10-drill circuit before the wizard ever got a chance to advance to
+  // Right-Brain/Visualization/Reading, and exiting mid-circuit fell
+  // through to a raw `/labs/quantum-speed-reading` redirect since the
+  // orchestrator's own `onExit` was never wired here). Each individual
+  // drill component (ThetaBreathingAnchor, etc.) already takes exactly
+  // `{ onComplete: () => void; onExit: () => void }` — both required —
+  // so the wizard now drives one real, complete, single drill per step,
+  // exactly like every other Brain Gym pick.
+  'theta-breathing-anchor': lazyNamed(() => import('@/components/qsr/visual-activation/ThetaBreathingAnchor'), 'ThetaBreathingAnchor'),
+  'cardinal-oculomotor-stretches': lazyNamed(() => import('@/components/qsr/visual-activation/CardinalOculomotorStretches'), 'CardinalOculomotorStretches'),
+  'infinity-figure-eight-gliding': lazyNamed(() => import('@/components/qsr/visual-activation/InfinityFigureEightGliding'), 'InfinityFigureEightGliding'),
+  'peripheral-flash-expander': lazyNamed(() => import('@/components/qsr/visual-activation/PeripheralFlashExpander'), 'PeripheralFlashExpander'),
+  'quantum-tachistoscope-multi-word-blast': lazyNamed(
+    () => import('@/components/qsr/visual-activation/QuantumTachistoscopeMultiWordBlast'),
+    'QuantumTachistoscopeMultiWordBlast',
+  ),
+  'aura-edge-color-pulsing': lazyNamed(() => import('@/components/qsr/visual-activation/AuraEdgeColorPulsing'), 'AuraEdgeColorPulsing'),
+  'blink-trigger-micro-recall': lazyNamed(() => import('@/components/qsr/visual-activation/BlinkTriggerMicroRecall'), 'BlinkTriggerMicroRecall'),
+  'tratak-afterimage-stretches': lazyNamed(() => import('@/components/qsr/visual-activation/TratakAfterimageStretches'), 'TratakAfterimageStretches'),
+  'schulte-grid-speed-drill': lazyNamed(() => import('@/components/qsr/visual-activation/SchulteGridSpeedDrill'), 'SchulteGridSpeedDrill'),
+  'rapid-visual-span-expander': lazyNamed(() => import('@/components/qsr/visual-activation/RapidVisualSpanExpander'), 'RapidVisualSpanExpander'),
 
   'saccadic-eye-jump': lazyNamed(() => import('@/features/brain-gym/components/SaccadicEyeJumpExperience'), 'SaccadicEyeJumpExperience'),
   'cross-lateral-tap': lazyNamed(() => import('@/features/brain-gym/components/CrossLateralTapExperience'), 'CrossLateralTapExperience'),

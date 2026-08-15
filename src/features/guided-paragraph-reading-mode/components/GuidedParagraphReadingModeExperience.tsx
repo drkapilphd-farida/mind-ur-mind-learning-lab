@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type GuidedParagraphReadingModeCategory } from '../guidedParagraphReadingModeDataset'
@@ -176,6 +176,7 @@ export function GuidedParagraphReadingModeExperience({ onComplete }: GuidedParag
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('guided-paragraph-reading-mode', LAB_HREF)}
         subtitle={quizScore !== null ? `Nice, guided reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, guided reading.'}
         result={completedResult}
         bestWpm={bestWpm}

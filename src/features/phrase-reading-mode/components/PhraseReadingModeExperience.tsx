@@ -8,7 +8,7 @@ import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { buildUnitsForCategory, pickSessionCategory, type PhraseReadingModeCategory } from '../phraseReadingModeDataset'
 import { PhraseReadingModeSettings, type PhraseSize, type PhraseFlowOrientation } from './PhraseReadingModeSettings'
@@ -136,6 +136,7 @@ export function PhraseReadingModeExperience({ onComplete }: PhraseReadingModeExp
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('phrase-reading-mode', LAB_HREF)}
         subtitle="Nice, steady chunk reading."
         result={completedResult}
         bestWpm={bestWpm}

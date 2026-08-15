@@ -7,11 +7,18 @@
 // Day-unlocking here is genuinely sequential (day N unlocks only once
 // day N-1 is marked complete), unlike the 21-Day Journey's
 // paywall-only `isDayUnlocked` — see ThirtyDayCurriculumOverview.tsx for
-// where this is enforced in the UI.
+// where this is enforced in the UI. `isDevUnlockEnabled()` — the same
+// platform-wide dev/test bypass every other gated flow already uses
+// (Reading Hub sequences, the 21-Day Journey's own Pro gate, etc.) —
+// additionally unlocks all 30 days for launch-day testing/review,
+// evaluating true only in local development or when a real deployment
+// deliberately opts in via NEXT_PUBLIC_DEV_UNLOCK; production users keep
+// the real sequential gate.
 import { loadBestColorSceneTransformationStats } from '@/features/color-scene-transformation/colorSceneTransformationLocalHistory'
 import { loadBestFluidEnergyBalancerStats } from '@/features/fluid-energy-balancer/fluidEnergyBalancerLocalHistory'
 import { loadBestQuantumMentalRotationStats } from '@/features/quantum-mental-rotation/quantumMentalRotationLocalHistory'
 import { loadBestSensoryHologramBuilderStats } from '@/features/sensory-hologram-builder/sensoryHologramBuilderLocalHistory'
+import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { TOTAL_CURRICULUM_DAYS } from './curriculumDatabase'
 
 export const CURRICULUM_PROGRESS_STORAGE_KEY = 'qsr-thirty-day-curriculum-progress'
@@ -82,6 +89,7 @@ function saveCurriculumProgress(progress: CurriculumProgress): void {
 }
 
 export function isCurriculumDayUnlocked(day: number, progress: CurriculumProgress): boolean {
+  if (isDevUnlockEnabled()) return true
   if (day === 1) return true
   return progress.completedDays.includes(day - 1)
 }

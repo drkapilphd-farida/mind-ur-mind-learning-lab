@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildSpatialClustersForCategory, pickSessionCategory, type FlashRecallSprintCategory } from '../photographicReadingDataset'
@@ -154,6 +154,7 @@ export function PhotographicReadingExperience({ onComplete }: PhotographicReadin
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('photographic-reading', LAB_HREF)}
         subtitle={
           quizScore !== null
             ? `Spatial flash session complete — retention: ${quizScore}/${sessionCategory?.questions.length ?? 3}.`

@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult } from '@/features/reading-engine/types'
 import { buildUnitsForCategory, pickSessionCategory, type ParagraphReadingModeCategory } from '../paragraphReadingModeDataset'
@@ -173,6 +173,7 @@ export function ParagraphReadingModeExperience({ onComplete }: ParagraphReadingM
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('paragraph-reading-mode', LAB_HREF)}
         {...(onComplete !== undefined ? { onContinue: onComplete } : curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
         subtitle={quizScore !== null ? `Nice, continuous reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, continuous reading.'}
         result={completedResult}

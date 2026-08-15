@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import type { ExerciseDefinition } from '@/lib/exercises/types'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { ExerciseIntroScreen } from './ExerciseIntroScreen'
 import { ExerciseCompletionScreen } from './ExerciseCompletionScreen'
 
@@ -50,6 +50,12 @@ export function ExerciseRunner({
     labId: definition.labId,
     exerciseId: definition.exerciseId,
   })
+  // Both the intro screen's own "Back to Lab" link and the completion
+  // screen's secondary link render `labHref` passively (a real Link, not
+  // a click handler) — a static prop that was never curriculum-aware,
+  // unlike handleExit/handleDone below. getWizardAwareBackHref is pure,
+  // so it's safe to resolve once here and reuse for both.
+  const resolvedLabHref = labHref !== undefined ? getWizardAwareBackHref(definition.exerciseId, labHref) : undefined
 
   async function handleExit(durationMs: number): Promise<void> {
     await recordExit(durationMs)
@@ -100,7 +106,7 @@ export function ExerciseRunner({
         postureNote={definition.intro.postureNote}
         onStart={start}
         {...(previousExercise ? { previousHref: previousExercise.href, previousLabel: previousExercise.title } : {})}
-        {...(labHref !== undefined ? { labHref } : {})}
+        {...(resolvedLabHref !== undefined ? { labHref: resolvedLabHref } : {})}
       />
     )
   }
@@ -115,8 +121,8 @@ export function ExerciseRunner({
       mentorLine={definition.completion.mentorLine}
       primaryActionLabel={completionActionLabel ?? (nextExercise ? `Continue Evolution: ${nextExercise.title}` : 'Back to Lab')}
       onPrimaryAction={handleDone}
-      {...(nextExercise && labHref !== undefined && onComplete === undefined
-        ? { secondaryActionLabel: 'Back to Lab', secondaryActionHref: labHref }
+      {...(nextExercise && resolvedLabHref !== undefined && onComplete === undefined
+        ? { secondaryActionLabel: 'Back to Lab', secondaryActionHref: resolvedLabHref }
         : {})}
     />
   )

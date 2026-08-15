@@ -77,7 +77,12 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent every mission in this pack already established.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import {
+  getCurriculumSmartCompleteHref,
+  getCurriculumSmartExitHref,
+  getWizardAwareBackHref,
+  isCurriculumSessionCurrentExercise,
+} from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 
 const EXERCISE_ID = 'paragraph-reading'
 const LAB_HREF = '/labs/quantum-speed-reading'
@@ -761,7 +766,7 @@ function ParagraphReadingSession({
           exerciseName={PARAGRAPH_READING_DEFINITION.title}
           trainsAbility={PARAGRAPH_READING_DEFINITION.trainsAbility}
           result={result}
-          labHref={LAB_HREF}
+          labHref={getWizardAwareBackHref('paragraph-reading', LAB_HREF)}
           onPracticeAgain={handlePracticeAgain}
           extraStats={extraStats}
           coachMessage={coachMessage}

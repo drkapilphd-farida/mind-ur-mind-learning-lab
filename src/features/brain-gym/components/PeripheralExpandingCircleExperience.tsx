@@ -6,12 +6,14 @@ import { PERIPHERAL_EXPANDING_CIRCLE_CONFIG } from '../configs/peripheralExpandi
 
 type PeripheralExpandingCircleExperienceProps = {
   onComplete?: () => void
+  onExit?: () => void
 }
 
-export function PeripheralExpandingCircleExperience({ onComplete }: PeripheralExpandingCircleExperienceProps = {}): React.JSX.Element {
+export function PeripheralExpandingCircleExperience({ onComplete, onExit }: PeripheralExpandingCircleExperienceProps = {}): React.JSX.Element {
   const curriculumSession = useCurriculumSessionCompletion('peripheral-expanding-circle', '/labs/quantum-speed-reading')
   return <BrainGymDrillExperience
       config={PERIPHERAL_EXPANDING_CIRCLE_CONFIG}
       {...(curriculumSession.isActiveStep ? { onComplete: curriculumSession.advance } : onComplete !== undefined ? { onComplete } : {})}
+      {...(onExit !== undefined ? { onExit } : {})}
     />
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
 import { Button } from '@/components/ui/button'
@@ -92,6 +92,7 @@ export function FluidEnergyBalancerExperience({ onComplete }: FluidEnergyBalance
     return (
       <>
         <FluidEnergyBalancerCompleteScreen
+          backHref={getWizardAwareBackHref('fluid-energy-balancer', LAB_HREF)}
           elapsedMs={completedResult.elapsedMs}
           overallStabilityPercent={completedResult.overallStabilityPercent}
           streak={completedResult.streak}

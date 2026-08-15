@@ -24,6 +24,12 @@ const CIRCUIT_SEGMENTS = [
 
 type BrainGymCircuitExperienceProps = {
   onComplete?: () => void
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. When
+  // supplied, replaces the intro screen's own previously-hardcoded
+  // `/labs/quantum-speed-reading` exit link and gets forwarded to each
+  // segment's own BrainGymDrillExperience, so a mid-drill exit never
+  // dumps to the lab root while this is embedded in the wizard.
+  onExit?: () => void
 }
 
 // 21-Day Transformation Journey™ — replaces 4 separate full-length Brain
@@ -36,7 +42,7 @@ type BrainGymCircuitExperienceProps = {
 // own routes, full 16 rounds) is completely unaffected — this circuit
 // only ever composes them via BrainGymDrillExperience's existing,
 // unmodified props.
-export function BrainGymCircuitExperience({ onComplete }: BrainGymCircuitExperienceProps = {}): React.JSX.Element {
+export function BrainGymCircuitExperience({ onComplete, onExit }: BrainGymCircuitExperienceProps = {}): React.JSX.Element {
   const curriculumSession = useCurriculumSessionCompletion('brain-gym-circuit', '/labs/quantum-speed-reading')
   const [hasStarted, setHasStarted] = useState(false)
   const [segmentIndex, setSegmentIndex] = useState(0)
@@ -57,12 +63,22 @@ export function BrainGymCircuitExperience({ onComplete }: BrainGymCircuitExperie
   if (!hasStarted) {
     return (
       <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
-        <Link
-          href="/labs/quantum-speed-reading"
-          className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
-        >
-          Exit
-        </Link>
+        {onExit ? (
+          <button
+            type="button"
+            onClick={onExit}
+            className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+          >
+            Exit
+          </button>
+        ) : (
+          <Link
+            href="/labs/quantum-speed-reading"
+            className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+          >
+            Exit
+          </Link>
+        )}
         <div>
           <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">2-Minute Brain Gym Circuit™</h1>
           <p className="mt-3 text-sm text-muted-foreground">
@@ -103,7 +119,12 @@ export function BrainGymCircuitExperience({ onComplete }: BrainGymCircuitExperie
           </button>
         )}
       </div>
-      <BrainGymDrillExperience key={segmentIndex} config={CIRCUIT_SEGMENTS[segmentIndex]!} onComplete={handleSegmentComplete} />
+      <BrainGymDrillExperience
+        key={segmentIndex}
+        config={CIRCUIT_SEGMENTS[segmentIndex]!}
+        onComplete={handleSegmentComplete}
+        {...(onExit !== undefined ? { onExit } : {})}
+      />
     </div>
   )
 }

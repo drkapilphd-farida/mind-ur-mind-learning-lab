@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, PartyPopper, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { CURRICULUM_CATEGORY_LABELS, getCurriculumExerciseById, type CurriculumCatalogExercise } from '../curriculumExerciseCatalog'
 import { buildCurriculumDayPlan, isCheckpointDay } from '../curriculumDatabase'
 import { buildSessionQueue, clearActiveCurriculumSession, loadActiveCurriculumSession, startCurriculumSessionAtStep } from '../curriculumSessionRunner'
@@ -168,9 +167,12 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
 
   return (
     <div className={CARD_CLASS_NAME} data-day-master-player={day} data-wizard-step={stepIndex}>
-      <BrandWatermark className="absolute top-4 left-6 z-10" />
-
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 px-6 py-4 pt-12 sm:pt-4">
+      {/* No wizard-level BrandWatermark here — the day theme card above
+          already shows one, and every embedded exercise (built for
+          full-page standalone use) renders its own too; a third one on
+          this wrapper only collided with the step header text and
+          duplicated the embedded exercise's own watermark. */}
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 px-6 py-4">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
             Step {stepIndex + 1} of {queueIds.length} · {CURRICULUM_CATEGORY_LABELS[exercise.category]}
@@ -201,7 +203,7 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
         {isGated ? (
           <GatedStepHandoff exercise={exercise} onContinue={() => handleGatedHandoff(exercise, stepIndex)} />
         ) : EmbeddedComponent !== undefined ? (
-          <EmbeddedComponent key={`${currentExerciseId}-${stepIndex}`} onComplete={handleStepComplete} />
+          <EmbeddedComponent key={`${currentExerciseId}-${stepIndex}`} onComplete={handleStepComplete} onExit={handleExitWizard} />
         ) : (
           <GatedStepHandoff exercise={exercise} onContinue={handleStepComplete} skipLabel="Skip this step" />
         )}

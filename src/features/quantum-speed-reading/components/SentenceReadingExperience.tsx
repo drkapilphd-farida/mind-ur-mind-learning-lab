@@ -82,7 +82,7 @@ import { computeRecovery } from '@/lib/exercise-engine/recoveryRules'
 import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/difficultyEngine'
 // Reused, read-only, from Word Flash — same precedent every mission in this pack already established.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 
 const EXERCISE_ID = 'sentence-reading'
@@ -921,7 +921,7 @@ function SentenceReadingSession({
           exerciseName={SENTENCE_READING_DEFINITION.title}
           trainsAbility={SENTENCE_READING_DEFINITION.trainsAbility}
           result={result}
-          labHref={LAB_HREF}
+          labHref={getWizardAwareBackHref('sentence-reading', LAB_HREF)}
           onPracticeAgain={handlePracticeAgain}
           extraStats={extraStats}
           coachMessage={coachMessage}

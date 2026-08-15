@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExerciseSession } from '@/hooks/exercises/useExerciseSession'
+import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { Button } from '@/components/ui/button'
 import { loadBestBrainGymStats, recordBestBrainGymStats } from '../brainGymLocalHistory'
 import { BrainGymDrillSettings } from './BrainGymDrillSettings'
@@ -29,13 +30,22 @@ type BrainGymDrillExperienceProps = {
   // tracked domains (Intuition/Right Brain/Visualisation), so nothing
   // here ever reaches domain_performance_sessions.
   onComplete?: () => void
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. When
+  // supplied, replaces the default "back to lab root" destination for a
+  // mid-drill exit. This was previously missing entirely (a real,
+  // confirmed bug: every one of the 5 catalog exercises that share this
+  // engine dumped straight to `/labs/quantum-speed-reading` on exit,
+  // regardless of curriculum context) — now falls back to
+  // getCurriculumSmartExitHref when omitted, same as every other
+  // embeddable exercise's own exit path.
+  onExit?: () => void
 }
 
 // Shared orchestrator for all 4 Brain Gym drills — settings → playing →
 // complete, exactly the same state machine SchulteGridDrillExperience.tsx/
 // EspZenerTelepathyExperience.tsx already establish, parameterized by
 // `config` instead of forked 4 times for 4 near-identical mechanics.
-export function BrainGymDrillExperience({ config, onComplete }: BrainGymDrillExperienceProps): React.JSX.Element {
+export function BrainGymDrillExperience({ config, onComplete, onExit }: BrainGymDrillExperienceProps): React.JSX.Element {
   const router = useRouter()
   const session = useExerciseSession({ labId: config.labId, exerciseId: config.exerciseId })
 
@@ -67,7 +77,11 @@ export function BrainGymDrillExperience({ config, onComplete }: BrainGymDrillExp
 
   function handleExitRequested(elapsedMs: number): void {
     void session.recordExit(elapsedMs)
-    router.push(LAB_HREF)
+    if (onExit) {
+      onExit()
+      return
+    }
+    router.push(getCurriculumSmartExitHref(config.exerciseId, LAB_HREF))
   }
 
   function handlePlayAgain(): void {

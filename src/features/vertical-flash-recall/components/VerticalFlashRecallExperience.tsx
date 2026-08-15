@@ -7,7 +7,7 @@ import { useReadingRuntime } from '@/hooks/reading-engine/useReadingRuntime'
 import { useReadingSession } from '@/hooks/reading-engine/useReadingSession'
 import { loadBestWpm, recordBestWpmSession } from '@/features/reading-engine/readingLocalHistory'
 import { ReadingSessionCompleteScreen } from '@/features/reading-engine/components/ReadingSessionCompleteScreen'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 import type { ReadingSessionResult, ReadingUnit } from '@/features/reading-engine/types'
 // The quiz screen is fully generic (questions/categoryLabel/callbacks,
@@ -157,6 +157,7 @@ export function VerticalFlashRecallExperience({ onComplete }: VerticalFlashRecal
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
+        backHref={getWizardAwareBackHref('vertical-flash-recall', LAB_HREF)}
         subtitle={quizScore !== null ? `Nice, sharp vertical recall — retention: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, sharp vertical recall.'}
         result={completedResult}
         bestWpm={bestWpm}

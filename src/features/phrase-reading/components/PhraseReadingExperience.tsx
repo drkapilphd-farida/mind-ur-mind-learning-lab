@@ -101,7 +101,7 @@ import { increaseDifficulty, decreaseDifficulty } from '@/lib/exercise-engine/di
 // Reused, read-only, from Word Flash — same precedent PCR already
 // established for this exact function.
 import { computeFlashXp } from '../../flash-intelligence/wordFlashEngine'
-import { getCurriculumSmartExitHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
+import { getCurriculumSmartExitHref, getWizardAwareBackHref } from '@/features/thirty-day-curriculum/curriculumReturnRouting'
 import { useCurriculumSessionCompletion } from '@/features/thirty-day-curriculum/useCurriculumSessionCompletion'
 
 const EXERCISE_ID = 'phrase-reading'
@@ -917,7 +917,7 @@ function PhraseReadingSession({
           exerciseName={PHRASE_READING_DEFINITION.title}
           trainsAbility={PHRASE_READING_DEFINITION.trainsAbility}
           result={result}
-          labHref={LAB_HREF}
+          labHref={getWizardAwareBackHref('phrase-reading', LAB_HREF)}
           onPracticeAgain={handlePracticeAgain}
           extraStats={extraStats}
           coachMessage={coachMessage}

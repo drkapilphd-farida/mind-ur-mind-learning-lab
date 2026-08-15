@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise, setActiveWizardDay } from './curriculumReturnRouting'
+import {
+  getCurriculumSmartCompleteHref,
+  getCurriculumSmartExitHref,
+  getWizardAwareBackHref,
+  isCurriculumSessionCurrentExercise,
+  setActiveWizardDay,
+} from './curriculumReturnRouting'
 import { startCurriculumSession, loadActiveCurriculumSession, type ActiveCurriculumSession } from './curriculumSessionRunner'
 import { loadCurriculumProgress } from './curriculumProgress'
 
@@ -136,5 +142,34 @@ describe('setActiveWizardDay', () => {
     setActiveWizardDay(12)
     setActiveWizardDay(null)
     expect(getCurriculumSmartExitHref('some-id', '/labs/quantum-speed-reading')).toBe('/labs/quantum-speed-reading')
+  })
+})
+
+describe('getWizardAwareBackHref', () => {
+  it('falls back to the given href with no active wizard day or session', () => {
+    expect(getWizardAwareBackHref('any-id', '/labs/quantum-speed-reading')).toBe('/labs/quantum-speed-reading')
+  })
+
+  it('returns the day view when a wizard is active, for ANY exercise id, without mutating anything', () => {
+    setActiveWizardDay(9)
+    const href1 = getWizardAwareBackHref('id-a', '/labs/quantum-speed-reading')
+    const href2 = getWizardAwareBackHref('id-b', '/labs/quantum-speed-reading')
+    expect(href1).toBe('/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=9')
+    expect(href2).toBe(href1)
+    // Calling it repeatedly must not have cleared or advanced anything.
+    expect(getWizardAwareBackHref('id-a', '/labs/quantum-speed-reading')).toBe(href1)
+  })
+
+  it('returns the day view when a real session matches this exact exercise, without clearing it', () => {
+    const firstId = firstExerciseIdForDay(6)
+    const href = getWizardAwareBackHref(firstId, '/labs/quantum-speed-reading')
+    expect(href).toBe('/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=6')
+    // Still there — this is a passive preview, not a real exit.
+    expect(loadActiveCurriculumSession()).not.toBeNull()
+  })
+
+  it('falls back to the given href when a real session exists but points at a different exercise', () => {
+    firstExerciseIdForDay(6)
+    expect(getWizardAwareBackHref('not-the-current-one', '/labs/quantum-speed-reading')).toBe('/labs/quantum-speed-reading')
   })
 })
