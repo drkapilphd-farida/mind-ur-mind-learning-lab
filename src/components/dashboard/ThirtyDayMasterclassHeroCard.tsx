@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { GraduationCap, MessageCircle, Sparkles } from 'lucide-react'
+import { GraduationCap, MessageCircle, PlayCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurriculumDayTheme } from '@/features/thirty-day-curriculum/curriculumDatabase'
 import { computeConsistencyPercent, getHighestUnlockedDay, loadCurriculumProgress } from '@/features/thirty-day-curriculum/curriculumProgress'
@@ -89,7 +89,17 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
                 💬 Chat with Dr. Kapil on WhatsApp
               </a>
             </Button>
+            <Button asChild size="lg" variant="outline" className="w-full rounded-full sm:w-auto" data-reviews-button="true">
+              <Link href="/reviews">
+                <PlayCircle className="size-4" aria-hidden="true" />
+                ▶ Watch Success Stories (200+ Reviews)
+              </Link>
+            </Button>
           </div>
+
+          <p className="text-xs font-medium text-muted-foreground" data-trust-badge="true">
+            ★ Trusted by thousands of students &amp; professionals
+          </p>
         </div>
 
         <ul className="grid grid-cols-1 gap-2 text-sm text-foreground sm:grid-cols-3">
