@@ -35,21 +35,21 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
 
   return (
     <div
-      className="glass-premium-card glass-premium-lift glass-premium-card--emphasized relative overflow-hidden p-6 sm:p-8"
+      className="glass-premium-card glass-premium-lift glass-tier-flagship relative overflow-hidden p-6 sm:p-8"
       data-hero-card="thirty-day-masterclass"
     >
-      <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-violet-500/20 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute -bottom-28 -left-14 size-64 rounded-full bg-indigo-500/10 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-emerald-500/20 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-28 -left-14 size-64 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true" />
 
       <div className="relative flex flex-col gap-6">
         <div className="flex flex-col gap-5">
           <div className="flex items-start gap-4">
-            <div className="brand-gradient flex size-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-amber-500 text-white shadow-lg">
               <GraduationCap className="size-6" aria-hidden="true" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold tracking-widest text-primary uppercase">Tier 3 · Flagship Mastery Program</p>
+                <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase dark:text-emerald-400">Tier 3 · Flagship Mastery Program</p>
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"
                   data-urgency-badge="true"
@@ -70,7 +70,7 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             <Button
               asChild
               size="lg"
-              className="brand-gradient w-full rounded-full text-white shadow-lg hover:opacity-90 sm:w-auto"
+              className="w-full rounded-full bg-gradient-to-r from-emerald-600 to-amber-500 text-white shadow-lg transition-all duration-300 hover:from-emerald-500 hover:to-amber-400 active:scale-95 sm:w-auto"
               data-enroll-button="true"
             >
               <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
@@ -81,7 +81,7 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             <Button
               asChild
               size="lg"
-              className="w-full rounded-full bg-[#25D366] text-white shadow-lg hover:bg-[#1EBE5B] sm:w-auto"
+              className="w-full rounded-full bg-[#25D366] text-white shadow-lg transition-all duration-300 hover:bg-[#1EBE5B] active:scale-95 sm:w-auto"
               data-whatsapp-button="true"
             >
               <a href={WHATSAPP_MASTERCLASS_INQUIRY_LINK} target="_blank" rel="noopener noreferrer">
@@ -89,7 +89,13 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
                 💬 Chat with Dr. Kapil on WhatsApp
               </a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full rounded-full sm:w-auto" data-reviews-button="true">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="w-full rounded-full transition-all duration-300 active:scale-95 sm:w-auto"
+              data-reviews-button="true"
+            >
               <Link href="/reviews">
                 <PlayCircle className="size-4" aria-hidden="true" />
                 ▶ Watch Success Stories (200+ Reviews)
@@ -104,15 +110,15 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
 
         <ul className="grid grid-cols-1 gap-2 text-sm text-foreground sm:grid-cols-3">
           <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
-            <Sparkles className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+            <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             30-day structured curriculum
           </li>
           <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
-            <Sparkles className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+            <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             7 live mentorship sessions
           </li>
           <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
-            <Sparkles className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+            <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             Real WPM + comprehension checkpoints
           </li>
         </ul>
@@ -125,7 +131,7 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             </p>
             {hasStarted && <p className="text-xs text-muted-foreground">{consistencyPercent}% of the 30 days complete</p>}
           </div>
-          <Button asChild size="lg" variant="outline" className="w-full rounded-full sm:w-auto">
+          <Button asChild size="lg" variant="outline" className="w-full rounded-full transition-all duration-300 active:scale-95 sm:w-auto">
             <Link href={CURRICULUM_ROUTE}>{nextDay === null ? 'Open Curriculum' : hasStarted ? `Continue Day ${nextDay}` : 'Start Day 1 — Free'}</Link>
           </Button>
         </div>

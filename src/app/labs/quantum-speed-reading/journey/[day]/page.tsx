@@ -21,7 +21,7 @@ import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 const FREE_JOURNEY_DAYS = 3
 
 export const metadata: Metadata = {
-  title: '21-Day Transformation Journey™',
+  title: '21-Day Quantum Reading & Mind Expansion™',
   description: 'An adaptive, week-by-week guided daily session across Reading, Intuition, Right Brain, and Visualisation.',
 }
 

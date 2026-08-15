@@ -10,7 +10,7 @@ import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
-  title: 'Your Completion Certificate™ — 21-Day Transformation Journey',
+  title: 'Your Completion Certificate™ — 21-Day Quantum Reading & Mind Expansion',
   description: 'Your official 21-Day Quantum Speed Reading & Cognitive Mastery completion certificate.',
 }
 
@@ -58,7 +58,7 @@ export default async function JourneyCertificatePage(): Promise<React.JSX.Elemen
       <LabNavHeader currentSection="Certificate" />
       <div className="mx-auto max-w-3xl px-6 py-10">
         <LabPageHeader
-          eyebrow="21-Day Transformation Journey™"
+          eyebrow="21-Day Quantum Reading & Mind Expansion™"
           title="Your Completion Certificate™"
           subtitle="A real, printable record of your Day 1 to Day 21 growth."
         />

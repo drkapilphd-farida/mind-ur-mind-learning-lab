@@ -30,9 +30,9 @@ function journeyDayHref(day: number): string {
   return `/labs/quantum-speed-reading/journey/${day}`
 }
 
-// 21-Day Transformation Journey™ — every day (1-21) launches the real
-// QuantumJourneySession (see src/features/quantum-journey/), a guided
-// 4-level session chaining a real Reading Intelligence, Intuition
+// 21-Day Quantum Reading & Mind Expansion™ — every day (1-21) launches
+// the real QuantumJourneySession (see src/features/quantum-journey/), a
+// guided 4-level session chaining a real Reading Intelligence, Intuition
 // Development, Right Brain Activation, and Visualisation exercise (which
 // exact exercises per day is QuantumJourneySession's own, real, deterministic
 // day-parity rotation — never fabricated). Locked days (Day 4+ for a
@@ -46,9 +46,11 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
   const isCurrentDayUnlocked = isDayUnlocked(currentDay)
 
   return (
-    <div className="glass-premium-card glass-premium-lift p-5 sm:p-6">
+    <div className="glass-premium-card glass-premium-lift glass-tier-masterclass p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">21-Day Transformation Journey™</p>
+        <p className="text-xs font-medium tracking-widest text-violet-600 uppercase dark:text-violet-400">
+          21-Day Quantum Reading &amp; Mind Expansion™
+        </p>
         {!hasProAccess && (
           <Badge variant="secondary" className="gap-1">
             <Lock className="size-2.5" aria-hidden="true" />
@@ -67,13 +69,17 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
         href={isCurrentDayUnlocked ? journeyDayHref(currentDay) : '/pricing#family-pro'}
         className={cn(
           'mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          isCurrentDayUnlocked ? 'bg-foreground/[0.02] hover:bg-foreground/[0.04]' : 'border-dashed bg-muted/30 hover:bg-muted/50',
+          isCurrentDayUnlocked
+            ? 'border-violet-500/20 bg-violet-500/[0.03] hover:bg-violet-500/[0.07]'
+            : 'border-dashed bg-muted/30 hover:bg-muted/50',
         )}
       >
         <div
           className={cn(
             'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-            isCurrentDayUnlocked ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20 text-muted-foreground',
+            isCurrentDayUnlocked
+              ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-violet-500/30'
+              : 'bg-muted-foreground/20 text-muted-foreground',
           )}
         >
           {isCurrentDayUnlocked ? currentDay : <Lock className="size-3.5" aria-hidden="true" />}
@@ -84,7 +90,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
             {isCurrentDayUnlocked ? 'Reading · Intuition · Right Brain · Visualisation' : 'Upgrade to Pro to unlock this day'}
           </p>
         </div>
-        <span className="shrink-0 text-xs font-medium text-primary">
+        <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md transition-all duration-300 hover:from-indigo-500 hover:to-violet-500 active:scale-95">
           {isCurrentDayUnlocked ? (isReplay ? 'Continue →' : 'Begin →') : 'Upgrade →'}
         </span>
       </Link>
@@ -100,7 +106,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
                 key={day}
                 href={journeyDayHref(day)}
                 aria-label={`Day ${day}, completed`}
-                className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-success/30 bg-success/10 text-[11px] font-medium text-success transition-colors hover:bg-success/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-emerald-400/70 bg-gradient-to-br from-emerald-500/25 to-teal-400/15 text-[11px] font-semibold text-emerald-600 shadow-[0_0_12px_-2px_rgba(16,185,129,0.55)] transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(16,185,129,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:text-emerald-400"
               >
                 <Check className="size-2.5" aria-hidden="true" />
               </Link>
@@ -112,7 +118,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               key={day}
               href={journeyDayHref(day)}
               aria-label={`Day ${day}, unlocked`}
-              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:border-violet-500/40 hover:bg-violet-500/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {day}
             </Link>
