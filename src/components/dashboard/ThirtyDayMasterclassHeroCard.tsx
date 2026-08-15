@@ -38,13 +38,13 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
       className="glass-premium-card glass-premium-lift glass-tier-flagship relative overflow-hidden p-6 sm:p-8"
       data-hero-card="thirty-day-masterclass"
     >
-      <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-emerald-500/20 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute -bottom-28 -left-14 size-64 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-28 -left-14 size-64 rounded-full bg-emerald-400/[0.06] blur-3xl" aria-hidden="true" />
 
       <div className="relative flex flex-col gap-6">
         <div className="flex flex-col gap-5">
           <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-amber-500 text-white shadow-lg">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-md">
               <GraduationCap className="size-6" aria-hidden="true" />
             </div>
             <div>
@@ -70,7 +70,7 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             <Button
               asChild
               size="lg"
-              className="w-full rounded-full bg-gradient-to-r from-emerald-600 to-amber-500 text-white shadow-lg transition-all duration-300 hover:from-emerald-500 hover:to-amber-400 active:scale-95 sm:w-auto"
+              className="w-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md transition-all duration-300 hover:from-emerald-500 hover:to-emerald-400 active:scale-95 sm:w-auto"
               data-enroll-button="true"
             >
               <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
@@ -81,7 +81,7 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             <Button
               asChild
               size="lg"
-              className="w-full rounded-full bg-[#25D366] text-white shadow-lg transition-all duration-300 hover:bg-[#1EBE5B] active:scale-95 sm:w-auto"
+              className="w-full rounded-full bg-[#25D366] text-white shadow-md transition-all duration-300 hover:bg-[#1EBE5B] active:scale-95 sm:w-auto"
               data-whatsapp-button="true"
             >
               <a href={WHATSAPP_MASTERCLASS_INQUIRY_LINK} target="_blank" rel="noopener noreferrer">

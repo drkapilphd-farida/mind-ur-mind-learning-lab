@@ -273,34 +273,36 @@
 }
 
 /*
- * Cyber/Mind Tech Tier Accents™ — same glass-premium-card--emphasized
- * technique (a fixed-percentage color-mix border + outer glow layered
- * on top of the existing blur/shadow), but with a FIXED hex per tier
- * instead of --ambient-a/b (which shift with theme/missed-days) — the
- * whole point here is that Tier 1/2/3 read as three deliberately
- * different colors, not the same shifting brand blue everywhere. Applied
- * alongside .glass-premium-card (never replacing it), same as
- * --emphasized above.
- *   Utility Hub (Tier 1)      — electric cyan, AI Document Supercharger
- *   Masterclasses (Tier 2)    — rich violet, 21-Day Quantum Reading & Mind Expansion
- *   Flagship Programs (Tier 3)— emerald + gold, 30-Day Mastery + Live Cohort
+ * Refined Tier Accents™ — v2, toned down from the first pass's neon
+ * cyan/violet/emerald+gold combo per direct user feedback ("overtly
+ * loud... replace with a refined, cohesive, sophisticated color
+ * scheme"). Same technique as glass-premium-card--emphasized (a
+ * color-mix border + soft outer glow layered on .glass-premium-card),
+ * but every number here is deliberately smaller: border opacity dropped
+ * from 45% to 20%, glow opacity from 35-40% to 14-16%, and the glow's
+ * negative spread widened (-8px → -16px) so what glow remains reads as
+ * a soft ambient falloff, not a rim light. Flagship's second (gold)
+ * glow layer is gone entirely — one quiet accent per tier, not two
+ * competing ones. Hues themselves are unchanged (still cyan/indigo/
+ * emerald) so the three tiers stay distinguishable; only the intensity
+ * changed, per "professional accent tones," not "no tones at all."
+ *   Utility Hub (Tier 1)      — cyan, AI Document Supercharger
+ *   Masterclasses (Tier 2)    — indigo, 21-Day Quantum Reading & Mind Expansion
+ *   Flagship Programs (Tier 3)— emerald, 30-Day Mastery + Live Cohort
  */
 .glass-tier-utility {
-  border: 1.5px solid color-mix(in srgb, #06b6d4 45%, transparent);
-  box-shadow: var(--glass-shadow-hover), 0 0 32px -8px color-mix(in srgb, #06b6d4 40%, transparent);
+  border: 1px solid color-mix(in srgb, #0891b2 20%, var(--glass-border));
+  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #0891b2 16%, transparent);
 }
 
 .glass-tier-masterclass {
-  border: 1.5px solid color-mix(in srgb, #8b5cf6 45%, transparent);
-  box-shadow: var(--glass-shadow-hover), 0 0 32px -8px color-mix(in srgb, #8b5cf6 40%, transparent);
+  border: 1px solid color-mix(in srgb, #4f46e5 20%, var(--glass-border));
+  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #4f46e5 16%, transparent);
 }
 
 .glass-tier-flagship {
-  border: 1.5px solid color-mix(in srgb, #10b981 40%, transparent);
-  box-shadow:
-    var(--glass-shadow-hover),
-    0 0 32px -8px color-mix(in srgb, #10b981 35%, transparent),
-    0 0 22px -6px color-mix(in srgb, #f59e0b 30%, transparent);
+  border: 1px solid color-mix(in srgb, #059669 20%, var(--glass-border));
+  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #059669 16%, transparent);
 }
 
 .glass-premium-lift {

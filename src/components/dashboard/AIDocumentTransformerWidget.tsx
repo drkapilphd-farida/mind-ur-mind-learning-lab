@@ -412,7 +412,7 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
     <div className="glass-premium-card glass-premium-lift glass-tier-utility p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="size-3.5 text-cyan-500" aria-hidden="true" />
+          <Sparkles className="size-3.5 text-cyan-600 dark:text-cyan-400" aria-hidden="true" />
           <p className="text-xs font-medium tracking-widest text-cyan-600 uppercase dark:text-cyan-400">Upload &amp; Learn</p>
         </div>
         {!isPro && !isBlocked && (

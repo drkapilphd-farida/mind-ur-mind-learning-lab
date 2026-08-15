@@ -47,22 +47,27 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
 
   return (
     <div className="glass-premium-card glass-premium-lift glass-tier-masterclass p-5 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-medium tracking-widest text-violet-600 uppercase dark:text-violet-400">
-          21-Day Quantum Reading &amp; Mind Expansion™
-        </p>
-        {!hasProAccess && (
-          <Badge variant="secondary" className="gap-1">
-            <Lock className="size-2.5" aria-hidden="true" />
-            Free through Day {FREE_JOURNEY_DAYS} — Pro unlocks the rest
-          </Badge>
-        )}
-        {isDevUnlocked && !isPaidUser && (
-          <Badge variant="outline" className="gap-1 border-warning/30 text-warning">
-            <FlaskConical className="size-2.5" aria-hidden="true" />
-            Dev Unlock — all days open for testing
-          </Badge>
-        )}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold tracking-widest text-indigo-600 uppercase dark:text-indigo-400">Tier 2 · Structured Program</p>
+          <h2 className="mt-1 font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
+            21-Day Quantum Reading &amp; Mind Expansion™
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {!hasProAccess && (
+            <Badge variant="secondary" className="gap-1">
+              <Lock className="size-2.5" aria-hidden="true" />
+              Free through Day {FREE_JOURNEY_DAYS} — Pro unlocks the rest
+            </Badge>
+          )}
+          {isDevUnlocked && !isPaidUser && (
+            <Badge variant="outline" className="gap-1 border-warning/30 text-warning">
+              <FlaskConical className="size-2.5" aria-hidden="true" />
+              Dev Unlock — all days open for testing
+            </Badge>
+          )}
+        </div>
       </div>
 
       <Link
@@ -70,7 +75,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
         className={cn(
           'mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           isCurrentDayUnlocked
-            ? 'border-violet-500/20 bg-violet-500/[0.03] hover:bg-violet-500/[0.07]'
+            ? 'border-indigo-500/15 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.05]'
             : 'border-dashed bg-muted/30 hover:bg-muted/50',
         )}
       >
@@ -78,7 +83,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
           className={cn(
             'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
             isCurrentDayUnlocked
-              ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-violet-500/30'
+              ? 'bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm shadow-indigo-500/20'
               : 'bg-muted-foreground/20 text-muted-foreground',
           )}
         >
@@ -90,7 +95,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
             {isCurrentDayUnlocked ? 'Reading · Intuition · Right Brain · Visualisation' : 'Upgrade to Pro to unlock this day'}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md transition-all duration-300 hover:from-indigo-500 hover:to-violet-500 active:scale-95">
+        <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-300 hover:from-indigo-500 hover:to-indigo-400 active:scale-95">
           {isCurrentDayUnlocked ? (isReplay ? 'Continue →' : 'Begin →') : 'Upgrade →'}
         </span>
       </Link>
@@ -106,7 +111,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
                 key={day}
                 href={journeyDayHref(day)}
                 aria-label={`Day ${day}, completed`}
-                className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-emerald-400/70 bg-gradient-to-br from-emerald-500/25 to-teal-400/15 text-[11px] font-semibold text-emerald-600 shadow-[0_0_12px_-2px_rgba(16,185,129,0.55)] transition-all duration-200 hover:shadow-[0_0_16px_-2px_rgba(16,185,129,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:text-emerald-400"
+                className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-[11px] font-semibold text-emerald-600 shadow-[0_0_8px_-3px_rgba(16,185,129,0.5)] transition-colors duration-200 hover:bg-emerald-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:text-emerald-400"
               >
                 <Check className="size-2.5" aria-hidden="true" />
               </Link>
@@ -118,7 +123,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               key={day}
               href={journeyDayHref(day)}
               aria-label={`Day ${day}, unlocked`}
-              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:border-violet-500/40 hover:bg-violet-500/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:border-indigo-500/30 hover:bg-indigo-500/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {day}
             </Link>
