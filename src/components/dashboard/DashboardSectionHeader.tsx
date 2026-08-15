@@ -14,12 +14,14 @@ type DashboardSectionHeaderProps = {
 
 export function DashboardSectionHeader({ id, eyebrow, title, description, children }: DashboardSectionHeaderProps): React.JSX.Element {
   return (
-    <div className="mb-3 flex flex-col gap-1.5 px-1">
-      <p className="text-xs font-semibold tracking-widest text-primary uppercase">{eyebrow}</p>
+    <div className="mb-3 flex flex-col gap-2 px-1">
+      <span className="w-fit rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold tracking-wider text-primary uppercase">
+        {eyebrow}
+      </span>
       <h2 id={id} className="font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
         {title}
       </h2>
-      {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
+      {description && <p className="max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-slate-300">{description}</p>}
       {children}
     </div>
   )

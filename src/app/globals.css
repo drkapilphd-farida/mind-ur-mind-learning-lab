@@ -273,36 +273,39 @@
 }
 
 /*
- * Refined Tier Accents™ — v2, toned down from the first pass's neon
- * cyan/violet/emerald+gold combo per direct user feedback ("overtly
- * loud... replace with a refined, cohesive, sophisticated color
- * scheme"). Same technique as glass-premium-card--emphasized (a
- * color-mix border + soft outer glow layered on .glass-premium-card),
- * but every number here is deliberately smaller: border opacity dropped
- * from 45% to 20%, glow opacity from 35-40% to 14-16%, and the glow's
- * negative spread widened (-8px → -16px) so what glow remains reads as
- * a soft ambient falloff, not a rim light. Flagship's second (gold)
- * glow layer is gone entirely — one quiet accent per tier, not two
- * competing ones. Hues themselves are unchanged (still cyan/indigo/
- * emerald) so the three tiers stay distinguishable; only the intensity
- * changed, per "professional accent tones," not "no tones at all."
- *   Utility Hub (Tier 1)      — cyan, AI Document Supercharger
- *   Masterclasses (Tier 2)    — indigo, 21-Day Quantum Reading & Mind Expansion
- *   Flagship Programs (Tier 3)— emerald, 30-Day Mastery + Live Cohort
+ * Refined Tier Accents™ — v3. v2 still put tier identity on the card's
+ * own border/glow (a colored rim, just a quieter one); direct feedback
+ * this round asked for "crisp, ultra-clean borders" uniformly and for
+ * each card's "distinct, sophisticated visual identity" to come from
+ * "restrained, elegant background gradients and intentional accent
+ * icons" instead. So the border is now the SAME neutral slate tone on
+ * all three tiers (no per-tier color at all), and tier identity moved
+ * to two other places that already exist per card: a barely-there
+ * (6% opacity) diagonal gradient wash here, plus each card's own icon
+ * chip / eyebrow badge color (set directly in the component, not here)
+ * carrying the actual saturated accent. No colored box-shadow glow —
+ * .glass-premium-card's own shadow + .glass-premium-lift's hover
+ * transition already give every card a clean, neutral shadow lift.
+ *   Utility Hub (Tier 1)      — cyan wash, AI Document Supercharger
+ *   Masterclasses (Tier 2)    — indigo wash, 21-Day Quantum Reading & Mind Expansion
+ *   Flagship Programs (Tier 3)— emerald wash, 30-Day Mastery + Live Cohort
  */
+.glass-tier-utility,
+.glass-tier-masterclass,
+.glass-tier-flagship {
+  border-color: color-mix(in srgb, #94a3b8 35%, var(--glass-border));
+}
+
 .glass-tier-utility {
-  border: 1px solid color-mix(in srgb, #0891b2 20%, var(--glass-border));
-  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #0891b2 16%, transparent);
+  background-image: linear-gradient(160deg, color-mix(in srgb, #0891b2 6%, transparent), transparent 55%);
 }
 
 .glass-tier-masterclass {
-  border: 1px solid color-mix(in srgb, #4f46e5 20%, var(--glass-border));
-  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #4f46e5 16%, transparent);
+  background-image: linear-gradient(160deg, color-mix(in srgb, #4f46e5 6%, transparent), transparent 55%);
 }
 
 .glass-tier-flagship {
-  border: 1px solid color-mix(in srgb, #059669 20%, var(--glass-border));
-  box-shadow: var(--glass-shadow), 0 0 24px -16px color-mix(in srgb, #059669 16%, transparent);
+  background-image: linear-gradient(160deg, color-mix(in srgb, #059669 6%, transparent), transparent 55%);
 }
 
 .glass-premium-lift {

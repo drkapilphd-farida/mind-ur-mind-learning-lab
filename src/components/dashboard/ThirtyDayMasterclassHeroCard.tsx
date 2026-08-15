@@ -49,7 +49,9 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase dark:text-emerald-400">Tier 3 · Flagship Mastery Program</p>
+                <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold tracking-wider text-emerald-700 uppercase dark:text-emerald-400">
+                  Tier 3 · Flagship Mastery Program
+                </span>
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"
                   data-urgency-badge="true"
@@ -57,10 +59,10 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
                   🟢 Batch 01 Filling Fast
                 </span>
               </div>
-              <h2 className="mt-1 font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+              <h2 className="mt-2 font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
                 ⚡ 30-Day Quantum Speed Reading Mastery™ + Live Mentorship
               </h2>
-              <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                 Unlock superhuman reading speed (1000+ WPM), photographic memory, and direct live coaching with Dr. Kapil Dev Sharma.
               </p>
             </div>
@@ -103,42 +105,42 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
             </Button>
           </div>
 
-          <p className="text-xs font-medium text-muted-foreground" data-trust-badge="true">
+          <p className="text-xs font-medium text-slate-700 dark:text-slate-300" data-trust-badge="true">
             ★ Trusted by thousands of students &amp; professionals
           </p>
         </div>
 
         <ul className="grid grid-cols-1 gap-2 text-sm text-foreground sm:grid-cols-3">
-          <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
+          <li className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-card/60 px-3 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md dark:border-slate-800/80">
             <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             30-day structured curriculum
           </li>
-          <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
+          <li className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-card/60 px-3 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md dark:border-slate-800/80">
             <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             7 live mentorship sessions
           </li>
-          <li className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2.5">
+          <li className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-card/60 px-3 py-2.5 shadow-sm transition-all duration-300 hover:shadow-md dark:border-slate-800/80">
             <Sparkles className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
             Real WPM + comprehension checkpoints
           </li>
         </ul>
 
-        <div className="flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800/80">
           <div className="flex-1">
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Your Curriculum Progress</p>
             <p className="mt-0.5 text-sm font-medium text-foreground" data-curriculum-status={hasStarted ? 'in-progress' : 'not-started'}>
               {nextDay === null ? 'Loading…' : hasStarted && theme !== null ? `Day ${nextDay} — ${theme.title}` : 'Not started yet — free to begin'}
             </p>
-            {hasStarted && <p className="text-xs text-muted-foreground">{consistencyPercent}% of the 30 days complete</p>}
+            {hasStarted && <p className="text-xs text-slate-700 dark:text-slate-300">{consistencyPercent}% of the 30 days complete</p>}
           </div>
           <Button asChild size="lg" variant="outline" className="w-full rounded-full transition-all duration-300 active:scale-95 sm:w-auto">
             <Link href={CURRICULUM_ROUTE}>{nextDay === null ? 'Open Curriculum' : hasStarted ? `Continue Day ${nextDay}` : 'Start Day 1 — Free'}</Link>
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
+        <div className="rounded-xl border border-slate-200/80 bg-card/60 px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md dark:border-slate-800/80">
           <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Live Cohort Mentorship</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
             7 live sessions with Dr. Kapil Dev Sharma. Enrollment is via secure Razorpay checkout — your batch schedule follows by email after
             payment.
           </p>

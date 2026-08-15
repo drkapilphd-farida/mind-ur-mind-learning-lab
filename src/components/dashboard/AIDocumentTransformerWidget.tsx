@@ -91,7 +91,7 @@ function FilePreview({ file, onReplace, onRemove }: { file: File; onReplace: () 
   }, [file, isImage])
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 p-4 dark:border-slate-800/80">
       {isImage && objectUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- a real, local, temporary object URL preview; next/image's remote-optimization pipeline doesn't apply here.
         <img src={objectUrl} alt={`Preview of ${file.name}`} className="size-10 shrink-0 rounded-lg object-cover" />
@@ -141,7 +141,7 @@ function LanguageSelector({ value, onChange, disabled }: { value: SupportedLangu
 // asked to surface, driven by the same underlying progress number.
 function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: string; sizeBytes: number; progress: number }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border p-5">
+    <div className="rounded-xl border border-slate-200/80 p-5 dark:border-slate-800/80">
       <div className="flex items-center gap-3">
         <div aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Sparkles className="size-5 animate-pulse text-primary" />
@@ -152,7 +152,7 @@ function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: str
         </div>
       </div>
       <Progress value={progress} className="mt-4" />
-      <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">{getProcessingMessage(progress)}</p>
+      <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300" aria-live="polite">{getProcessingMessage(progress)}</p>
     </div>
   )
 }
@@ -197,7 +197,7 @@ function CompactUploadTrigger({ onFileSelected, errorMessage }: { onFileSelected
           handleFiles(event.dataTransfer.files)
         }}
         className={cn(
-          'flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/20',
+          'flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-200/80 px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/20 dark:border-slate-800/80',
           isDragging && 'border-primary bg-primary/5',
         )}
       >
@@ -231,7 +231,7 @@ function RecentDocuments({ documents }: { documents: readonly QuantumDocumentHis
           <li key={document.id}>
             <Link
               href={`/library/${document.id}`}
-              className="flex items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex items-center gap-3 rounded-xl border border-slate-200/80 p-3 text-left transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-slate-800/80"
             >
               <div aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <FileText className="size-4 text-primary" />
@@ -411,12 +411,12 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
   return (
     <div className="glass-premium-card glass-premium-lift glass-tier-utility p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="size-3.5 text-cyan-600 dark:text-cyan-400" aria-hidden="true" />
-          <p className="text-xs font-medium tracking-widest text-cyan-600 uppercase dark:text-cyan-400">Upload &amp; Learn</p>
-        </div>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-cyan-500/10 px-2.5 py-1 text-xs font-semibold tracking-wider text-cyan-700 uppercase dark:text-cyan-400">
+          <Sparkles className="size-3.5" aria-hidden="true" />
+          Upload &amp; Learn
+        </span>
         {!isPro && !isBlocked && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-700 dark:text-slate-300">
             {remainingFreeDocuments} free document{remainingFreeDocuments !== 1 ? 's' : ''} remaining
           </p>
         )}
@@ -447,7 +447,12 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
           <div className="space-y-4">
             <FilePreview file={selectedFile} onReplace={() => replaceInputRef.current?.click()} onRemove={handleRemove} />
             <input ref={replaceInputRef} type="file" accept={ACCEPT} className="sr-only" onChange={handleReplaceChange} />
-            <Button type="button" size="lg" className="w-full rounded-full" onClick={() => void submitDocument(selectedFile)}>
+            <Button
+              type="button"
+              size="lg"
+              className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm transition-all duration-300 hover:from-cyan-500 hover:to-cyan-400 hover:shadow-md active:scale-95"
+              onClick={() => void submitDocument(selectedFile)}
+            >
               Transform into study material
             </Button>
           </div>

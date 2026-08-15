@@ -49,8 +49,10 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
     <div className="glass-premium-card glass-premium-lift glass-tier-masterclass p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-indigo-600 uppercase dark:text-indigo-400">Tier 2 · Structured Program</p>
-          <h2 className="mt-1 font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
+          <span className="inline-flex w-fit items-center rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold tracking-wider text-indigo-700 uppercase dark:text-indigo-400">
+            Tier 2 · Structured Program
+          </span>
+          <h2 className="mt-2 font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
             21-Day Quantum Reading &amp; Mind Expansion™
           </h2>
         </div>
@@ -91,7 +93,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">Day {currentDay}</p>
-          <p className="truncate text-xs text-muted-foreground">
+          <p className="truncate text-xs text-slate-700 dark:text-slate-300">
             {isCurrentDayUnlocked ? 'Reading · Intuition · Right Brain · Visualisation' : 'Upgrade to Pro to unlock this day'}
           </p>
         </div>
@@ -123,7 +125,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               key={day}
               href={journeyDayHref(day)}
               aria-label={`Day ${day}, unlocked`}
-              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:border-indigo-500/30 hover:bg-indigo-500/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200/80 bg-foreground/[0.02] text-[11px] font-medium text-muted-foreground transition-colors hover:border-indigo-500/30 hover:bg-indigo-500/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-slate-800/80"
             >
               {day}
             </Link>
@@ -137,7 +139,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               key={day}
               href="/pricing#family-pro"
               aria-label={`Day ${day}, locked, upgrade to Pro`}
-              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 text-[11px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/60 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200/60 bg-muted/40 text-[11px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/60 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-slate-800/60"
             >
               <Lock className="size-2.5" aria-hidden="true" />
               {day}
