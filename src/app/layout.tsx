@@ -32,8 +32,27 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    // black-translucent — content draws edge-to-edge under the iOS
+    // status bar (translucent icons over our own background) instead of
+    // 'default''s solid white status bar strip. This is what "true
+    // full-screen, no URL bar" actually means on iOS Safari standalone
+    // launches; safe-area-inset padding (viewportFit: 'cover' below,
+    // already threaded through every exercise layout) is what keeps
+    // real content clear of the status bar/notch area under this mode.
+    statusBarStyle: 'black-translucent',
     title: 'Quantum Mind',
+  },
+  // Next.js's appleWebApp.capable only renders the newer, non-prefixed
+  // <meta name="mobile-web-app-capable"> tag (verified directly in
+  // next/dist/lib/metadata/generate/basic.js — it never emits the
+  // apple-prefixed one). iOS Safari's own "Add to Home Screen" standalone
+  // detection has historically required the legacy apple-prefixed tag
+  // specifically; the unprefixed one is the newer, Chromium-originated
+  // standard. `other` is Next's supported escape hatch for exactly this
+  // — added defensively so standalone mode isn't silently dependent on
+  // which iOS Safari version a given user is running.
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
   },
   openGraph: {
     type: 'website',
