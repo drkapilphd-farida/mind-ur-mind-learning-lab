@@ -28,7 +28,7 @@ export function MindScoreHeroCard({
   const offset = circ * (1 - progress)
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-card p-8 shadow-sm">
+    <div className="glass-premium-card glass-premium-card--emphasized relative overflow-hidden p-8">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
         {/* Ring */}
         <div

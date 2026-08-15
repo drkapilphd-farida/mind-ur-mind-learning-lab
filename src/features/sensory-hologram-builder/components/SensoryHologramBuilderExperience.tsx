@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { getHologramGoalById, HOLOGRAM_GOALS } from '../hologramDatabase'
 import type { NarrationLanguage } from '../hologramVoiceSelection'
 import {
+  SENSORY_HOLOGRAM_BUILDER_STORAGE_KEY,
   loadBestSensoryHologramBuilderStats,
   recordSensoryHologramBuilderCompletion,
   recordSensoryHologramBuilderEarlyExit,
@@ -19,7 +20,7 @@ import { SensoryHologramBuilderReflectionScreen } from './SensoryHologramBuilder
 import { SensoryHologramBuilderCompleteScreen } from './SensoryHologramBuilderCompleteScreen'
 
 const LAB_HREF = '/labs/quantum-speed-reading'
-const BEST_STATS_STORAGE_KEY = 'qsr-sensory-hologram-builder-best'
+const BEST_STATS_STORAGE_KEY = SENSORY_HOLOGRAM_BUILDER_STORAGE_KEY
 const DEFAULT_GOAL_ID = HOLOGRAM_GOALS[0]!.id
 
 type ExperiencePhase = 'settings' | 'playing' | 'reflection' | 'complete'

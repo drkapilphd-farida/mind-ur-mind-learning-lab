@@ -52,7 +52,7 @@ export function StrengthAreasCard({
   ]
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="glass-premium-card p-6">
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
         Strength Areas™
       </p>

@@ -12,6 +12,11 @@
 // streak: it's a cross-visit count of consecutive FULLY completed
 // sessions (never broken by an early exit), fitting this exercise's own
 // meditation-habit framing far better than a within-session streak would.
+// Exported so the Mind Score page's QSR/Holographic Recall dimension
+// (DimensionScoreGrid.tsx) can read the same real, self-reported
+// immersion score client-side, without duplicating this literal string.
+export const SENSORY_HOLOGRAM_BUILDER_STORAGE_KEY = 'qsr-sensory-hologram-builder-best'
+
 export type SensoryHologramBuilderBestStats = {
   bestScorePercent: number
   bestStreak: number
