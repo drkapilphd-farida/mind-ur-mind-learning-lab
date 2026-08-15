@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, Circle, Contact, Diamond, Flame, type LucideIcon, SkipForward, Star, Triangle, UserRound } from 'lucide-react'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import type { VisualActivationExerciseProps } from './types'
 
 // Tratak Afterimage Stretches™ — Exercise 8 (the suite's closing
@@ -213,6 +214,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 }
 
 export function TratakAfterimageStretches({ onComplete, onExit }: VisualActivationExerciseProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
   const [phase, setPhase] = useState<ExercisePhase>('intro')
   const [elapsedMs, setElapsedMs] = useState(0)
 
@@ -394,8 +396,8 @@ export function TratakAfterimageStretches({ onComplete, onExit }: VisualActivati
   const targetItem = roundTargetsRef.current[scene.round] ?? FALLBACK_TARGET
 
   return (
-    <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
-      <BrandWatermark className="absolute top-4 left-6" />
+    <div className={`relative flex ${isEmbedded ? 'h-full' : 'min-h-[100dvh]'} flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center`}>
+      {!isEmbedded && <BrandWatermark className="absolute top-4 left-6" />}
       {/* Rich, layered ambient wash — the same indigo/violet/cyan
           treatment as the rest of the suite, for a consistent Brain Gym
           identity. */}
@@ -450,9 +452,11 @@ export function TratakAfterimageStretches({ onComplete, onExit }: VisualActivati
             Begin
             <ArrowRight className="size-4" aria-hidden="true" />
           </button>
-          <button type="button" onClick={onExit} className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
-            Exit
-          </button>
+          {!isEmbedded && (
+            <button type="button" onClick={onExit} className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
+              Exit
+            </button>
+          )}
         </motion.div>
       )}
 

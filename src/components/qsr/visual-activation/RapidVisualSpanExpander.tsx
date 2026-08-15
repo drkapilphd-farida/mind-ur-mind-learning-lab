@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion'
 import { ArrowRight, ScanEye, SkipForward } from 'lucide-react'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import type { VisualActivationExerciseProps } from './types'
 
 // Rapid Visual Span Expander™ — Exercise 10 of the Visual Activation
@@ -233,6 +234,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 }
 
 export function RapidVisualSpanExpander({ onComplete, onExit }: VisualActivationExerciseProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
   const [phase, setPhase] = useState<ExercisePhase>('intro')
   const [elapsedMs, setElapsedMs] = useState(0)
   const [activeToken, setActiveToken] = useState<string | null>(null)
@@ -454,8 +456,8 @@ export function RapidVisualSpanExpander({ onComplete, onExit }: VisualActivation
   const transition = computeRoundTransition(elapsedMs)
 
   return (
-    <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
-      <BrandWatermark className="absolute top-4 left-6" />
+    <div className={`relative flex ${isEmbedded ? 'h-full' : 'min-h-[100dvh]'} flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center`}>
+      {!isEmbedded && <BrandWatermark className="absolute top-4 left-6" />}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div
           className="absolute left-1/2 top-1/2 size-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
@@ -494,9 +496,11 @@ export function RapidVisualSpanExpander({ onComplete, onExit }: VisualActivation
             Begin
             <ArrowRight className="size-4" aria-hidden="true" />
           </button>
-          <button type="button" onClick={onExit} className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
-            Exit
-          </button>
+          {!isEmbedded && (
+            <button type="button" onClick={onExit} className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground">
+              Exit
+            </button>
+          )}
         </motion.div>
       )}
 

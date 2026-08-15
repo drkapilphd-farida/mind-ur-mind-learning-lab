@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import {
   ROUNDS_PER_SESSION,
   AFTERIMAGE_DURATION_MS,
@@ -35,18 +36,21 @@ function countForSelection(categorySelection: GazeCategorySelection): number {
 // heads-up that what you notice varies naturally from person to person
 // and round to round.
 export function AfterImageGazingSettings({ onStart }: AfterImageGazingSettingsProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
   const [categorySelection, setCategorySelection] = useState<GazeCategorySelection>('master')
   const afterimageSeconds = Math.round(AFTERIMAGE_DURATION_MS / 1000)
 
   return (
-    <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center">
-      <BrandWatermark className="absolute top-4 left-6" />
-      <Link
-        href="/labs/quantum-speed-reading"
-        className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
-      >
-        Exit
-      </Link>
+    <div className={`relative mx-auto flex ${isEmbedded ? 'h-full' : 'min-h-[100dvh]'} max-w-md flex-col items-center justify-center gap-8 px-6 py-16 text-center`}>
+      {!isEmbedded && <BrandWatermark className="absolute top-4 left-6" />}
+      {!isEmbedded && (
+        <Link
+          href="/labs/quantum-speed-reading"
+          className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+        >
+          Exit
+        </Link>
+      )}
 
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">After-Image / Complementary Color Gazing™</h1>

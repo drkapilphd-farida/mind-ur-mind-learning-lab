@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { ExerciseProgressBar } from './ExerciseProgressBar'
 
 type ExercisePracticeLayoutProps = {
@@ -15,11 +16,23 @@ type ExercisePracticeLayoutProps = {
 // exercise's own content. Used by every Quantum Speed Reading / Memory /
 // Focus exercise's canvas — never duplicate this layout per exercise.
 // Escape mirrors the exit button — the calm desktop equivalent of dismissing.
+//
+// True Full-Screen Viewport Lock™ — standalone (own route) renders a real
+// fixed inset-0 lock so the page itself can never scroll, with its own
+// Exit + progress header. Embedded (inside DayMasterPlayer.tsx's wizard —
+// see embeddedExerciseContext.tsx) skips both: the wizard already shows
+// an equivalent Exit/Skip header and step-progress dots immediately
+// above, so a second exit affordance + progress bar here was duplicate
+// clutter, and forcing another full viewport of height under the
+// wizard's own chrome was what made the whole page taller than one
+// screen and scroll on mobile.
 export function ExercisePracticeLayout({
   progress,
   onExit,
   children,
 }: ExercisePracticeLayoutProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
+
   // `onExit` is typically recreated every render by a canvas re-rendering on
   // every animation frame — keep the listener mount-once via a ref instead of
   // tearing it down 60 times a second.
@@ -37,14 +50,22 @@ export function ExercisePracticeLayout({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  if (isEmbedded) {
+    return (
+      <div className="flex size-full flex-col overflow-y-auto px-3 py-2">
+        <div className="flex flex-1 items-center justify-center">{children}</div>
+      </div>
+    )
+  }
+
   return (
-    // Immersive Exercise Mode™ — max() keeps the original 1.5rem/2rem
-    // padding on non-notched devices; on a device with a notch/dynamic
-    // island, env(safe-area-inset-*) grows the padding instead of the
-    // header sitting underneath it. Requires viewportFit: 'cover' in
-    // app/layout.tsx — without it these env() calls always resolve to 0.
-    <div className="flex min-h-[100dvh] flex-col px-[max(1.5rem,env(safe-area-inset-left))] py-[max(1.5rem,env(safe-area-inset-top))] sm:px-[max(2.5rem,env(safe-area-inset-left))] sm:py-[max(2rem,env(safe-area-inset-top))]">
-      <div className="flex w-full items-center gap-4">
+    // max() keeps the original 1.5rem/2rem padding on non-notched
+    // devices; on a device with a notch/dynamic island, env(safe-area-
+    // inset-*) grows the padding instead of the header sitting
+    // underneath it. Requires viewportFit: 'cover' in app/layout.tsx —
+    // without it these env() calls always resolve to 0.
+    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background px-[max(1rem,env(safe-area-inset-left))] py-[max(1rem,env(safe-area-inset-top))] sm:px-[max(2.5rem,env(safe-area-inset-left))] sm:py-[max(2rem,env(safe-area-inset-top))]">
+      <div className="flex w-full shrink-0 items-center gap-4">
         <button
           type="button"
           onClick={onExit}

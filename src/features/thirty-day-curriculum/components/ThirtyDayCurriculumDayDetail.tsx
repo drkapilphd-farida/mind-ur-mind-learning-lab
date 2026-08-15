@@ -43,6 +43,22 @@ export function ThirtyDayCurriculumDayDetail({
   const checkpoint = progress.checkpoints[day]
   const requiresCheckpoint = isCheckpointDay(day)
 
+  // True Full-Screen Viewport Lock™ — while a day isn't complete yet,
+  // DayMasterPlayer renders as a real fixed-inset-0 full-screen wizard
+  // (its own header/exit control included) the instant it mounts. The
+  // back button + Day Theme card below aren't just visually covered by
+  // that overlay — they're real interactive elements a screen reader or
+  // keyboard user could otherwise reach, so they're not rendered at all
+  // while the wizard owns the screen, not just hidden behind it. This is
+  // also what "zero parent titles/breadcrumbs during an active exercise"
+  // requires: a second header stacked above the wizard's own was exactly
+  // what forced the page taller than one screen and made it scroll.
+  if (!isCompleted) {
+    return (
+      <DayMasterPlayer day={day} onExitToRoadmap={onBack} onDayComplete={onBack} onReadyForCheckpoint={() => onLaunchAssessment(day)} />
+    )
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6">
       <button
@@ -89,29 +105,25 @@ export function ThirtyDayCurriculumDayDetail({
         </div>
       </div>
 
-      {isCompleted ? (
-        <div className={`${CARD_CLASS_NAME} p-6`}>
-          {requiresCheckpoint && checkpoint !== undefined ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold tracking-widest text-primary uppercase">Checkpoint Recorded</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-teal-500/10 p-4">
-                  <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">True WPM</p>
-                  <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.trueWpm} WPM</p>
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
-                  <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Comprehension</p>
-                  <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.comprehensionAccuracyPercent}%</p>
-                </div>
+      <div className={`${CARD_CLASS_NAME} p-6`}>
+        {requiresCheckpoint && checkpoint !== undefined ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-semibold tracking-widest text-primary uppercase">Checkpoint Recorded</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-teal-500/10 p-4">
+                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">True WPM</p>
+                <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.trueWpm} WPM</p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
+                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Comprehension</p>
+                <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.comprehensionAccuracyPercent}%</p>
               </div>
             </div>
-          ) : (
-            <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
-          )}
-        </div>
-      ) : (
-        <DayMasterPlayer day={day} onExitToRoadmap={onBack} onDayComplete={onBack} onReadyForCheckpoint={() => onLaunchAssessment(day)} />
-      )}
+          </div>
+        ) : (
+          <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
+        )}
+      </div>
     </div>
   )
 }

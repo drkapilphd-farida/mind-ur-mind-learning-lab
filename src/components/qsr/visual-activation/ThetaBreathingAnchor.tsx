@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, SkipForward, Wind } from 'lucide-react'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { cn } from '@/lib/utils'
 import type { VisualActivationExerciseProps } from './types'
 
@@ -102,6 +103,7 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 }
 
 export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExerciseProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
   const [phase, setPhase] = useState<ExercisePhase>('intro')
   const [elapsedMs, setElapsedMs] = useState(0)
   const [breathPhase, setBreathPhase] = useState<BreathPhase>('inhale')
@@ -327,19 +329,25 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   const isInhale = breathPhase === 'inhale'
 
   return (
-    // Immersive Exercise Mode™ — min-h-[100dvh] (not 70vh) for a genuine
-    // full-screen feel; max()'d safe-area padding on the watermark so it
-    // clears a notch/dynamic island without shrinking below its original
-    // spacing on non-notched devices (requires viewportFit: 'cover' in
+    // True Full-Screen Viewport Lock™ — min-h-[100dvh] for a genuine
+    // full-screen feel standalone; h-full when embedded in
+    // DayMasterPlayer.tsx's wizard, which already constrains its content
+    // area and shows its own equivalent Exit/Skip header (see
+    // embeddedExerciseContext.tsx) — this component's own watermark +
+    // persistent Exit button are duplicate clutter in that case. max()'d
+    // safe-area padding on the watermark/exit so they clear a notch/
+    // dynamic island standalone (requires viewportFit: 'cover' in
     // app/layout.tsx).
-    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center">
-      <BrandWatermark className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))]" />
-      {/* Immersive Exercise Mode™ — persistent, always-visible Exit
+    <div className={`relative flex ${isEmbedded ? 'h-full' : 'min-h-[100dvh]'} flex-col items-center justify-center gap-8 overflow-hidden px-6 py-16 text-center`}>
+      {!isEmbedded && <BrandWatermark className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))]" />}
+      {/* True Full-Screen Viewport Lock™ — persistent, always-visible Exit
           (not just during the intro phase) so a student mid-breathing-
           cycle never feels trapped; "Finish Early" below is a different
           action (advances the Visual Activation Suite via onComplete),
-          this one calls onExit directly regardless of phase. */}
-      {phase !== 'complete' && (
+          this one calls onExit directly regardless of phase. Suppressed
+          when embedded — the wizard's own "Exit to Roadmap" already
+          covers this. */}
+      {!isEmbedded && phase !== 'complete' && (
         <button
           type="button"
           onClick={onExit}

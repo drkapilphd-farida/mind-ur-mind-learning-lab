@@ -1,6 +1,7 @@
 'use client'
 
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 
 type ReadingLayoutProps = {
   maxWidthClassName?: string
@@ -11,28 +12,46 @@ type ReadingLayoutProps = {
 const SECONDARY_TEXT_BUTTON_CLASSES =
   'rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50'
 
-// Immersive Exercise Mode™ — top-4/left-6/right-6 alone would place the
-// watermark/Exit button under a notch or dynamic island on a device
-// where the browser chrome doesn't reserve that space itself (this
-// layout runs full-bleed, with no dashboard chrome above it — see
-// viewportFit: 'cover' in app/layout.tsx, the prerequisite that makes
-// env(safe-area-inset-*) resolve to a real value instead of always 0).
-// max() keeps the original 1rem/1.5rem spacing on non-notched devices —
-// this never shrinks below what the layout already looked like.
+// True Full-Screen Viewport Lock™ — top-[max(1rem,env(safe-area-inset-top))]
+// keeps the watermark/Exit button clear of a notch/dynamic island on a
+// device where the browser chrome doesn't reserve that space itself
+// (requires viewportFit: 'cover' in app/layout.tsx — without it,
+// env(safe-area-inset-*) always resolves to 0). max() keeps the original
+// 1rem spacing on non-notched devices.
 const SAFE_TOP = 'top-[max(1rem,env(safe-area-inset-top))]'
 
 // Sprint 3.2A — the one shared reading layout every Reading Mode inherits:
 // shared outer container, shared padding/vertical rhythm, shared Exit
 // control, and a parametrized "safe reading width" (maxWidthClassName)
 // instead of each mode hardcoding its own container class.
+//
+// Standalone (own route, e.g. /labs/quantum-speed-reading/rsvp): a true
+// viewport lock — fixed inset-0, never the page scrolling — with its own
+// Exit button and watermark, since no other chrome exists on that route.
+//
+// Embedded (inside DayMasterPlayer.tsx's wizard — see
+// embeddedExerciseContext.tsx): the wizard already renders an equivalent
+// Exit/Skip header immediately above this component, so rendering a
+// second one here was pure duplicate clutter, and forcing another full
+// viewport of height on top of the wizard's own chrome was exactly what
+// made the whole page taller than one screen and scroll. Embedded mode
+// fills its parent instead of the viewport, and renders only children.
 export function ReadingLayout({ maxWidthClassName = 'max-w-md', onExit, children }: ReadingLayoutProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
+
+  if (isEmbedded) {
+    return (
+      <div className={`mx-auto flex size-full ${maxWidthClassName} flex-col items-center overflow-y-auto px-4 py-3`}>{children}</div>
+    )
+  }
+
   return (
-    <div className={`relative mx-auto flex min-h-[100dvh] ${maxWidthClassName} flex-col items-center px-6 py-16`}>
-      <BrandWatermark className={`absolute left-6 ${SAFE_TOP}`} />
-      <button onClick={onExit} className={`absolute right-6 ${SAFE_TOP} ${SECONDARY_TEXT_BUTTON_CLASSES}`} aria-label="Exit exercise">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      <BrandWatermark className={`absolute left-4 sm:left-6 ${SAFE_TOP}`} />
+      <button onClick={onExit} className={`absolute right-4 sm:right-6 ${SAFE_TOP} ${SECONDARY_TEXT_BUTTON_CLASSES}`} aria-label="Exit exercise">
         Exit
       </button>
-      {children}
+      <div className={`mx-auto flex min-h-full ${maxWidthClassName} flex-col items-center px-4 py-4 sm:px-6 sm:py-16`}>{children}</div>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
+import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { Button } from '@/components/ui/button'
 import {
   HOLOGRAM_CATEGORIES,
@@ -34,18 +35,21 @@ export function SensoryHologramBuilderSettings({
   onSelectGoal,
   onStart,
 }: SensoryHologramBuilderSettingsProps): React.JSX.Element {
+  const isEmbedded = useIsEmbeddedExercise()
   const [activeCategory, setActiveCategory] = useState<HologramCategory>(HOLOGRAM_CATEGORIES[0]!)
   const goalsInCategory = GOALS_BY_CATEGORY[activeCategory]
 
   return (
-    <div className="relative mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center gap-8 px-6 py-16 text-center">
-      <BrandWatermark className="absolute top-4 left-6" />
-      <Link
-        href="/labs/quantum-speed-reading"
-        className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
-      >
-        Exit
-      </Link>
+    <div className={`relative mx-auto flex ${isEmbedded ? 'h-full' : 'min-h-[100dvh]'} max-w-2xl flex-col items-center gap-8 px-6 py-16 text-center`}>
+      {!isEmbedded && <BrandWatermark className="absolute top-4 left-6" />}
+      {!isEmbedded && (
+        <Link
+          href="/labs/quantum-speed-reading"
+          className="absolute top-4 right-6 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+        >
+          Exit
+        </Link>
+      )}
 
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Sensory Hologram Builder™</h1>

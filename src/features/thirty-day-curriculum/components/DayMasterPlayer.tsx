@@ -11,6 +11,7 @@ import { setActiveWizardDay } from '../curriculumReturnRouting'
 import { isCurriculumExerciseGated } from '../curriculumGatedExercises'
 import { getEmbeddableComponent } from '../curriculumExerciseComponentRegistry'
 import { markCurriculumDayComplete } from '../curriculumProgress'
+import { EmbeddedExerciseProvider } from '../embeddedExerciseContext'
 
 const CARD_CLASS_NAME = 'relative overflow-hidden rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 shadow-sm backdrop-blur-md dark:bg-[#16171A]/95'
 
@@ -179,42 +180,55 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
   const EmbeddedComponent = isGated ? undefined : getEmbeddableComponent(currentExerciseId)
 
   return (
-    <div className={CARD_CLASS_NAME} data-day-master-player={day} data-wizard-step={stepIndex}>
-      {/* No wizard-level BrandWatermark here — the day theme card above
-          already shows one, and every embedded exercise (built for
-          full-page standalone use) renders its own too; a third one on
-          this wrapper only collided with the step header text and
-          duplicated the embedded exercise's own watermark. */}
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 px-6 py-4">
+    // True Full-Screen Viewport Lock™ — fixed inset-0 so an active step
+    // is always exactly one screen: this header + progress dots + the
+    // embedded exercise's own content, never taller, never scrolling as
+    // a page. This wizard is the ONLY chrome visible while playing — see
+    // ThirtyDayCurriculumDayDetail.tsx, which hides its own back button
+    // and Day Theme card while this is rendering, precisely so a second,
+    // parent-level header can't stack underneath this one and force a
+    // second screen's worth of height (that stacking was the mobile
+    // scroll bug this fixes). overflow-hidden on the outer shell + a
+    // flex-1 scrolling content region is the safety net if an embedded
+    // exercise's own content ever runs taller than the remaining space —
+    // the header/progress dots never scroll away regardless.
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background" data-day-master-player={day} data-wizard-step={stepIndex}>
+      {/* No wizard-level BrandWatermark here — every embedded exercise
+          (built for full-page standalone use) renders its own too; a
+          second one on this wrapper only collided with the step header
+          text and duplicated the embedded exercise's own watermark. */}
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-6 sm:py-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+          <p className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase sm:text-[10px]">
             Step {stepIndex + 1} of {queueIds.length} · {CURRICULUM_CATEGORY_LABELS[exercise.category]}
           </p>
-          <p className="truncate text-sm font-semibold text-foreground">{exercise.title}</p>
+          <p className="truncate text-xs font-semibold text-foreground sm:text-sm">{exercise.title}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <button
             type="button"
             onClick={handleStepComplete}
-            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground sm:px-3"
             data-skip-exercise="true"
           >
-            Skip Exercise
+            <span className="hidden sm:inline">Skip Exercise</span>
+            <span className="sm:hidden">Skip</span>
             <SkipForward className="size-3.5" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={handleExitWizard}
-            className="flex items-center gap-1 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="flex items-center gap-1 rounded-full border border-border/60 px-2 py-1.5 text-xs font-medium text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground sm:px-3"
             data-exit-wizard="true"
+            aria-label="Exit to Roadmap"
           >
             <X className="size-3.5" aria-hidden="true" />
-            Exit to Roadmap
+            <span className="hidden sm:inline">Exit to Roadmap</span>
           </button>
         </div>
       </div>
 
-      <div className="flex gap-1.5 px-6 pt-3" aria-hidden="true">
+      <div className="flex shrink-0 gap-1 px-3 pt-2 sm:gap-1.5 sm:px-6 sm:pt-3" aria-hidden="true">
         {queueIds.map((id, index) => (
           <div
             key={`${id}-${index}`}
@@ -223,14 +237,16 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
         ))}
       </div>
 
-      <div className="min-h-[55vh]">
-        {isGated ? (
-          <GatedStepHandoff exercise={exercise} onContinue={() => handleGatedHandoff(exercise, stepIndex)} />
-        ) : EmbeddedComponent !== undefined ? (
-          <EmbeddedComponent key={`${currentExerciseId}-${stepIndex}`} onComplete={handleStepComplete} onExit={handleExitWizard} />
-        ) : (
-          <GatedStepHandoff exercise={exercise} onContinue={handleStepComplete} skipLabel="Skip this step" />
-        )}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <EmbeddedExerciseProvider>
+          {isGated ? (
+            <GatedStepHandoff exercise={exercise} onContinue={() => handleGatedHandoff(exercise, stepIndex)} />
+          ) : EmbeddedComponent !== undefined ? (
+            <EmbeddedComponent key={`${currentExerciseId}-${stepIndex}`} onComplete={handleStepComplete} onExit={handleExitWizard} />
+          ) : (
+            <GatedStepHandoff exercise={exercise} onContinue={handleStepComplete} skipLabel="Skip this step" />
+          )}
+        </EmbeddedExerciseProvider>
       </div>
     </div>
   )
