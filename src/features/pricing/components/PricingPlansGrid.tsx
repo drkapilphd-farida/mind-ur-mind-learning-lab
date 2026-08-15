@@ -9,13 +9,15 @@ import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transforme
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
 import { RAZORPAY_SUBSCRIPTION_LINKS, type BillingPeriod } from '../razorpaySubscriptionLinks'
 
-// Real Monthly prices — Yearly pricing hasn't been supplied yet, so that
-// case still falls back to a clearly-marked placeholder (not a guessed
-// number) rather than implying a yearly price that isn't confirmed.
-// Razorpay's own checkout page always shows the real, authoritative
-// price regardless of what this label says.
-function priceLabelFor(monthlyPrice: string, billingPeriod: BillingPeriod): string {
-  return billingPeriod === 'monthly' ? `${monthlyPrice}/month` : 'Billed yearly — see price at checkout'
+// Real, confirmed prices for both billing periods — Razorpay's own
+// checkout page always shows the real, authoritative amount regardless
+// of what these labels say, but there's no longer a "pending" case to
+// fall back to.
+const STARTER_PRICE = { monthly: '₹399', yearly: '₹2,999' } as const
+const FAMILY_PRICE = { monthly: '₹699', yearly: '₹4,999' } as const
+
+function ctaLabelFor(billingPeriod: BillingPeriod, price: { monthly: string; yearly: string }): string {
+  return billingPeriod === 'monthly' ? `Subscribe Monthly — ${price.monthly}/month` : `Subscribe Yearly — ${price.yearly}/year`
 }
 
 type PlanCardProps = {
@@ -23,28 +25,39 @@ type PlanCardProps = {
   name: string
   subtitle?: string
   description: string
-  priceLabel: string
+  priceAmount: string
+  priceUnit: string
   features: readonly string[]
   cta: React.ReactNode
   highlighted?: boolean
+  badge?: string
 }
 
-function PlanCard({ id, name, subtitle, description, priceLabel, features, cta, highlighted = false }: PlanCardProps): React.JSX.Element {
+function PlanCard({ id, name, subtitle, description, priceAmount, priceUnit, features, cta, highlighted = false, badge }: PlanCardProps): React.JSX.Element {
   return (
     <div
       id={id}
       className={cn(
-        'flex flex-col gap-6 rounded-3xl border p-8 scroll-mt-24',
-        highlighted ? 'border-primary/30 bg-primary/[0.03] shadow-sm' : 'border-border/60 bg-card',
+        'relative flex flex-col gap-6 rounded-3xl border p-8 scroll-mt-24',
+        highlighted ? 'border-2 border-primary bg-primary/[0.04] shadow-lg ring-1 ring-primary/20' : 'border-border/60 bg-card',
       )}
     >
+      {badge && (
+        <span className="brand-gradient absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-md">
+          {badge}
+        </span>
+      )}
+
       <div>
         <div className="flex items-baseline gap-2">
           <p className="text-lg font-semibold text-foreground">{name}</p>
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
-        <p className="mt-4 text-sm font-medium text-foreground">{priceLabel}</p>
+        <div className="mt-4 flex items-baseline gap-1.5">
+          <span className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{priceAmount}</span>
+          <span className="text-sm font-medium text-muted-foreground">{priceUnit}</span>
+        </div>
       </div>
 
       <ul className="flex flex-1 flex-col gap-3">
@@ -67,12 +80,18 @@ function PlanCard({ id, name, subtitle, description, priceLabel, features, cta, 
 // the Referer header). No client-side redirect logic needed for a link
 // this simple, so nothing here adds JS-driven navigation that would only
 // make it slower.
-function SubscribeButton({ href, label }: { href: string; label: string }): React.JSX.Element {
+// `compact` shrinks the label text and drops the icon — the Button
+// component's base styles are a fixed-height, single-line
+// `whitespace-nowrap` (see button.tsx), so a long "Subscribe Yearly —
+// ₹2,999/year"-style label needs the extra room to stay on one line
+// without spilling past the card at narrower grid-column widths; short
+// labels ("Get Started") don't need it.
+function SubscribeButton({ href, label, compact = false }: { href: string; label: string; compact?: boolean }): React.JSX.Element {
   return (
-    <Button asChild size="lg" className="w-full rounded-full">
+    <Button asChild size="lg" className={cn('w-full rounded-full', compact && 'px-3 text-xs')}>
       <a href={href} target="_blank" rel="noopener noreferrer">
         {label}
-        <ExternalLink className="size-4" aria-hidden="true" />
+        {!compact && <ExternalLink className="size-4 shrink-0" aria-hidden="true" />}
       </a>
     </Button>
   )
@@ -103,10 +122,11 @@ function BillingPeriodToggle({ value, onChange }: { value: BillingPeriod; onChan
 // Pricing Plans Grid — the one place billingPeriod state lives. Free and
 // Institutional don't vary by billing period (Free has no period at all;
 // Institutional is Yearly/Custom only, per the brief), so only the
-// Starter and Family/Pro cards' CTA hrefs actually change when the
-// toggle flips.
+// Starter and Family/Pro cards' price, priceUnit, and CTA actually change
+// when the toggle flips.
 export function PricingPlansGrid(): React.JSX.Element {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
+  const periodUnit = billingPeriod === 'monthly' ? '/month' : '/year'
 
   return (
     <div className="mt-10">
@@ -114,14 +134,15 @@ export function PricingPlansGrid(): React.JSX.Element {
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <PlanCard
-          name="Free"
-          description="Enough to try the AI Document Transformer for real."
-          priceLabel="₹0 forever"
+          name="The Foundation"
+          subtitle="Start for free"
+          description="Your free trial of the AI Document Transformer — upgrade anytime."
+          priceAmount="₹0"
+          priceUnit="forever"
           features={[
-            `${FREE_TIER_DOCUMENT_LIMIT} AI document transformations`,
+            `${FREE_TIER_DOCUMENT_LIMIT} free AI document transformations to try it out`,
             'Spider Notes & AI summaries on those documents',
             'Quantum Speed Reading & Active Recall sessions',
-            'Full access to the core Intelligence Labs',
           ]}
           cta={
             <Button asChild variant="outline" size="lg" className="w-full rounded-full">
@@ -132,42 +153,39 @@ export function PricingPlansGrid(): React.JSX.Element {
 
         <PlanCard
           id="starter"
-          name="Starter"
-          subtitle="Individual"
+          name="Individual Growth"
+          subtitle="Unlock unlimited potential"
           description="For one student who wants to transform without limits."
-          priceLabel={priceLabelFor('₹399', billingPeriod)}
+          priceAmount={STARTER_PRICE[billingPeriod]}
+          priceUnit={periodUnit}
           features={[
-            'Unlimited AI document transformations',
-            'Unlimited Spider Notes & AI summaries',
-            'Unlimited Quantum sessions',
-            'Everything in Free',
+            '~20 AI-Powered Cognitive Transformations/month',
+            'Advanced Memory & Speed Drills',
+            'Unlimited Quantum Speed Reading Sessions',
+            'Everything in The Foundation',
           ]}
           cta={
-            <SubscribeButton
-              href={RAZORPAY_SUBSCRIPTION_LINKS.starter[billingPeriod]}
-              label={`Subscribe ${billingPeriod === 'monthly' ? 'Monthly' : 'Yearly'}`}
-            />
+            <SubscribeButton href={RAZORPAY_SUBSCRIPTION_LINKS.starter[billingPeriod]} label={ctaLabelFor(billingPeriod, STARTER_PRICE)} compact />
           }
         />
 
         <PlanCard
           id="family-pro"
           highlighted
-          name="Family"
-          subtitle="Pro"
+          badge="Recommended"
+          name="Genius Family Lab"
+          subtitle="Master learning together"
           description="For families with more than one student learning together."
-          priceLabel={priceLabelFor('₹699', billingPeriod)}
+          priceAmount={FAMILY_PRICE[billingPeriod]}
+          priceUnit={periodUnit}
           features={[
-            'Everything in Starter, for every child on the plan',
-            'Individual progress & Mind Score per child',
-            'Priority AI processing',
-            'Family-wide document library',
+            '~80 AI-Powered Cognitive Transformations/month, shared with your family',
+            'Family-wide Intelligence Dashboard',
+            'Individual Progress & Mind Score per child',
+            'Everything in Individual Growth',
           ]}
           cta={
-            <SubscribeButton
-              href={RAZORPAY_SUBSCRIPTION_LINKS.family[billingPeriod]}
-              label={`Subscribe ${billingPeriod === 'monthly' ? 'Monthly' : 'Yearly'}`}
-            />
+            <SubscribeButton href={RAZORPAY_SUBSCRIPTION_LINKS.family[billingPeriod]} label={ctaLabelFor(billingPeriod, FAMILY_PRICE)} compact />
           }
         />
 
@@ -175,9 +193,10 @@ export function PricingPlansGrid(): React.JSX.Element {
           name="Institutional"
           subtitle="School"
           description="For schools and coaching centers with 50+ students."
-          priceLabel="Yearly · Custom pricing"
+          priceAmount="Custom"
+          priceUnit="yearly pricing"
           features={[
-            'Everything in Family',
+            'Everything in Genius Family Lab',
             '50+ student seats',
             'Admin & teacher dashboards',
             'Dedicated onboarding support',

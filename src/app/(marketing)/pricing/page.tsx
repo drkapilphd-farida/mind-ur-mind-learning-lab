@@ -3,7 +3,7 @@ import { PricingPlansGrid } from '@/features/pricing/components/PricingPlansGrid
 
 export const metadata: Metadata = {
   title: 'Pricing — Quantum Mind Learning Lab™',
-  description: 'Free, Starter, Family, and Institutional plans for Quantum Mind Learning Lab™.',
+  description: 'The Foundation, Individual Growth, Genius Family Lab, and Institutional plans for Quantum Mind Learning Lab™.',
 }
 
 // Live Razorpay Subscription Links™ — Starter and Family/Pro now
