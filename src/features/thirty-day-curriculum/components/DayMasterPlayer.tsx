@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, PartyPopper, Sparkles, X } from 'lucide-react'
+import { ArrowRight, PartyPopper, SkipForward, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CURRICULUM_CATEGORY_LABELS, getCurriculumExerciseById, type CurriculumCatalogExercise } from '../curriculumExerciseCatalog'
 import { buildCurriculumDayPlan, isCheckpointDay } from '../curriculumDatabase'
@@ -47,6 +47,11 @@ type DayMasterPlayerProps = {
 // to driving everything itself — sessionStorage is only ever a
 // hand-off baton across a real navigation, never the source of truth
 // while this component is playing.
+//
+// The header's "Skip Exercise" control reuses handleStepComplete
+// directly — a skip and a real completion advance the wizard identically
+// (including correctly triggering finishDay() if skipping happens to be
+// the final step), the only difference is which UI element triggered it.
 export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyForCheckpoint }: DayMasterPlayerProps): React.JSX.Element {
   const router = useRouter()
   const plan = useMemo(() => buildCurriculumDayPlan(day), [day])
@@ -86,6 +91,14 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
     setMode('celebrating')
   }
 
+  // Shared by both real completion (each embedded exercise's own
+  // onComplete) and the header's "Skip Exercise" button below — a skip is
+  // just an early "this step's slot in the wizard is done," advancing the
+  // exact same way, including correctly triggering finishDay() (with its
+  // real checkpoint-vs-not branching) when skipping happens to be the
+  // final step. The functional setState form means rapid double-clicks
+  // (e.g. an accidental double "Skip") can only ever advance once per
+  // actual state update, never skip two steps from one stale read.
   function handleStepComplete(): void {
     setStepIndex((current) => {
       if (current === null) return current
@@ -179,15 +192,26 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
           </p>
           <p className="truncate text-sm font-semibold text-foreground">{exercise.title}</p>
         </div>
-        <button
-          type="button"
-          onClick={handleExitWizard}
-          className="flex shrink-0 items-center gap-1 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          data-exit-wizard="true"
-        >
-          <X className="size-3.5" aria-hidden="true" />
-          Exit to Roadmap
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={handleStepComplete}
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            data-skip-exercise="true"
+          >
+            Skip Exercise
+            <SkipForward className="size-3.5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={handleExitWizard}
+            className="flex items-center gap-1 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            data-exit-wizard="true"
+          >
+            <X className="size-3.5" aria-hidden="true" />
+            Exit to Roadmap
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-1.5 px-6 pt-3" aria-hidden="true">
