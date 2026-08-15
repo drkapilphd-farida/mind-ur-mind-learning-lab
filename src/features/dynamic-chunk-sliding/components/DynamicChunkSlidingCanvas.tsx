@@ -9,6 +9,7 @@ import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessi
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
 import type { ReadingUnit } from '@/features/reading-engine/types'
+import { loadSoundEnabledPreference } from '@/lib/audio/soundPreference'
 
 // Chunks here are always 3-4 words (see splitIntoChunks in the dataset
 // file), a narrower and more consistent shape than Phrase Reading Mode's
@@ -220,6 +221,7 @@ export function DynamicChunkSlidingCanvas({
   }, [currentUnitIndex])
 
   useEffect(() => {
+    if (!loadSoundEnabledPreference()) return undefined
     const audioContext = new AudioContext()
     const now = audioContext.currentTime
 

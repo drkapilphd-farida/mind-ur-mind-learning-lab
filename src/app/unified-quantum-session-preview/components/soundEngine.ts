@@ -1,5 +1,7 @@
 'use client'
 
+import { loadSoundEnabledPreference } from '@/lib/audio/soundPreference'
+
 // A tiny, dependency-free chime engine — every sound is synthesized on
 // the fly via the Web Audio API (sine-wave oscillators + a gain
 // envelope), so there are no audio assets to ship or load. One shared
@@ -7,6 +9,12 @@
 // block audio until a genuine user gesture — every call site here is
 // already wired to a click handler or a completion moment that follows
 // one, so this never needs an explicit "enable sound" prompt.
+//
+// Global Sound Preference™ — playTone is the one choke point every chime
+// below funnels through, so gating it here makes every existing call
+// site (quantum-journey, brain-gym, unified-session, ComprehensionQuestionFlow,
+// etc.) respect the Settings sound toggle automatically, with no changes
+// needed at any of those call sites.
 
 let sharedAudioContext: AudioContext | null = null
 
@@ -29,6 +37,7 @@ function getAudioContext(): AudioContext | null {
 // short melodic phrase (see the arpeggios below) without stacking
 // setTimeout calls.
 function playTone(frequencyHz: number, durationMs: number, startDelayMs = 0, peakGain = 0.16): void {
+  if (!loadSoundEnabledPreference()) return
   const ctx = getAudioContext()
   if (ctx === null) return
 

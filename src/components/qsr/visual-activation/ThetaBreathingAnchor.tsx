@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, SkipForward, Wind } from 'lucide-react'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { loadSoundEnabledPreference } from '@/lib/audio/soundPreference'
 import { cn } from '@/lib/utils'
 import type { VisualActivationExerciseProps } from './types'
 
@@ -191,6 +192,7 @@ export function ThetaBreathingAnchor({ onComplete, onExit }: VisualActivationExe
   function initAudio(): void {
     if (typeof window === 'undefined' || typeof window.AudioContext === 'undefined') return
     if (audioContextRef.current) return
+    if (!loadSoundEnabledPreference()) return
 
     const audioContext = new AudioContext()
     const now = audioContext.currentTime

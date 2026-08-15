@@ -6,6 +6,7 @@ import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessi
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingProgressBar } from '@/features/reading-engine/components/ReadingProgressBar'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
+import { playCorrectChime, playGentleMissChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
 import {
   ROUNDS_PER_SESSION,
   PRESENTATION_DURATION_CHOICES_MS,
@@ -188,9 +189,11 @@ export function QuantumMentalRotationCanvas({ onComplete, onExitRequested }: Qua
       setTotalScore((score) => score + pointsEarned)
       setFastestReactionMs((best) => (best === null ? reactionTimeMs : Math.min(best, reactionTimeMs)))
       setLastOutcome({ isCorrect: true, pointsEarned, wasFast })
+      playCorrectChime()
     } else {
       setStreak(0)
       setLastOutcome({ isCorrect: false, pointsEarned: 0, wasFast: false })
+      playGentleMissChime()
     }
   }
 
@@ -200,6 +203,7 @@ export function QuantumMentalRotationCanvas({ onComplete, onExitRequested }: Qua
     setPhase('revealing')
     setStreak(0)
     setLastOutcome({ isCorrect: false, pointsEarned: 0, wasFast: false })
+    playGentleMissChime()
   }
 
   if (currentRound === undefined) {
@@ -333,7 +337,7 @@ export function QuantumMentalRotationCanvas({ onComplete, onExitRequested }: Qua
                     // the celebratory highlight strictly inside the card.
                     ringClassName = `border-emerald-500 shadow-[inset_0_0_20px_rgba(16,185,129,0.4)] ${prefersReducedMotion ? '' : 'scale-105'}`
                   } else if (isPickedWrong) {
-                    ringClassName = `border-red-500 ${prefersReducedMotion ? '' : 'animate-pulse'}`
+                    ringClassName = `border-red-500 ${prefersReducedMotion ? '' : 'animate-shake'}`
                   } else {
                     ringClassName = 'border-border opacity-30'
                   }
@@ -346,7 +350,7 @@ export function QuantumMentalRotationCanvas({ onComplete, onExitRequested }: Qua
                     disabled={phase !== 'recall'}
                     onClick={() => handleGuess(colorName)}
                     aria-label={`Answer: ${swatch.label}`}
-                    className={`flex aspect-square items-center justify-center rounded-2xl border-2 p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 ${ringClassName}`}
+                    className={`flex aspect-square items-center justify-center rounded-2xl border-2 p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 active:scale-95 ${ringClassName}`}
                     style={{ backgroundColor: swatch.hex }}
                   />
                 )

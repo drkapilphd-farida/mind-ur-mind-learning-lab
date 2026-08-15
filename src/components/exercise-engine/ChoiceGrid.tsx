@@ -5,9 +5,11 @@
 // Used by UniversalExercisePlayer; also available to any future exercise
 // that needs a multiple-choice response UI.
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { FitText } from '@/components/typography/FitText'
+import { playCorrectChime, playGentleMissChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
+import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 
 type ChoiceGridProps = {
   options: string[]               // exactly 4 options
@@ -34,6 +36,8 @@ export function ChoiceGrid({
   disabled = false,
   promptLabel = 'What did you see?',
 }: ChoiceGridProps): React.JSX.Element {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   // Keyboard shortcuts 1–4
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
@@ -44,6 +48,22 @@ export function ChoiceGrid({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [disabled, isFeedback, onSelect])
+
+  // Immersive Micro-Interactions™ — fires exactly once per feedback
+  // window, on the rising edge of isFeedback (never on every re-render
+  // while it's already true), so every consumer of this universal grid
+  // (UniversalExercisePlayer and any future exercise) gets a correct/miss
+  // chime for free without wiring it at each call site. Gated by the
+  // Global Sound Preference™ inside playCorrectChime/playGentleMissChime
+  // themselves.
+  const wasFeedbackRef = useRef(false)
+  useEffect(() => {
+    if (isFeedback && !wasFeedbackRef.current) {
+      if (selectedIndex === correctIndex) playCorrectChime()
+      else playGentleMissChime()
+    }
+    wasFeedbackRef.current = isFeedback
+  }, [isFeedback, selectedIndex, correctIndex])
 
   return (
     <div className="w-full space-y-3">
@@ -68,11 +88,11 @@ export function ChoiceGrid({
                 'text-base font-medium transition-all duration-150 focus-visible:outline-none',
                 'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
                 !isFeedback && !disabled
-                  ? 'border-border bg-card text-foreground hover:bg-muted hover:border-foreground/20 active:scale-[0.98]'
+                  ? 'border-border bg-card text-foreground hover:bg-muted hover:border-foreground/20 active:scale-95'
                   : isThisCorrect
-                    ? 'border-success bg-success/10 text-success'
+                    ? `border-success bg-success/10 text-success ${prefersReducedMotion ? '' : 'scale-105'}`
                     : isThisWrong
-                      ? 'border-destructive bg-destructive/10 text-destructive'
+                      ? `border-destructive bg-destructive/10 text-destructive ${prefersReducedMotion ? '' : 'animate-shake'}`
                       : 'border-border bg-card text-muted-foreground opacity-50',
               )}
             >

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
 import { UpdateProfileForm } from '@/features/user/components/UpdateProfileForm'
 import { UpdatePasswordForm } from '@/features/user/components/UpdatePasswordForm'
+import { SoundPreferenceToggle } from '@/features/user/components/SoundPreferenceToggle'
 import { listRetakeableAssessments } from '@/features/quantum-speed-reading-runtime/assessment/actions/listRetakeableAssessments'
 import { RetakeAssessmentButton } from '@/features/quantum-speed-reading-runtime/assessment/components/RetakeAssessmentButton'
 
@@ -59,6 +60,18 @@ export default async function SettingsPage(): Promise<React.JSX.Element> {
             </p>
           </div>
           <UpdatePasswordForm />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-base font-medium">Sound</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Control audio during exercises.
+            </p>
+          </div>
+          <SoundPreferenceToggle />
         </section>
 
         {retakeableAssessments.length > 0 && (

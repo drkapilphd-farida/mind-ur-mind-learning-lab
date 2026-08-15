@@ -473,6 +473,36 @@
 }
 
 /*
+ * Immersive Micro-Interactions™ — a gentle horizontal shake for a wrong
+ * answer, replacing a bare opacity animate-pulse with real motion that
+ * reads as "no, not that one" without feeling harsh. Small amplitude
+ * (4px) and short (350ms, one pass, not looping) — a nudge, not a
+ * shove. Always gated behind usePrefersReducedMotion at the call site.
+ */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+/*
  * Pre-Reading Preparation's™ calm breathing circle (Quantum Speed
  * Reading™ Sprint 1) — a slow, gentle scale/opacity cycle, deliberately
  * much slower than exercise-reduced-motion-pulse above (4s vs typically

@@ -6,6 +6,8 @@ import { formatElapsedTime } from '@/features/quantum-speed-reading/readingSessi
 import { ReadingLayout } from '@/features/reading-engine/components/ReadingLayout'
 import { ReadingProgressBar } from '@/features/reading-engine/components/ReadingProgressBar'
 import { ReadingStatTile } from '@/features/reading-engine/components/ReadingStatTile'
+import { playCorrectChime, playGentleMissChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
+import { loadSoundEnabledPreference } from '@/lib/audio/soundPreference'
 import {
   ROUNDS_PER_SESSION,
   PERFECT_SESSION_BONUS,
@@ -34,6 +36,45 @@ const FLASH_DURATION_MS_BY_CATEGORY: Record<PhotographicMemoryCategory, number> 
 }
 const REVEAL_DURATION_MS = 900
 const RECALL_TIME_LIMIT_MS = 5000
+
+// Ambient Focus Drone™ — the same calm, deep singing-bowl drone Dynamic
+// Chunk Sliding uses (own-copy, per this app's established convention of
+// duplicating small self-contained logic rather than cross-feature
+// coupling — see DynamicChunkSlidingCanvas.tsx's identical comment),
+// tuned for "invisible, profoundly calming backdrop" rather than a
+// pitch sweep. Photographic Memory is exactly the kind of focus-heavy
+// recall exercise that tuning was designed for, so reused unchanged
+// rather than re-tuned from scratch.
+const FUNDAMENTAL_HZ = 110
+const RESTING_GAIN = 0.014
+const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
+const RELEASE_TIME_CONSTANT_S = 1.6
+const RELEASE_SETTLE_MS = RELEASE_TIME_CONSTANT_S * 5 * 1000
+const LOWPASS_CUTOFF_HZ = 900
+const REVERB_WET_LEVEL = 0.28
+const REVERB_DURATION_S = 2.0
+const REVERB_DECAY = 2.8
+
+const HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: number }[] = [
+  { multiplier: 1, weight: 1, pan: 0 },
+  { multiplier: 2 ** (7 / 1200), weight: 0.85, pan: 0 },
+  { multiplier: 2, weight: 0.3, pan: 0.2 },
+  { multiplier: 3, weight: 0.15, pan: -0.2 },
+]
+
+type HarmonicVoice = { oscillator: OscillatorNode }
+
+function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
+  const length = Math.floor(audioContext.sampleRate * REVERB_DURATION_S)
+  const impulse = audioContext.createBuffer(2, length, audioContext.sampleRate)
+  for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+    const channelData = impulse.getChannelData(channel)
+    for (let i = 0; i < length; i++) {
+      channelData[i] = (Math.random() * 2 - 1) * (1 - i / length) ** REVERB_DECAY
+    }
+  }
+  return impulse
+}
 
 type RoundPhase = 'flashing' | 'recall' | 'revealing'
 
@@ -122,6 +163,85 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
   const [isComplete, setIsComplete] = useState(false)
   const hasCalledCompleteRef = useRef(false)
   const elapsedMsRef = useRef(0)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const masterGainRef = useRef<GainNode | null>(null)
+  const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
+
+  // Ambient Focus Drone™ — checked once on mount against the Global
+  // Sound Preference™; if sound is off, no AudioContext is even created.
+  // Not reactive to a later toggle mid-session (matches this app's
+  // established once-on-mount ambient-audio pattern — see
+  // DynamicChunkSlidingCanvas.tsx's identical effect shape).
+  useEffect(() => {
+    if (!loadSoundEnabledPreference()) return
+    const audioContext = new AudioContext()
+    const now = audioContext.currentTime
+
+    const masterGain = audioContext.createGain()
+    masterGain.gain.setValueAtTime(0, now)
+    masterGain.gain.setTargetAtTime(RESTING_GAIN, now, AMBIENT_FADE_IN_TIME_CONSTANT_S)
+
+    const filter = audioContext.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(LOWPASS_CUTOFF_HZ, now)
+    filter.Q.setValueAtTime(0.7, now)
+
+    const dryGain = audioContext.createGain()
+    dryGain.gain.setValueAtTime(1, now)
+    const wetGain = audioContext.createGain()
+    wetGain.gain.setValueAtTime(REVERB_WET_LEVEL, now)
+    const convolver = audioContext.createConvolver()
+    convolver.buffer = createBowlResonanceImpulse(audioContext)
+
+    masterGain.connect(filter)
+    filter.connect(dryGain)
+    dryGain.connect(audioContext.destination)
+    filter.connect(convolver)
+    convolver.connect(wetGain)
+    wetGain.connect(audioContext.destination)
+
+    const voices: HarmonicVoice[] = HARMONIC_LAYERS.map(({ multiplier, weight, pan }) => {
+      const oscillator = audioContext.createOscillator()
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(FUNDAMENTAL_HZ * multiplier, now)
+
+      const voiceGain = audioContext.createGain()
+      voiceGain.gain.setValueAtTime(weight, now)
+
+      const panner = audioContext.createStereoPanner()
+      panner.pan.setValueAtTime(pan, now)
+
+      oscillator.connect(voiceGain)
+      voiceGain.connect(panner)
+      panner.connect(masterGain)
+      oscillator.start()
+
+      return { oscillator }
+    })
+
+    audioContextRef.current = audioContext
+    masterGainRef.current = masterGain
+    harmonicVoicesRef.current = voices
+
+    return () => {
+      const context = audioContextRef.current
+      const gain = masterGainRef.current
+      const activeVoices = harmonicVoicesRef.current
+      if (context && gain) {
+        const stopNow = context.currentTime
+        gain.gain.cancelScheduledValues(stopNow)
+        gain.gain.setValueAtTime(gain.gain.value, stopNow)
+        gain.gain.setTargetAtTime(0, stopNow, RELEASE_TIME_CONSTANT_S)
+      }
+      setTimeout(() => {
+        for (const voice of activeVoices) voice.oscillator.stop()
+        void context?.close().catch(() => undefined)
+      }, RELEASE_SETTLE_MS)
+      audioContextRef.current = null
+      masterGainRef.current = null
+      harmonicVoicesRef.current = []
+    }
+  }, [])
 
   useEffect(() => {
     elapsedMsRef.current = elapsedMs
@@ -208,9 +328,11 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
       setCorrectCount((count) => count + 1)
       setTotalScore((score) => score + pointsEarned)
       setLastOutcome({ isCorrect: true, pointsEarned })
+      playCorrectChime()
     } else {
       setStreak(0)
       setLastOutcome({ isCorrect: false, pointsEarned: 0 })
+      playGentleMissChime()
     }
   }
 
@@ -218,6 +340,7 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
     if (phase !== 'recall') return
     setSelectedOptionId(null)
     setPhase('revealing')
+    playGentleMissChime()
     setStreak(0)
     setLastOutcome({ isCorrect: false, pointsEarned: 0 })
   }
@@ -307,7 +430,7 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
                 if (isCorrectOption) {
                   stateClassName = `border-emerald-500/70 bg-emerald-500/5 shadow-[0_0_24px_rgba(16,185,129,0.45)] ${prefersReducedMotion ? '' : 'scale-105'}`
                 } else if (isPickedWrong) {
-                  stateClassName = `border-red-500/60 bg-red-500/10 ${prefersReducedMotion ? '' : 'animate-pulse'}`
+                  stateClassName = `border-red-500/60 bg-red-500/10 ${prefersReducedMotion ? '' : 'animate-shake'}`
                 } else {
                   stateClassName = 'border-border opacity-30'
                 }
@@ -320,7 +443,7 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
                   disabled={phase !== 'recall'}
                   onClick={() => handleGuess(option.optionId)}
                   aria-label="Photographic memory option"
-                  className={`flex aspect-square items-center justify-center rounded-2xl border p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 ${stateClassName}`}
+                  className={`flex aspect-square items-center justify-center rounded-2xl border p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 active:scale-95 ${stateClassName}`}
                 >
                   {renderOptionContent(option)}
                 </button>
