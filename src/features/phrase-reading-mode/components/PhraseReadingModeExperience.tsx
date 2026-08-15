@@ -31,7 +31,15 @@ const BEST_WPM_STORAGE_KEY = 'qsr-phrase-reading-mode-best'
 // per mount via pickSessionCategory (client-only, called only from this
 // effect — never a lazy useState initializer — see that function's own doc
 // comment for the full rationale).
-export function PhraseReadingModeExperience(): React.JSX.Element {
+type PhraseReadingModeExperienceProps = {
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. Takes
+  // priority over the internal curriculum-session hook below so a wizard
+  // rendering this component directly in-page (no sessionStorage session
+  // involved) still gets notified on natural completion.
+  onComplete?: () => void
+}
+
+export function PhraseReadingModeExperience({ onComplete }: PhraseReadingModeExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const curriculumSession = useCurriculumSessionCompletion('phrase-reading-mode', LAB_HREF)
 
@@ -132,7 +140,7 @@ export function PhraseReadingModeExperience(): React.JSX.Element {
         result={completedResult}
         bestWpm={bestWpm}
         onReadAgain={handleReadAgain}
-        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
+        {...(onComplete !== undefined ? { onContinue: onComplete } : curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
       />
     )
   }

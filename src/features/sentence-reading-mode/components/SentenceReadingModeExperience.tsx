@@ -35,7 +35,15 @@ const BEST_WPM_STORAGE_KEY = 'qsr-sentence-reading-mode-best'
 // category is picked fresh per mount via pickSessionCategory (client-only,
 // called only from this effect — never a lazy useState initializer — see
 // that function's own doc comment for the full rationale).
-export function SentenceReadingModeExperience(): React.JSX.Element {
+type SentenceReadingModeExperienceProps = {
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. Takes
+  // priority over the internal curriculum-session hook below so a wizard
+  // rendering this component directly in-page (no sessionStorage session
+  // involved) still gets notified on natural completion.
+  onComplete?: () => void
+}
+
+export function SentenceReadingModeExperience({ onComplete }: SentenceReadingModeExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const curriculumSession = useCurriculumSessionCompletion('sentence-reading-mode', LAB_HREF)
 
@@ -156,7 +164,7 @@ export function SentenceReadingModeExperience(): React.JSX.Element {
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
+        {...(onComplete !== undefined ? { onContinue: onComplete } : curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
         subtitle={quizScore !== null ? `Nice, natural sentence reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, natural sentence reading.'}
         result={completedResult}
         bestWpm={bestWpm}

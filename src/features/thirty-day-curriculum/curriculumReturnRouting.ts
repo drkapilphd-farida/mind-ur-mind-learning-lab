@@ -22,7 +22,7 @@
 // that call site is only reachable after the exercise's own completion
 // screen renders (never a genuine mid-session cancel) — see each batch
 // edit's own file for the specific reasoning.
-import { advanceCurriculumSession, clearActiveCurriculumSession, getCurrentSessionExerciseHref, isSessionOnFinalExercise, loadActiveCurriculumSession } from './curriculumSessionRunner'
+import { advanceCurriculumSession, clearActiveCurriculumSession, isSessionOnFinalExercise, loadActiveCurriculumSession } from './curriculumSessionRunner'
 import { markCurriculumDayComplete } from './curriculumProgress'
 import { isCheckpointDay } from './curriculumDatabase'
 
@@ -40,6 +40,26 @@ function isThisExerciseTheActiveSessionStep(exerciseId: string): boolean {
   return session.exerciseIds[session.currentIndex] === exerciseId
 }
 
+// In-Page Master Player™ — a lightweight, module-scoped (not
+// sessionStorage) flag DayMasterPlayer sets while it's actively hosting a
+// day in-page, so that even an EMBEDDED exercise's own internal Escape/
+// Exit affordance (never itself made curriculum-aware — the wizard's own
+// always-visible "Exit to Roadmap" control is the intended way out)
+// still lands back on the right day view instead of the lab root, if a
+// learner finds and uses it anyway. Deliberately NOT sessionStorage: it
+// only needs to survive for the current mount, and — critically — must
+// NOT be confused with the real, persisted ActiveCurriculumSession, which
+// DayMasterPlayer deliberately avoids touching while playing embeddable
+// steps (see that file's own doc comment for why: keeping a matching
+// session alive would make every embeddable exercise's own internal
+// "isActiveStep" check fire and hijack completion into a real page
+// navigation instead of the wizard's in-page advance).
+let activeWizardDay: number | null = null
+
+export function setActiveWizardDay(day: number | null): void {
+  activeWizardDay = day
+}
+
 // Pure, side-effect-free — safe to call at render time (e.g. to decide
 // whether to show a "Continue Session" button at all). Both
 // `getCurriculumSmart*Href` functions below MUTATE session storage as
@@ -55,6 +75,8 @@ export function isCurriculumSessionCurrentExercise(exerciseId: string): boolean 
 // to the day view. Falls back to `fallbackHref` unchanged outside an
 // active matching session.
 export function getCurriculumSmartExitHref(exerciseId: string, fallbackHref: string): string {
+  if (activeWizardDay !== null) return buildDayReturnUrl(activeWizardDay, false)
+
   const session = loadActiveCurriculumSession()
   if (session === null || session.exerciseIds[session.currentIndex] !== exerciseId) return fallbackHref
   const { day } = session
@@ -62,9 +84,18 @@ export function getCurriculumSmartExitHref(exerciseId: string, fallbackHref: str
   return buildDayReturnUrl(day, false)
 }
 
-// Natural completion — advances to the next exercise in the playlist, or
-// (on the final exercise) marks the day complete and returns to the day
-// view flagged for its celebration recap. Falls back to `fallbackHref`
+// Natural completion — this is only ever reached by one of the 16
+// server-gated exercises (Pro/sequential-unlock — see
+// curriculumGatedExercises.ts) that DayMasterPlayer.tsx had to hand off
+// to via a real navigation; every embeddable exercise gets its
+// `onComplete` wired directly by the wizard instead (in-page, no href
+// involved at all — see that file's own doc comment). On a non-final
+// step this ALWAYS returns to the day view (never chains straight to the
+// next exercise's own page, even if that exercise also happens to be
+// gated) — DayMasterPlayer reads the already-advanced session on its next
+// mount and decides in-page whether to render the following step inline
+// or hand off again, so the learner is never bounced silently from one
+// standalone page straight into another. Falls back to `fallbackHref`
 // unchanged outside an active matching session.
 export function getCurriculumSmartCompleteHref(exerciseId: string, fallbackHref: string): string {
   if (!isThisExerciseTheActiveSessionStep(exerciseId)) return fallbackHref
@@ -74,9 +105,8 @@ export function getCurriculumSmartCompleteHref(exerciseId: string, fallbackHref:
   const { day } = session
 
   if (!isSessionOnFinalExercise(session)) {
-    const advanced = advanceCurriculumSession()
-    const nextHref = advanced !== null ? getCurrentSessionExerciseHref(advanced) : null
-    if (nextHref !== null) return nextHref
+    advanceCurriculumSession()
+    return buildDayReturnUrl(day, false)
   }
 
   // Final exercise (or the queue otherwise ran out) — the playlist itself

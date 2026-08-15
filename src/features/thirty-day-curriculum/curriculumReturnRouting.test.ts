@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise } from './curriculumReturnRouting'
+import { getCurriculumSmartCompleteHref, getCurriculumSmartExitHref, isCurriculumSessionCurrentExercise, setActiveWizardDay } from './curriculumReturnRouting'
 import { startCurriculumSession, loadActiveCurriculumSession, type ActiveCurriculumSession } from './curriculumSessionRunner'
 import { loadCurriculumProgress } from './curriculumProgress'
-import { buildCurriculumDayPlan } from './curriculumDatabase'
 
 let sessionStore: Record<string, string>
 let localStore: Record<string, string>
@@ -34,6 +33,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  setActiveWizardDay(null)
 })
 
 function firstExerciseIdForDay(day: number): string {
@@ -77,15 +77,12 @@ describe('getCurriculumSmartCompleteHref', () => {
     expect(getCurriculumSmartCompleteHref('eye-warm-up', '/labs/quantum-speed-reading')).toBe('/labs/quantum-speed-reading')
   })
 
-  it('advances to the next exercise in the queue when not on the final step', () => {
-    const plan = buildCurriculumDayPlan(1)
+  it('on a non-final step, advances the session pointer but ALWAYS returns to the day view — never chains straight to the next exercise page', () => {
     const firstId = firstExerciseIdForDay(1)
     const href = getCurriculumSmartCompleteHref(firstId, '/labs/quantum-speed-reading')
-    // The next queued exercise's real href.
     const session = loadActiveCurriculumSession() as ActiveCurriculumSession
     expect(session.currentIndex).toBe(1)
-    expect(href).not.toBe('/labs/quantum-speed-reading')
-    expect(plan).toBeDefined()
+    expect(href).toBe('/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=1')
   })
 
   it('on the final exercise of a non-checkpoint day, marks the day complete, clears the session, and returns the day view with dayComplete=1', () => {
@@ -116,5 +113,28 @@ describe('getCurriculumSmartCompleteHref', () => {
     expect(href).toBe('/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=1')
     expect(loadActiveCurriculumSession()).toBeNull()
     expect(loadCurriculumProgress().completedDays).toEqual([])
+  })
+})
+
+describe('setActiveWizardDay', () => {
+  it('makes getCurriculumSmartExitHref return the day view for ANY exercise id, with no session needed', () => {
+    setActiveWizardDay(12)
+    expect(getCurriculumSmartExitHref('literally-anything', '/labs/quantum-speed-reading')).toBe(
+      '/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=12',
+    )
+  })
+
+  it('takes priority even when a real session exists for a different day', () => {
+    startCurriculumSession(3)
+    setActiveWizardDay(12)
+    expect(getCurriculumSmartExitHref('unrelated-id', '/labs/quantum-speed-reading')).toBe(
+      '/labs/quantum-speed-reading/thirty-day-curriculum?view=day&day=12',
+    )
+  })
+
+  it('stops applying once cleared back to null', () => {
+    setActiveWizardDay(12)
+    setActiveWizardDay(null)
+    expect(getCurriculumSmartExitHref('some-id', '/labs/quantum-speed-reading')).toBe('/labs/quantum-speed-reading')
   })
 })

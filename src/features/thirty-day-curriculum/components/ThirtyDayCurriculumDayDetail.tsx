@@ -1,14 +1,11 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
-import { CURRICULUM_CATEGORY_LABELS, type CurriculumCatalogExercise, type CurriculumExerciseCategory } from '../curriculumExerciseCatalog'
-import { buildCurriculumDayPlan, getCurriculumPhase, isCheckpointDay, type CurriculumDayExercises } from '../curriculumDatabase'
+import { buildCurriculumDayPlan, getCurriculumPhase, isCheckpointDay } from '../curriculumDatabase'
 import type { CurriculumProgress } from '../curriculumProgress'
-import { DaySessionRunner } from './DaySessionRunner'
+import { DayMasterPlayer } from './DayMasterPlayer'
 
 const CARD_CLASS_NAME = 'relative rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 shadow-sm backdrop-blur-md dark:bg-[#16171A]/95'
 
@@ -17,18 +14,27 @@ type ThirtyDayCurriculumDayDetailProps = {
   progress: CurriculumProgress
   justCompletedDay?: boolean
   onBack: () => void
-  onMarkComplete: (day: number) => void
   onLaunchAssessment: (day: number) => void
 }
 
-const CATEGORY_ORDER: readonly CurriculumExerciseCategory[] = ['brain-gym', 'right-brain-intuition', 'visualization', 'reading-intelligence']
-
+// Day Detail™ — now just a thin frame (theme header + celebration
+// banner) around DayMasterPlayer, the in-page wizard that IS the day's
+// content. The old plain multi-link exercise list and manual "Mark Day
+// Complete" button are gone — bouncing across separate pages to click
+// through a checklist was exactly the "critical UX bug" this
+// restructuring set out to fix. Completion now only ever happens
+// automatically, the instant the wizard's final step finishes (see
+// DayMasterPlayer.tsx). On a checkpoint day, finishing the wizard's
+// exercise queue hands off to the real assessment via
+// `onReadyForCheckpoint` rather than completing the day itself — a
+// checkpoint day's real completion condition is always the WPM +
+// comprehension check-in, never bypassable by just clicking through
+// exercises (see curriculumReturnRouting.ts's own doc comment on this).
 export function ThirtyDayCurriculumDayDetail({
   day,
   progress,
   justCompletedDay = false,
   onBack,
-  onMarkComplete,
   onLaunchAssessment,
 }: ThirtyDayCurriculumDayDetailProps): React.JSX.Element {
   const plan = buildCurriculumDayPlan(day)
@@ -54,7 +60,7 @@ export function ThirtyDayCurriculumDayDetail({
           data-day-complete-celebration="true"
         >
           <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-          Playlist complete — Day {day} finished! Day {day + 1} is now unlocked.
+          Day {day} complete! Day {day + 1} is now unlocked.
         </div>
       )}
 
@@ -83,13 +89,9 @@ export function ThirtyDayCurriculumDayDetail({
         </div>
       </div>
 
-      {!isCompleted && <DaySessionRunner day={day} />}
-
-      <ExerciseCategoryList exercises={plan.exercises} />
-
-      <div className={`${CARD_CLASS_NAME} p-6`}>
-        {requiresCheckpoint ? (
-          checkpoint !== undefined ? (
+      {isCompleted ? (
+        <div className={`${CARD_CLASS_NAME} p-6`}>
+          {requiresCheckpoint && checkpoint !== undefined ? (
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold tracking-widest text-primary uppercase">Checkpoint Recorded</p>
               <div className="grid grid-cols-2 gap-3">
@@ -104,61 +106,12 @@ export function ThirtyDayCurriculumDayDetail({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-3 text-center">
-              <p className="text-sm text-muted-foreground">
-                This is a checkpoint day — complete a short, real, RSVP-paced WPM and comprehension check to mark Day {day} complete.
-              </p>
-              <Button onClick={() => onLaunchAssessment(day)} size="lg" className="rounded-full" data-launch-assessment="true">
-                Start Checkpoint Assessment →
-              </Button>
-            </div>
-          )
-        ) : isCompleted ? (
-          <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
-        ) : (
-          <div className="flex flex-col items-center gap-3 text-center">
-            <p className="text-sm text-muted-foreground">Work through today&apos;s exercises above, then mark the day complete to unlock Day {day + 1}.</p>
-            <Button onClick={() => onMarkComplete(day)} size="lg" className="rounded-full" data-mark-complete="true">
-              Mark Day {day} Complete
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function ExerciseCategoryList({ exercises }: { exercises: CurriculumDayExercises }): React.JSX.Element {
-  const groups: Record<CurriculumExerciseCategory, readonly CurriculumCatalogExercise[]> = {
-    'brain-gym': exercises.brainGym,
-    'right-brain-intuition': exercises.rightBrainIntuition,
-    visualization: exercises.visualization,
-    'reading-intelligence': exercises.readingIntelligence,
-  }
-
-  return (
-    <div className={`${CARD_CLASS_NAME} p-6`}>
-      <h2 className="font-heading text-lg font-bold tracking-tight text-foreground">Or Jump to a Specific Exercise</h2>
-      <p className="mt-0.5 text-xs text-muted-foreground">Same 4 exercises as the playlist above, in case you want to skip straight to one.</p>
-      <div className="mt-4 flex flex-col gap-4">
-        {CATEGORY_ORDER.map((category) => (
-          <div key={category} className="flex flex-col gap-2">
-            <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">{CURRICULUM_CATEGORY_LABELS[category]}</p>
-            <div className="flex flex-col gap-1.5">
-              {groups[category].map((exercise) => (
-                <Link
-                  key={exercise.id}
-                  href={exercise.href}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card/60 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent/20"
-                >
-                  {exercise.title}
-                  <ExternalLink className="size-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+            <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
+          )}
+        </div>
+      ) : (
+        <DayMasterPlayer day={day} onExitToRoadmap={onBack} onDayComplete={onBack} onReadyForCheckpoint={() => onLaunchAssessment(day)} />
+      )}
     </div>
   )
 }

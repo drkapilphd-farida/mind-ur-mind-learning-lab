@@ -32,6 +32,20 @@ type SuitePhase =
   | 'rapid-visual-span-expander'
   | 'complete'
 
+type VisualActivationSuiteExperienceProps = {
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. All 10
+  // Visual Activation Suite exercises share this one route/component (no
+  // deep-linking to a single drill — see curriculumExerciseComponentRegistry.tsx's
+  // own note), so whichever of the 10 the day's plan nominally picked, the
+  // wizard renders the FULL suite here as that day's Brain Gym step; when
+  // supplied, onComplete replaces the default "Return to Lab" destination
+  // once the whole suite finishes, and onExit replaces it for every
+  // individual drill's own mid-exercise exit. Omitting both keeps this
+  // component's standalone `/brain-gym` behavior byte-for-byte unchanged.
+  onComplete?: () => void
+  onExit?: () => void
+}
+
 // Brain Gym™ — the orchestrator for the whole Visual Activation Suite,
 // mounted as its own ungated pillar (see LabPillarsGrid.tsx). Every
 // exercise in VISUAL_ACTIVATION_SUITE is real as of this build —
@@ -42,12 +56,16 @@ type SuitePhase =
 // `labId: 'visual-intelligence'` — kept unchanged so no already-saved
 // progress data is orphaned; purely cosmetic/analytics now that no
 // paywall gate depends on it.
-export function VisualActivationSuiteExperience(): React.JSX.Element {
+export function VisualActivationSuiteExperience({ onComplete, onExit }: VisualActivationSuiteExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const [phase, setPhase] = useState<SuitePhase>('theta-breathing-anchor')
   const startedAtRef = useRef(Date.now())
 
   function handleExit(): void {
+    if (onExit) {
+      onExit()
+      return
+    }
     router.push(LAB_HREF)
   }
 
@@ -259,10 +277,10 @@ export function VisualActivationSuiteExperience(): React.JSX.Element {
 
       <button
         type="button"
-        onClick={handleExit}
+        onClick={allDone && onComplete ? onComplete : handleExit}
         className="rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/30"
       >
-        Return to Lab
+        {allDone && onComplete ? 'Continue' : 'Return to Lab'}
       </button>
     </motion.div>
   )

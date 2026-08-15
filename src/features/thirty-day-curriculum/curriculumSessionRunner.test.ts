@@ -8,6 +8,7 @@ import {
   isSessionOnFinalExercise,
   loadActiveCurriculumSession,
   startCurriculumSession,
+  startCurriculumSessionAtStep,
 } from './curriculumSessionRunner'
 import { buildCurriculumDayPlan } from './curriculumDatabase'
 
@@ -112,5 +113,31 @@ describe('advanceCurriculumSession', () => {
     const result = advanceCurriculumSession()
     expect(result).toBeNull()
     expect(loadActiveCurriculumSession()).toBeNull()
+  })
+})
+
+describe('startCurriculumSessionAtStep', () => {
+  it('builds the same queue as startCurriculumSession but starts at the given index', () => {
+    const fromStart = startCurriculumSession(22)
+    clearActiveCurriculumSession()
+    const fromStep = startCurriculumSessionAtStep(22, 2)
+    expect(fromStep.exerciseIds).toEqual(fromStart.exerciseIds)
+    expect(fromStep.currentIndex).toBe(2)
+    expect(fromStep.day).toBe(22)
+  })
+
+  it('persists so it can be loaded back', () => {
+    startCurriculumSessionAtStep(5, 1)
+    expect(loadActiveCurriculumSession()?.currentIndex).toBe(1)
+  })
+
+  it('clamps a negative index to 0', () => {
+    const session = startCurriculumSessionAtStep(3, -5)
+    expect(session.currentIndex).toBe(0)
+  })
+
+  it('clamps an out-of-range index to the last valid position', () => {
+    const session = startCurriculumSessionAtStep(3, 999)
+    expect(session.currentIndex).toBe(session.exerciseIds.length - 1)
   })
 })

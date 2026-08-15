@@ -6,7 +6,7 @@ import { CurriculumAssessmentCanvas } from './CurriculumAssessmentCanvas'
 import { ThirtyDayCurriculumDayDetail } from './ThirtyDayCurriculumDayDetail'
 import { ThirtyDayCurriculumOverview } from './ThirtyDayCurriculumOverview'
 import { TOTAL_CURRICULUM_DAYS } from '../curriculumDatabase'
-import { loadCurriculumProgress, markCurriculumDayComplete, recordCurriculumCheckpoint, type CurriculumCheckpointResult } from '../curriculumProgress'
+import { loadCurriculumProgress, recordCurriculumCheckpoint, type CurriculumCheckpointResult } from '../curriculumProgress'
 
 type CurriculumView = 'overview' | 'day-detail' | 'assessment'
 
@@ -33,14 +33,16 @@ function parseValidDay(rawDay: string | null): number | null {
 // force a re-read" trick this project already uses wherever a sibling
 // component owns the write.
 //
-// Immersive Daily Session Playlist™ — this is also the landing point a
-// real browser navigation returns to after DaySessionRunner sends the
-// learner out to an exercise's own route: curriculumReturnRouting.ts
-// encodes `?view=day&day=N[&dayComplete=1]` into the URL it redirects
-// back to, and the initial view state here is derived from those params
-// (read once, on mount) so the day view — and, on the playlist's final
-// exercise, the completion celebration — survives the real page
-// navigation a client-only React state machine otherwise couldn't.
+// In-Page Step-by-Step Master Player™ — this is also the landing point a
+// real browser navigation returns to whenever DayMasterPlayer had to hand
+// off to one of the 16 server-gated exercises (see
+// curriculumGatedExercises.ts): curriculumReturnRouting.ts encodes
+// `?view=day&day=N[&dayComplete=1]` into the URL it redirects back to,
+// and the initial view state here is derived from those params (read
+// once, on mount) so the day view — and, if that gated exercise was the
+// playlist's final step, the completion celebration — survives that one
+// real page round-trip. Every other, embeddable exercise never leaves
+// this route at all; see DayMasterPlayer.tsx.
 export function ThirtyDayCurriculumExperience(): React.JSX.Element {
   const searchParams = useSearchParams()
   const initialDay = searchParams.get('view') === 'day' ? parseValidDay(searchParams.get('day')) : null
@@ -69,11 +71,6 @@ export function ThirtyDayCurriculumExperience(): React.JSX.Element {
     setJustCompletedDay(false)
   }
 
-  function handleMarkComplete(day: number): void {
-    markCurriculumDayComplete(day)
-    refreshProgress()
-  }
-
   function handleLaunchAssessment(day: number): void {
     setSelectedDay(day)
     setView('assessment')
@@ -100,7 +97,6 @@ export function ThirtyDayCurriculumExperience(): React.JSX.Element {
         progress={progress}
         justCompletedDay={justCompletedDay}
         onBack={handleBackToOverview}
-        onMarkComplete={handleMarkComplete}
         onLaunchAssessment={handleLaunchAssessment}
       />
     )

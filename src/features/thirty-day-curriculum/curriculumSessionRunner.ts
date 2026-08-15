@@ -1,15 +1,16 @@
-// Immersive Daily Session Playlist™ — the sessionStorage-backed queue
-// that lets DaySessionRunner sequence through a real day's exercises
-// across genuine full-page browser navigations. Every catalog exercise
-// is its own standalone route with its own engine (see
-// curriculumExerciseCatalog.ts's own doc comment) — there is no single
-// embeddable "play all" component, so "automatic" sequencing here means
-// each exercise's own real exit/completion action is redirected to the
-// next item in this queue instead of its default destination (see
-// curriculumReturnRouting.ts). Session-scoped (sessionStorage, not
-// localStorage): closing the tab or starting a fresh day naturally
-// abandons any half-finished playlist rather than leaving stale state to
-// resume days later.
+// In-Page Step-by-Step Master Player™ — the sessionStorage-backed queue
+// used ONLY when DayMasterPlayer.tsx has to hand off to one of the 16
+// server-gated exercises (real Pro/sequential-unlock checks live in
+// their own page.tsx — see curriculumGatedExercises.ts; embedding them
+// directly would silently bypass that gate). Every OTHER, embeddable
+// exercise is sequenced by DayMasterPlayer purely via local React state
+// and never touches this module at all — see that file's own doc comment
+// for why keeping this session "active" during in-page playback would
+// make each embedded exercise's own internal curriculum-session hook
+// fight the wizard's direct completion callback. Session-scoped
+// (sessionStorage, not localStorage): closing the tab or starting a
+// fresh day naturally abandons any half-finished hand-off rather than
+// leaving stale state to resume days later.
 import { getCurriculumExerciseById, type CurriculumExerciseCategory } from './curriculumExerciseCatalog'
 import { buildCurriculumDayPlan, type CurriculumDayExercises } from './curriculumDatabase'
 
@@ -26,7 +27,10 @@ export type ActiveCurriculumSession = {
   currentIndex: number
 }
 
-function buildSessionQueue(exercises: CurriculumDayExercises): readonly string[] {
+// Exported so DayMasterPlayer.tsx can build the exact same flattened,
+// correctly-ordered queue for its own in-page rendering without
+// duplicating the category-order logic.
+export function buildSessionQueue(exercises: CurriculumDayExercises): readonly string[] {
   const groups: Record<CurriculumExerciseCategory, readonly { id: string }[]> = {
     'brain-gym': exercises.brainGym,
     'right-brain-intuition': exercises.rightBrainIntuition,
@@ -60,6 +64,24 @@ export function startCurriculumSession(day: number): ActiveCurriculumSession {
   const plan = buildCurriculumDayPlan(day)
   const exerciseIds = buildSessionQueue(plan.exercises)
   const session: ActiveCurriculumSession = { day, exerciseIds, currentIndex: 0 }
+  saveSession(session)
+  return session
+}
+
+// In-Page Master Player™ — used only when handing off to one of the 16
+// server-gated exercises (Pro/sequential-unlock — see
+// curriculumGatedExercises.ts). The wizard drives every other, embeddable
+// exercise via local React state with no sessionStorage involvement at
+// all (see DayMasterPlayer.tsx's own doc comment for why); this function
+// exists purely so a gated exercise's own already-working smart
+// exit/complete wiring (unchanged since it was built) knows exactly which
+// step of the day it's standing in for, without needing to have replayed
+// every step before it.
+export function startCurriculumSessionAtStep(day: number, stepIndex: number): ActiveCurriculumSession {
+  const plan = buildCurriculumDayPlan(day)
+  const exerciseIds = buildSessionQueue(plan.exercises)
+  const clampedIndex = Math.min(Math.max(stepIndex, 0), Math.max(exerciseIds.length - 1, 0))
+  const session: ActiveCurriculumSession = { day, exerciseIds, currentIndex: clampedIndex }
   saveSession(session)
   return session
 }

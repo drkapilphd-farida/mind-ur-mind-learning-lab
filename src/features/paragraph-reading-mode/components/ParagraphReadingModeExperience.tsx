@@ -41,7 +41,15 @@ const BEST_WPM_STORAGE_KEY = 'qsr-paragraph-reading-mode-best'
 // mount via pickSessionCategory (client-only, called only from this
 // effect — never a lazy useState initializer — see that function's own
 // doc comment for the full rationale).
-export function ParagraphReadingModeExperience(): React.JSX.Element {
+type ParagraphReadingModeExperienceProps = {
+  // 30-Day Curriculum In-Page Master Player™ — additive, optional. Takes
+  // priority over the internal curriculum-session hook below so a wizard
+  // rendering this component directly in-page (no sessionStorage session
+  // involved) still gets notified on natural completion.
+  onComplete?: () => void
+}
+
+export function ParagraphReadingModeExperience({ onComplete }: ParagraphReadingModeExperienceProps = {}): React.JSX.Element {
   const router = useRouter()
   const curriculumSession = useCurriculumSessionCompletion('paragraph-reading-mode', LAB_HREF)
 
@@ -165,7 +173,7 @@ export function ParagraphReadingModeExperience(): React.JSX.Element {
   if (runtime.phase === 'complete' && completedResult !== null) {
     return (
       <ReadingSessionCompleteScreen
-        {...(curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
+        {...(onComplete !== undefined ? { onContinue: onComplete } : curriculumSession.isActiveStep ? { onContinue: curriculumSession.advance } : {})}
         subtitle={quizScore !== null ? `Nice, continuous reading — comprehension: ${quizScore}/${sessionCategory?.questions.length ?? 3}.` : 'Nice, continuous reading.'}
         result={completedResult}
         bestWpm={bestWpm}
