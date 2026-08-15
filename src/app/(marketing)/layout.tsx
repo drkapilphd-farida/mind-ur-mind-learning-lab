@@ -5,9 +5,12 @@ import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 // One-Click Entry™ — '/' now redirects straight to /welcome/choose-method
 // (see page.tsx), so the anchor links this nav used to point at
 // (#who-its-for, #how-it-works, #faq — all on that now-removed homepage
-// content) no longer resolve to anything. /pricing is the only page left
-// that still actually uses this layout.
-const NAV_LINKS = [{ href: '/pricing', label: 'Pricing' }] as const
+// content) no longer resolve to anything. /pricing and /reviews are the
+// pages that still actually use this layout.
+const NAV_LINKS = [
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/reviews', label: 'Success Stories' },
+] as const
 
 export default function MarketingLayout({
   children,

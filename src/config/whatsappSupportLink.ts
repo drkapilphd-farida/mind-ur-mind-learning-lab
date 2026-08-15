@@ -5,3 +5,9 @@
 // or pre-filled messages.
 export const WHATSAPP_MASTERCLASS_INQUIRY_LINK =
   'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20want%20to%20know%20more%20about%20the%2030-Day%20Quantum%20Speed%20Reading%20Masterclass'
+
+// Same number, enrollment-intent message — for placements (like the
+// /reviews success-stories page) where the visitor has already seen the
+// proof and is ready to join, not just asking to learn more.
+export const WHATSAPP_ENROLLMENT_INQUIRY_LINK =
+  'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20want%20to%20enroll%20in%20the%20Masterclass'

@@ -36,6 +36,11 @@ function supabaseOrigin(): string | null {
 // own documented requirements for their embeddable Checkout.js widget,
 // added proactively so adopting that widget later doesn't require
 // another CSP change.
+//
+// YouTube: the /reviews success-stories page embeds the real Success
+// Stories playlist via youtube-nocookie.com's videoseries iframe — the
+// privacy-enhanced embed domain YouTube itself documents for sites that
+// don't want the embed to set cookies before playback starts.
 function buildContentSecurityPolicy(): string {
   const isDev = process.env.NODE_ENV !== 'production'
   const supabase = supabaseOrigin()
@@ -49,7 +54,7 @@ function buildContentSecurityPolicy(): string {
     'img-src': ["'self'", 'data:', 'blob:', ...(supabase ? [supabase] : [])],
     'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", ...(supabase ? [supabase, supabase.replace('https://', 'wss://')] : []), 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
-    'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com'],
+    'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com', 'https://www.youtube-nocookie.com'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
