@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { LogOut, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -14,11 +14,11 @@ import {
 } from '@/components/ui/sheet'
 import { NavLinks } from '@/components/NavLinks'
 import { UserMenu } from '@/components/UserMenu'
+import { MobileSignOutButton } from '@/components/MobileSignOutButton'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { InstallButton } from '@/components/InstallButton'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
-import { signOut } from '@/features/auth/actions/signOut'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -37,36 +37,6 @@ type TopbarProps = {
   // School Dashboard white-labeling — see AppSidebar.tsx's identical props.
   brandName?: string | null
   brandLogoUrl?: string | null
-}
-
-// Reachable Sign Out™ — the hamburger drawer is the one place every
-// mobile user already knows to check for account-level actions (it's
-// where "My Library" and "Settings" live too), so Sign Out belongs here
-// directly rather than only inside the separate small avatar dropdown
-// (UserMenu.tsx) in the header's top-right corner — real mobile usage
-// found that avatar tap target easy to miss entirely. Both stay wired to
-// the exact same signOut() server action; this is an additional, more
-// discoverable entry point; not a replacement.
-function MobileSignOutButton(): React.JSX.Element {
-  const [isPending, startTransition] = useTransition()
-
-  function handleSignOut(): void {
-    startTransition(async () => {
-      await signOut()
-    })
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleSignOut}
-      disabled={isPending}
-      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors duration-150 hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-60"
-    >
-      <LogOut className="size-4 shrink-0" aria-hidden="true" />
-      {isPending ? 'Signing out…' : 'Sign out'}
-    </button>
-  )
 }
 
 export function Topbar({

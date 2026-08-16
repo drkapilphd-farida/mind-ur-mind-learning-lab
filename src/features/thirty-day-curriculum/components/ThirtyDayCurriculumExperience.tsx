@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { CurriculumAssessmentCanvas } from './CurriculumAssessmentCanvas'
 import { ThirtyDayCurriculumDayDetail } from './ThirtyDayCurriculumDayDetail'
 import { ThirtyDayCurriculumOverview } from './ThirtyDayCurriculumOverview'
@@ -102,5 +103,18 @@ export function ThirtyDayCurriculumExperience(): React.JSX.Element {
     )
   }
 
-  return <ThirtyDayCurriculumOverview onSelectDay={handleSelectDay} refreshKey={refreshKey} />
+  // Persistent Nav™ — LabNavHeader only on the Overview (day-list)
+  // screen: this route had NO header at all before, a real dead end for
+  // mobile nav (no way back to the dashboard, no Sign Out). Day Detail
+  // and Assessment stay header-free on purpose — both are fully
+  // immersive (DayMasterPlayer renders `fixed inset-0`, own back arrow
+  // built in; see ThirtyDayCurriculumDayDetail.tsx), the same
+  // no-persistent-chrome-during-play convention every other exercise in
+  // this app already follows.
+  return (
+    <>
+      <LabNavHeader currentSection="30-Day Masterclass" />
+      <ThirtyDayCurriculumOverview onSelectDay={handleSelectDay} refreshKey={refreshKey} />
+    </>
+  )
 }
