@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
@@ -17,6 +18,7 @@ import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { InstallButton } from '@/components/InstallButton'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
+import { signOut } from '@/features/auth/actions/signOut'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -35,6 +37,36 @@ type TopbarProps = {
   // School Dashboard white-labeling — see AppSidebar.tsx's identical props.
   brandName?: string | null
   brandLogoUrl?: string | null
+}
+
+// Reachable Sign Out™ — the hamburger drawer is the one place every
+// mobile user already knows to check for account-level actions (it's
+// where "My Library" and "Settings" live too), so Sign Out belongs here
+// directly rather than only inside the separate small avatar dropdown
+// (UserMenu.tsx) in the header's top-right corner — real mobile usage
+// found that avatar tap target easy to miss entirely. Both stay wired to
+// the exact same signOut() server action; this is an additional, more
+// discoverable entry point; not a replacement.
+function MobileSignOutButton(): React.JSX.Element {
+  const [isPending, startTransition] = useTransition()
+
+  function handleSignOut(): void {
+    startTransition(async () => {
+      await signOut()
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleSignOut}
+      disabled={isPending}
+      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors duration-150 hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-60"
+    >
+      <LogOut className="size-4 shrink-0" aria-hidden="true" />
+      {isPending ? 'Signing out…' : 'Sign out'}
+    </button>
+  )
 }
 
 export function Topbar({
@@ -63,7 +95,7 @@ export function Topbar({
           <Menu className="size-5" />
         </Button>
 
-        <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
+        <SheetContent side="left" className="w-60 gap-0 p-0" showCloseButton={false}>
           <SheetHeader className="flex h-14 shrink-0 flex-row items-center gap-2 border-b px-4 py-0 space-y-0">
             {brandLogoUrl !== null ? (
               <Image src={brandLogoUrl} alt="" width={22} height={22} className="size-[22px] rounded object-contain" unoptimized />
@@ -74,9 +106,12 @@ export function Topbar({
               {brandName ?? 'Quantum Mind'}
             </SheetTitle>
           </SheetHeader>
-          <div className="py-4">
+          <div className="flex-1 overflow-y-auto py-4">
             <NavLinks onSelect={() => setOpen(false)} />
           </div>
+          <SheetFooter className="border-t border-border/60 p-2">
+            <MobileSignOutButton />
+          </SheetFooter>
         </SheetContent>
       </Sheet>
 

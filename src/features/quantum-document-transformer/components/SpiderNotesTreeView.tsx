@@ -32,80 +32,6 @@ function branchAccentFor(index: number): BranchAccent {
   return BRANCH_ACCENTS[index % BRANCH_ACCENTS.length]!
 }
 
-type TreeNodeProps = {
-  node: SpiderNote
-  depth: number
-  // Only ever set for depth-1 nodes (this branch's own color, carried
-  // down so a depth-2+ descendant can still show a faint tint of which
-  // branch it belongs to instead of going flat neutral).
-  accent: BranchAccent | null
-}
-
-// Root and its direct branches (depth 0/1) start expanded so the main
-// shape of the mind map is visible at a glance; anything deeper starts
-// collapsed to keep the initial view scannable, per the "clean, not
-// exhaustive" brief — a chevron always lets a learner go deeper.
-function TreeNode({ node, depth, accent }: TreeNodeProps): React.JSX.Element {
-  const hasChildren = node.children.length > 0
-  const [isExpanded, setIsExpanded] = useState(depth < 2)
-  const prefersReducedMotion = usePrefersReducedMotion()
-  const BranchIcon = accent?.icon
-
-  const nodeContent = (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm leading-snug shadow-sm transition-colors',
-        depth === 0 && 'border-primary bg-primary text-primary-foreground text-base font-bold',
-        depth === 1 && accent && cn(accent.border, accent.bg, 'font-semibold text-foreground'),
-        depth > 1 && 'border-border bg-card text-foreground/90',
-      )}
-    >
-      {depth === 1 && BranchIcon && <BranchIcon className={cn('size-3.5 shrink-0', accent?.text)} aria-hidden="true" />}
-      {node.label}
-    </span>
-  )
-
-  return (
-    <li>
-      {hasChildren ? (
-        <button
-          type="button"
-          onClick={() => setIsExpanded((current) => !current)}
-          className="group flex w-full items-start gap-2 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          aria-expanded={isExpanded}
-          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.label}`}
-        >
-          <span className="mt-2 flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors group-hover:bg-foreground/[0.06] group-hover:text-foreground">
-            <ChevronRight className={cn('size-3.5 transition-transform', isExpanded && 'rotate-90')} aria-hidden="true" />
-          </span>
-          {nodeContent}
-        </button>
-      ) : (
-        <div className="flex items-start gap-2">
-          <span aria-hidden="true" className="mt-3 flex size-5 shrink-0 items-center justify-center">
-            <span className={cn('size-1.5 rounded-full', accent ? accent.dot : 'bg-muted-foreground/40')} />
-          </span>
-          {nodeContent}
-        </div>
-      )}
-
-      {hasChildren && isExpanded && (
-        <ul
-          className={cn(
-            'mt-2.5 ml-2.5 space-y-2.5 border-l-2 pl-5',
-            accent ? accent.border : 'border-primary/15',
-            !prefersReducedMotion && 'animate-in fade-in slide-in-from-top-1 duration-200',
-          )}
-        >
-          {node.children.map((child, index) => (
-            <TreeNode key={`${depth}-${index}-${child.label}`} node={child} depth={depth + 1} accent={depth === 0 ? branchAccentFor(index) : accent} />
-          ))}
-        </ul>
-      )}
-    </li>
-  )
-}
-
 // A compact, always-expanded nested list used INSIDE a radial branch
 // card (below) for depth-2-and-deeper descendants — no click-to-expand
 // here, since the card itself is already the "drill in" affordance the
@@ -121,7 +47,7 @@ function MindMapNestedList({ nodes, depth }: { nodes: readonly SpiderNote[]; dep
         <li key={`${depth}-${index}-${node.label}`}>
           <div className="flex items-start gap-1.5">
             <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
-            <span className="text-[11px] leading-snug text-foreground/80">{node.label}</span>
+            <span className="min-w-0 flex-1 text-[11px] leading-snug break-words text-foreground/80">{node.label}</span>
           </div>
           <MindMapNestedList nodes={node.children} depth={depth + 1} />
         </li>
@@ -245,6 +171,76 @@ function MindMapRadial({ root }: { root: SpiderNote }): React.JSX.Element {
   )
 }
 
+// Mobile Accordion Mind Map™ — the narrow-viewport replacement for the
+// radial layout, which has no room to breathe below sm. Rather than a
+// deeply-nested bordered list (the old TreeNode approach: every level
+// added its own left-border + margin + padding, which compounds fast —
+// four or five levels deep left almost no horizontal room on a 375px
+// screen, and long AI-generated labels inside a nowrap inline-flex row
+// pushed past the viewport edge instead of wrapping). Each depth-1
+// branch is now its own flat, collapsible, accent-colored card — no
+// indentation growth with depth, so it can't run out of horizontal
+// room regardless of how deep the model's tree goes. Deeper descendants
+// render via the same compact MindMapNestedList the desktop radial
+// branch cards already use, just without that view's max-h scroll cap
+// (mobile has the whole page to scroll vertically, so a tiny nested
+// scrollbox would just be an extra, awkward scroll-within-a-scroll).
+function MindMapAccordionBranch({ branch, index, defaultExpanded }: { branch: SpiderNote; index: number; defaultExpanded: boolean }): React.JSX.Element {
+  const accent = branchAccentFor(index)
+  const BranchIcon = accent.icon
+  const hasChildren = branch.children.length > 0
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const prefersReducedMotion = usePrefersReducedMotion()
+
+  return (
+    <div className={cn('overflow-hidden rounded-xl border', accent.border, accent.bg)}>
+      {hasChildren ? (
+        <button
+          type="button"
+          onClick={() => setIsExpanded((current) => !current)}
+          aria-expanded={isExpanded}
+          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${branch.label}`}
+          className="flex w-full items-center gap-2 px-3.5 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        >
+          <BranchIcon className={cn('size-4 shrink-0', accent.text)} aria-hidden="true" />
+          <span className="min-w-0 flex-1 break-words text-sm leading-snug font-semibold text-foreground">{branch.label}</span>
+          <ChevronRight className={cn('size-4 shrink-0 text-muted-foreground transition-transform', isExpanded && 'rotate-90')} aria-hidden="true" />
+        </button>
+      ) : (
+        <div className="flex w-full items-center gap-2 px-3.5 py-3">
+          <BranchIcon className={cn('size-4 shrink-0', accent.text)} aria-hidden="true" />
+          <span className="min-w-0 flex-1 break-words text-sm leading-snug font-semibold text-foreground">{branch.label}</span>
+        </div>
+      )}
+
+      {hasChildren && isExpanded && (
+        <div
+          className={cn(
+            'border-t px-3.5 py-3',
+            accent.border,
+            !prefersReducedMotion && 'animate-in fade-in slide-in-from-top-1 duration-200',
+          )}
+        >
+          <MindMapNestedList nodes={branch.children} depth={2} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SpiderNotesMobileAccordion({ root }: { root: SpiderNote }): React.JSX.Element {
+  return (
+    <div className="space-y-2.5">
+      <div className="rounded-xl border border-primary bg-primary px-4 py-3 text-center shadow-sm">
+        <p className="break-words text-sm leading-snug font-bold text-primary-foreground">{root.label}</p>
+      </div>
+      {root.children.map((branch, index) => (
+        <MindMapAccordionBranch key={`${index}-${branch.label}`} branch={branch} index={index} defaultExpanded={index === 0} />
+      ))}
+    </div>
+  )
+}
+
 type SpiderNotesTreeViewProps = {
   root: SpiderNote
 }
@@ -254,7 +250,7 @@ type SpiderNotesTreeViewProps = {
 // src/lib/ai/tools/quantumDocumentIntelligenceTool.ts's own recursive
 // JSON Schema) two ways from the exact same data: a vibrant, color-coded
 // radial mind-map (central node + connecting branch lines, sm+ widths)
-// and a plain expandable hierarchy list (all widths, primary on mobile)
+// and a collapsible, flat, accent-colored accordion of cards (below sm)
 // — never a fabricated diagram, always exactly the hierarchy the model
 // returned. No graph/canvas library — both views are plain DOM/CSS/SVG
 // and stay fully performant and keyboard/screen-reader accessible at any
@@ -274,9 +270,7 @@ export function SpiderNotesTreeView({ root }: SpiderNotesTreeViewProps): React.J
       </div>
 
       <div className="mt-4 sm:hidden">
-        <ul>
-          <TreeNode node={root} depth={0} accent={null} />
-        </ul>
+        <SpiderNotesMobileAccordion root={root} />
       </div>
 
       <div className="mt-3 hidden sm:block">
