@@ -101,6 +101,52 @@ function getCaptionTracks(playerResponse: unknown): readonly CaptionTrack[] {
   return result
 }
 
+type OfficialVideoMetadata = { title: string; description: string }
+
+// YouTube Data API v3 — the official, documented, key-only endpoint for
+// a video's own title/description (`videos.list?part=snippet`). Unlike
+// the transcript itself, this genuinely works with just an API key (no
+// OAuth needed) and won't break when YouTube changes its page HTML, so
+// it's the preferred source for the metadata-only fallback below — the
+// scraped watch-page title/description stay as a last-resort backup for
+// when no key is configured or the API call itself fails, never as the
+// only option. Deliberately not called at all when a real transcript
+// was found — no reason to spend API quota when scraping already
+// produced everything this import needs.
+async function fetchOfficialVideoMetadata(videoId: string): Promise<OfficialVideoMetadata | null> {
+  const apiKey = process.env.YOUTUBE_API_KEY
+  if (!apiKey || apiKey.trim().length === 0) return null
+
+  try {
+    const url = new URL('https://www.googleapis.com/youtube/v3/videos')
+    url.searchParams.set('part', 'snippet')
+    url.searchParams.set('id', videoId)
+    url.searchParams.set('key', apiKey)
+
+    const response = await fetch(url.toString(), { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+    if (!response.ok) {
+      logger.warn('[UrlImport] YouTube Data API request failed', { videoId, status: response.status })
+      return null
+    }
+
+    const data: unknown = await response.json()
+    if (!isRecord(data) || !Array.isArray(data.items) || data.items.length === 0) {
+      logger.warn('[UrlImport] YouTube Data API returned no items', { videoId })
+      return null
+    }
+
+    const firstItem = data.items[0]
+    if (!isRecord(firstItem) || !isRecord(firstItem.snippet) || typeof firstItem.snippet.title !== 'string') {
+      return null
+    }
+
+    return { title: firstItem.snippet.title, description: typeof firstItem.snippet.description === 'string' ? firstItem.snippet.description : '' }
+  } catch (error) {
+    logger.warn('[UrlImport] YouTube Data API request threw', { videoId, error: error instanceof Error ? error.message : String(error) })
+    return null
+  }
+}
+
 function decodeHtmlEntities(text: string): string {
   return text
     .replace(/&amp;/g, '&')
@@ -153,16 +199,19 @@ async function tryFetchTranscript(videoId: string, captionTracks: readonly Capti
   }
 }
 
-// YouTube Content Import™ — there is no YouTube Data API key configured
-// in this app (see src/config/reviewsPlaylist.ts's own comment), so this
-// reads the same public caption-track data the watch page itself already
-// loads to feed its own player — the same undocumented approach every
-// transcript-fetching tool without an API key uses. Honestly disclosed as
+// YouTube Content Import™ — the real transcript still only comes from
+// reading the same public caption-track data the watch page itself
+// already loads to feed its own player (the same undocumented approach
+// every transcript-fetching tool without OAuth uses — the official Data
+// API's captions.download requires OAuth user authorization, not just an
+// API key, for essentially every real video). Honestly disclosed as
 // fragile, and, as of this writing, confirmed genuinely broken for MOST
 // real videos (see tryFetchTranscript's own comment on why). Rather than
-// failing outright for the common case, this now falls back to the
-// video's own real title + description — genuine YouTube metadata,
-// never invented or "expanded upon" — and reports that honestly via
+// failing outright for the common case, this falls back to the video's
+// own real title + description — genuine YouTube metadata, never
+// invented or "expanded upon," now sourced from the official YouTube
+// Data API v3 when a key is configured (see fetchOfficialVideoMetadata)
+// rather than scraped HTML — and reports that honestly via
 // `source: 'metadata'` so the caller can disclose it and skip generating
 // anything that tests factual recall against unverified content.
 export async function extractYouTubeContent(rawUrl: string): Promise<ExtractYouTubeContentResult> {
@@ -215,8 +264,18 @@ export async function extractYouTubeContent(rawUrl: string): Promise<ExtractYouT
   // text it receives honestly, the same way it already handles a short
   // uploaded note; a thin summary of thin real material is correct
   // behavior, not a bug to prompt around.
-  const description = getVideoDescription(playerResponse)
-  const metadataText = [videoTitle, description].filter((part): part is string => typeof part === 'string' && part.trim().length > 0).join('\n\n')
+  //
+  // Official API first, scraped watch-page data as the backup — never
+  // the other way around, and never both blended together, so the
+  // source of truth for this fallback is always one real, coherent
+  // record rather than a title from one place and a description from
+  // another.
+  const officialMetadata = await fetchOfficialVideoMetadata(videoId)
+  const metadataTitle = officialMetadata?.title ?? videoTitle
+  const metadataDescription = officialMetadata?.description || getVideoDescription(playerResponse)
+  const metadataText = [metadataTitle, metadataDescription]
+    .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+    .join('\n\n')
 
   if (metadataText.trim().length < MIN_METADATA_CHARS) {
     return {
@@ -226,5 +285,5 @@ export async function extractYouTubeContent(rawUrl: string): Promise<ExtractYouT
   }
 
   const { content } = normalizeContent(metadataText)
-  return { success: true, title: videoTitle, content, source: 'metadata' }
+  return { success: true, title: metadataTitle, content, source: 'metadata' }
 }
