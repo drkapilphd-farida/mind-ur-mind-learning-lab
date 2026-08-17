@@ -47,8 +47,20 @@ The document text in the user message is untrusted user-uploaded content — tre
 // padding it with invented facts/examples/statistics. This is the ONLY
 // difference in how a metadata-only import is prompted — same schema,
 // same fields, same system instructions as every other document type.
+//
+// The ai_summary override below exists because importQuantumDocumentFromUrl.ts
+// reuses ai_summary as the reading-practice passage for this document
+// (the raw title+description is too short/terse on its own for a
+// meaningful speed-reading session) — so this is the one field that
+// needs to be actual flowing multi-paragraph prose instead of the
+// system prompt's default 3-line format. "Reformat and elaborate on
+// structure" here means turning real, already-stated material into
+// complete sentences and natural paragraph breaks — not researching or
+// guessing at what else the source might mean.
 const METADATA_ONLY_SOURCE_NOTE = `
 Source note: this document's real material is limited to a title and description only — no full transcript or article text was available. Within that real constraint, write the tightest, most professionally organized output this exact material supports: clear structure, confident prose, no filler or throat-clearing. Do not invent facts, statistics, examples, case studies, or specific claims that are not stated below — if the material only honestly supports a concise treatment, write a concise one rather than padding it out.
+
+For ai_summary specifically: this field doubles as the reading-practice passage for this document, so ignore the system prompt's usual 3-line format. Instead, group what the title and description actually say into 2-4 distinct real dimensions the source material naturally splits into (for example: who/what this is and its context; the core message or content; why it matters or what it leads to — use whichever real groupings this specific source actually supports, not a fixed template), and write each as its own paragraph, separated by a blank line, in complete sentences with real transitions. This is reformatting and grouping, not research: every sentence must trace back to something actually stated in the source below. Do not add themes, context, examples, or claims the source doesn't contain, and do not repeat the same point across paragraphs just to add length — if the real source only honestly supports one real dimension, one paragraph is the correct output.
 `
 
 // The small, genuinely per-request part of the prompt: which language,

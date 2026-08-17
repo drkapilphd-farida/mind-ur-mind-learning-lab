@@ -239,7 +239,20 @@ export type QuantumDocumentGenerationDraft = Omit<QuantumDocumentPayload, 'quiz_
 export function buildQuantumDocumentPayloadSchema(targetLanguage: SupportedLanguage): z.ZodType<QuantumDocumentGenerationDraft> {
   return z
     .object({
-      ai_summary: z.string().trim().min(1).max(1000),
+      // 1000 was sized for the system prompt's default "concise 3-line
+      // summary." Quick Overview™ (METADATA_ONLY_SOURCE_NOTE in
+      // quantumDocumentTransformerPrompt.ts) deliberately asks for real
+      // multi-paragraph prose in this same field instead, since it
+      // doubles as that document's reading-practice passage — a genuine,
+      // non-padded attempt at that can legitimately run a few thousand
+      // characters, and 1000 was hard-rejecting valid output with no
+      // fallback (confirmed directly: a real generation call came back
+      // with "Tool input failed schema validation" the first time this
+      // path asked for longer prose). 6000 is a safety ceiling against
+      // runaway output, not a target — the *system* prompt's own 3-line
+      // instruction is still what keeps a normal document's summary
+      // short in practice; this only widens the floor for failure.
+      ai_summary: z.string().trim().min(1).max(6000),
       one_sentence_summary: z.string().trim().min(1).max(240),
       spider_notes: SpiderNoteSchema,
       keywords: z.array(KeywordSchema).min(1).max(20),

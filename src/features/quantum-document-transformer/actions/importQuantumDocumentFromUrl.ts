@@ -92,10 +92,23 @@ export async function importQuantumDocumentFromUrl(input: unknown): Promise<Impo
   logger.info('[UrlImport] AI Intelligence Generated — SUCCESS', { userId: user.id, modelId: intelligence.modelId })
 
   const { payload } = intelligence
-  // Multi-Language Support — identical rule to the file-upload path:
-  // English never asks the model to reproduce the source, a non-English
-  // target uses the model's own translation.
-  const readingText = targetLanguage === 'en' ? extraction.content : (payload.reading_text ?? extraction.content)
+  // Quick Overview™ reading practice — the raw extracted content for a
+  // metadata-only import is just the video's title + description
+  // (verbatim, unformatted), too short/terse on its own for a
+  // meaningful speed-reading session. ai_summary is instructed
+  // (METADATA_ONLY_SOURCE_NOTE) to reformat exactly that same real
+  // material into flowing multi-paragraph prose — still zero invented
+  // content, just properly structured — so it doubles as the reading
+  // passage here instead of the raw snippet.
+  //
+  // Multi-Language Support — identical rule to the file-upload path for
+  // every other document: English never asks the model to reproduce the
+  // source, a non-English target uses the model's own translation.
+  const readingText = isMetadataOnlySummary
+    ? payload.ai_summary
+    : targetLanguage === 'en'
+      ? extraction.content
+      : (payload.reading_text ?? extraction.content)
 
   logger.info('[UrlImport] Quantum Document Saved — START', { userId: user.id })
   const { data: row, error: insertError } = await supabase
