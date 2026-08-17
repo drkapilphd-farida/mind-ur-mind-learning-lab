@@ -1789,6 +1789,7 @@ export type Database = {
           created_at: string
           feynman_challenge: Json | null
           id: string
+          is_metadata_only_summary: boolean
           keyword_icons: Json | null
           keywords: string[] | null
           mnemonics: Json | null
@@ -1809,6 +1810,7 @@ export type Database = {
           created_at?: string
           feynman_challenge?: Json | null
           id?: string
+          is_metadata_only_summary?: boolean
           keyword_icons?: Json | null
           keywords?: string[] | null
           mnemonics?: Json | null
@@ -1829,6 +1831,7 @@ export type Database = {
           created_at?: string
           feynman_challenge?: Json | null
           id?: string
+          is_metadata_only_summary?: boolean
           keyword_icons?: Json | null
           keywords?: string[] | null
           mnemonics?: Json | null

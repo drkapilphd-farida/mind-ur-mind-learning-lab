@@ -3,7 +3,10 @@ import { Readability } from '@mozilla/readability'
 import { normalizeContent } from '@/core/universal-learning-engine/extraction/services/normalizeContent'
 import { logger } from '@/lib/logger'
 
-export type ExtractWebsiteContentResult = { success: true; title: string; content: string } | { success: false; error: string }
+// `source` is always 'website' here — carried on the result purely so
+// callers can handle this union alongside extractYouTubeContent's own
+// 'transcript' | 'metadata' result without an unsafe cast.
+export type ExtractWebsiteContentResult = { success: true; title: string; content: string; source: 'website' } | { success: false; error: string }
 
 const FETCH_TIMEOUT_MS = 15_000
 // A generous cap for a single article page — large enough for any real
@@ -80,7 +83,7 @@ export async function extractWebsiteContent(rawUrl: string): Promise<ExtractWebs
 
     const { content } = normalizeContent(textContent)
     const title = article?.title?.trim() || url.hostname
-    return { success: true, title, content }
+    return { success: true, title, content, source: 'website' }
   } catch (error) {
     logger.warn('[UrlImport] Readability parse failed', { url: url.toString(), error: error instanceof Error ? error.message : String(error) })
     return { success: false, error: 'We could not extract readable content from this page.' }

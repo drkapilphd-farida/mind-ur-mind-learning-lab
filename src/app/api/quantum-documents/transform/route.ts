@@ -245,6 +245,10 @@ export async function POST(request: Request): Promise<Response> {
       shortStory: payload.short_story,
       recallQuestions: payload.recall_questions,
       createdAt: row.created_at,
+      // A file upload always has real, full extracted content — never
+      // the thinner metadata-only fallback (that's YouTube-import-only,
+      // see importQuantumDocumentFromUrl.ts).
+      isMetadataOnlySummary: false,
     }
 
     return NextResponse.json({ success: true, document }, { status: 200 })

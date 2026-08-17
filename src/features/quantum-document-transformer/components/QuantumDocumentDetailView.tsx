@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Flame, Quote, Rocket, Sparkles, Tags } from 'lucide-react'
+import { BookOpen, Flame, Quote, Rocket, Sparkles, Tags, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -61,6 +61,22 @@ function ReadingTextSection({ readingText }: { readingText: string }): React.JSX
       {isExpanded && (
         <p className="mt-3 max-h-96 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground">{readingText}</p>
       )}
+    </div>
+  )
+}
+
+// Honest YouTube Fallback™ — permanent, can't-miss disclosure (not a
+// dismissible toast) for a document built from a YouTube video's real
+// title/description because no transcript could be retrieved. Sits
+// above the tabs so it's visible no matter which tab is active.
+function MetadataOnlySummaryBanner(): React.JSX.Element {
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-amber-800 dark:text-amber-400">
+      <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <p className="text-xs leading-relaxed">
+        <span className="font-semibold">This overview is based on the video&rsquo;s title &amp; description only.</span> We couldn&rsquo;t retrieve its
+        transcript, so this isn&rsquo;t a summary of the actual video content — quiz and recall features are turned off for this document.
+      </p>
     </div>
   )
 }
@@ -167,6 +183,8 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
       ) : (
         <SelectionTooltip documentContext={`${document.title}\n\n${document.aiSummary}`} documentLanguage={document.targetLanguage}>
           <div className="space-y-6">
+            {document.isMetadataOnlySummary && <MetadataOnlySummaryBanner />}
+
             {/* Segmented into tabs rather than one long scroll — Summary,
                 Spider Notes, Keywords, Memory Techniques, and Practice
                 each get their own space instead of competing for
@@ -261,7 +279,11 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                     Null for a document generated before this field
                     existed. */}
                 {document.shortStory && <ShortStoryCard story={document.shortStory} keywords={document.keywords} memoryAnchor={document.oneSentenceSummary} />}
-                <FeynmanChallengeCard challenge={document.feynmanChallenge} />
+                {/* Feynman Challenge asks a learner to explain the
+                    topic back — a self-assessment against specific
+                    content, so it's excluded for a metadata-only
+                    summary along with the Quiz/Recall Questions below. */}
+                {!document.isMetadataOnlySummary && <FeynmanChallengeCard challenge={document.feynmanChallenge} />}
                 <MnemonicsListView mnemonics={document.mnemonics} />
                 <SubjectLensView lens={document.subjectLens} />
               </TabsContent>
@@ -270,14 +292,21 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                 {/* Quantum Speed Reading First™ — the primary action sits
                     at the top of this tab, not buried after every
                     deep-dive section, so a learner can launch straight
-                    into reading. */}
-                <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
-                  🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
-                </Button>
+                    into reading. The quiz+recall session is a genuine
+                    factual-recall test, so it — and RecallQuestionsCard
+                    below — is excluded for a metadata-only summary
+                    (see MetadataOnlySummaryBanner); reading practice
+                    itself (no grading) stays available via the Summary
+                    tab's own "Practice this summary" button. */}
+                {!document.isMetadataOnlySummary && (
+                  <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
+                    🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
+                  </Button>
+                )}
 
                 <DocumentOutcomeProfileCard profile={outcomeProfile} />
 
-                <RecallQuestionsCard questions={document.recallQuestions} />
+                {!document.isMetadataOnlySummary && <RecallQuestionsCard questions={document.recallQuestions} />}
 
                 <ReadingTextSection readingText={document.readingText} />
               </TabsContent>

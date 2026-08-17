@@ -276,4 +276,12 @@ export type QuantumDocument = {
   shortStory: string | null
   recallQuestions: readonly string[]
   createdAt: string
+  // Honest YouTube Fallback™ — true only when this document was built
+  // from a YouTube video's real title/description (no transcript could
+  // be retrieved), never for a file upload, website import, or a
+  // YouTube import that DID get a real transcript. The document viewer
+  // uses this to permanently disclose the thinner source and hide
+  // anything that tests factual recall (Quiz, Recall Questions, Feynman
+  // Challenge) against content never verified against a real transcript.
+  isMetadataOnlySummary: boolean
 }

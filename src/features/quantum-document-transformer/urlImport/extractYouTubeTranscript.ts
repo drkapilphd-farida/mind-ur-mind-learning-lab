@@ -1,10 +1,21 @@
 import { normalizeContent } from '@/core/universal-learning-engine/extraction/services/normalizeContent'
 import { logger } from '@/lib/logger'
 
-export type ExtractYouTubeTranscriptResult = { success: true; title: string; content: string } | { success: false; error: string }
+// `source` is load-bearing, not decorative — importQuantumDocumentFromUrl.ts
+// persists it as `is_metadata_only_summary`, which the document viewer uses
+// to permanently disclose thinner source material and hide anything that
+// tests factual recall (Quiz, Recall Questions, Feynman Challenge) against
+// content that was never actually verified against a real transcript.
+export type ExtractYouTubeContentResult =
+  | { success: true; title: string; content: string; source: 'transcript' | 'metadata' }
+  | { success: false; error: string }
 
 const FETCH_TIMEOUT_MS = 15_000
 const MIN_TRANSCRIPT_CHARS = 50
+// A real video description can honestly be a single short line — this
+// only guards against the genuinely-empty case (no description at all),
+// not against brevity itself.
+const MIN_METADATA_CHARS = 20
 
 // Supports every shape a user would realistically paste: the standard
 // watch URL, a shortened youtu.be link, a Shorts URL, and a bare embed
@@ -59,6 +70,17 @@ function getVideoTitle(playerResponse: unknown): string | null {
   return videoDetails.title
 }
 
+// The video's own real description, exactly as YouTube stores it — never
+// expanded, paraphrased, or embellished. This is what the metadata-only
+// fallback below sends to Claude instead of a transcript: genuine
+// YouTube data, just thinner than a full transcript.
+function getVideoDescription(playerResponse: unknown): string | null {
+  if (!isRecord(playerResponse)) return null
+  const videoDetails = playerResponse.videoDetails
+  if (!isRecord(videoDetails) || typeof videoDetails.shortDescription !== 'string') return null
+  return videoDetails.shortDescription
+}
+
 type CaptionTrack = { baseUrl: string; languageCode: string | null }
 
 function getCaptionTracks(playerResponse: unknown): readonly CaptionTrack[] {
@@ -89,26 +111,61 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&#(\d+);/g, (_match, code: string) => String.fromCharCode(Number(code)))
 }
 
-// YouTube Transcript Import™ — there is no YouTube Data API key
-// configured in this app (see src/config/reviewsPlaylist.ts's own
-// comment), so this reads the same public caption-track data the watch
-// page itself already loads to feed its own player — the same
-// undocumented approach every transcript-fetching tool without an API
-// key uses. Honestly disclosed as fragile — and, as of this writing,
-// confirmed genuinely broken for most real videos: YouTube's timedtext
-// endpoint now requires a Proof-of-Origin token from a real browser
-// session (BotGuard attestation) and returns an HTTP 200 with a silently
-// EMPTY body otherwise — verified directly, with matching cookies and
-// Referer/Origin headers forwarded, still empty. This isn't a bug in the
-// parsing logic below (video ID extraction, caption-track discovery, and
-// JSON parsing all work correctly); it's YouTube's own 2025-era
-// anti-scraping change, affecting every unofficial transcript tool, not
-// something a plain server-side fetch can work around. Left in place as
-// an honest best-effort — see the empty-body check below, which reports
-// this distinctly and honestly rather than silently failing or
-// fabricating a transcript — ready to work again if that changes,
-// without needing new code.
-export async function extractYouTubeTranscript(rawUrl: string): Promise<ExtractYouTubeTranscriptResult> {
+// Attempts a real transcript fetch — returns the transcript text, or null
+// if none could be retrieved for any reason (no captions, blocked
+// endpoint, too short). Never throws; every failure path is honestly
+// reported via a logger.warn and a null return, letting the caller fall
+// back to metadata rather than surfacing a hard error for what is, in
+// practice, now the common case.
+async function tryFetchTranscript(videoId: string, captionTracks: readonly CaptionTrack[]): Promise<string | null> {
+  if (captionTracks.length === 0) return null
+
+  // Prefer an English track (manual or auto-generated) when one exists;
+  // otherwise fall back to whatever the first available track is — some
+  // real transcript is more honest and useful than refusing outright.
+  const track = captionTracks.find((candidate) => candidate.languageCode?.startsWith('en')) ?? captionTracks[0]!
+
+  try {
+    const transcriptResponse = await fetch(track.baseUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+    if (!transcriptResponse.ok) return null
+    const transcriptXml = await transcriptResponse.text()
+
+    // YouTube Anti-Scraping™ — as of 2025, YouTube's timedtext endpoint
+    // can return an HTTP 200 with a completely EMPTY body (no XML, no
+    // error) when the request lacks a valid Proof-of-Origin token, which
+    // only a real browser session (via YouTube's own BotGuard
+    // attestation) can produce — confirmed directly: identical requests
+    // with matching cookies/Referer/Origin headers still come back
+    // empty. This is now the common case, not an edge case, which is
+    // exactly why this function falls back to real metadata instead of
+    // just failing outright.
+    if (transcriptXml.trim().length === 0) {
+      logger.warn('[UrlImport] YouTube timedtext endpoint returned an empty body (likely blocked)', { videoId })
+      return null
+    }
+
+    const segments = [...transcriptXml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)].map((match) => decodeHtmlEntities(match[1]!).trim())
+    const transcriptText = segments.filter(Boolean).join(' ')
+    return transcriptText.length >= MIN_TRANSCRIPT_CHARS ? transcriptText : null
+  } catch (error) {
+    logger.warn('[UrlImport] YouTube transcript fetch failed', { videoId, error: error instanceof Error ? error.message : String(error) })
+    return null
+  }
+}
+
+// YouTube Content Import™ — there is no YouTube Data API key configured
+// in this app (see src/config/reviewsPlaylist.ts's own comment), so this
+// reads the same public caption-track data the watch page itself already
+// loads to feed its own player — the same undocumented approach every
+// transcript-fetching tool without an API key uses. Honestly disclosed as
+// fragile, and, as of this writing, confirmed genuinely broken for MOST
+// real videos (see tryFetchTranscript's own comment on why). Rather than
+// failing outright for the common case, this now falls back to the
+// video's own real title + description — genuine YouTube metadata,
+// never invented or "expanded upon" — and reports that honestly via
+// `source: 'metadata'` so the caller can disclose it and skip generating
+// anything that tests factual recall against unverified content.
+export async function extractYouTubeContent(rawUrl: string): Promise<ExtractYouTubeContentResult> {
   const videoId = extractYouTubeVideoId(rawUrl)
   if (!videoId) {
     return { success: false, error: "That doesn't look like a YouTube video link." }
@@ -143,50 +200,31 @@ export async function extractYouTubeTranscript(rawUrl: string): Promise<ExtractY
 
   const videoTitle = getVideoTitle(playerResponse) ?? 'YouTube Video'
   const captionTracks = getCaptionTracks(playerResponse)
-  if (captionTracks.length === 0) {
-    return { success: false, error: 'This video does not have captions or a transcript available.' }
-  }
 
-  // Prefer an English track (manual or auto-generated) when one exists;
-  // otherwise fall back to whatever the first available track is — some
-  // real transcript is more honest and useful than refusing outright.
-  const track = captionTracks.find((candidate) => candidate.languageCode?.startsWith('en')) ?? captionTracks[0]!
-
-  try {
-    const transcriptResponse = await fetch(track.baseUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
-    if (!transcriptResponse.ok) {
-      return { success: false, error: "We could not download this video's transcript." }
-    }
-    const transcriptXml = await transcriptResponse.text()
-
-    // YouTube Anti-Scraping™ — as of 2025, YouTube's timedtext endpoint
-    // can return an HTTP 200 with a completely EMPTY body (no XML, no
-    // error) when the request lacks a valid Proof-of-Origin token, which
-    // only a real browser session (via YouTube's own BotGuard
-    // attestation) can produce — confirmed directly: identical requests
-    // with matching cookies/Referer/Origin headers still come back
-    // empty. This is a genuinely different failure than "this video's
-    // transcript happens to be short," so it gets its own honest
-    // message rather than falling into the length check below.
-    if (transcriptXml.trim().length === 0) {
-      logger.warn('[UrlImport] YouTube timedtext endpoint returned an empty body (likely blocked)', { videoId })
-      return {
-        success: false,
-        error: "We couldn't retrieve captions for this video right now — YouTube is blocking automated caption requests. Please try again later, or paste a web article link instead.",
-      }
-    }
-
-    const segments = [...transcriptXml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)].map((match) => decodeHtmlEntities(match[1]!).trim())
-    const transcriptText = segments.filter(Boolean).join(' ')
-
-    if (transcriptText.length < MIN_TRANSCRIPT_CHARS) {
-      return { success: false, error: "This video's transcript is too short to summarize." }
-    }
-
+  const transcriptText = await tryFetchTranscript(videoId, captionTracks)
+  if (transcriptText !== null) {
     const { content } = normalizeContent(transcriptText)
-    return { success: true, title: videoTitle, content }
-  } catch (error) {
-    logger.warn('[UrlImport] YouTube transcript fetch failed', { videoId, error: error instanceof Error ? error.message : String(error) })
-    return { success: false, error: "We could not download this video's transcript." }
+    return { success: true, title: videoTitle, content, source: 'transcript' }
   }
+
+  // Honest Metadata Fallback™ — real YouTube data (this video's own
+  // title + description, verbatim), just less of it than a transcript.
+  // Deliberately NOT sent to Claude with any instruction to "expand" or
+  // infer beyond what's actually here — the AI prompt this feeds into
+  // (QUANTUM_DOCUMENT_TRANSFORMER_SYSTEM_PROMPT) summarizes whatever real
+  // text it receives honestly, the same way it already handles a short
+  // uploaded note; a thin summary of thin real material is correct
+  // behavior, not a bug to prompt around.
+  const description = getVideoDescription(playerResponse)
+  const metadataText = [videoTitle, description].filter((part): part is string => typeof part === 'string' && part.trim().length > 0).join('\n\n')
+
+  if (metadataText.trim().length < MIN_METADATA_CHARS) {
+    return {
+      success: false,
+      error: "We couldn't retrieve this video's transcript or description. Please try again later, or paste a web article link instead.",
+    }
+  }
+
+  const { content } = normalizeContent(metadataText)
+  return { success: true, title: videoTitle, content, source: 'metadata' }
 }

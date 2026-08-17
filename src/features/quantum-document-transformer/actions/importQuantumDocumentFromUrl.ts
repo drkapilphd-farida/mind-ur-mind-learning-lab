@@ -11,7 +11,7 @@ import { FREE_TIER_DOCUMENT_LIMIT } from '../freeTierLimit'
 import { checkTransformRateLimit } from '../transformRateLimiter'
 import { generateQuantumDocumentIntelligence } from '../generateQuantumDocumentIntelligence'
 import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from '../supportedLanguages'
-import { extractYouTubeVideoId, extractYouTubeTranscript } from '../urlImport/extractYouTubeTranscript'
+import { extractYouTubeVideoId, extractYouTubeContent } from '../urlImport/extractYouTubeTranscript'
 import { extractWebsiteContent } from '../urlImport/extractWebsiteContent'
 
 const ImportUrlInputSchema = z.object({
@@ -71,12 +71,17 @@ export async function importQuantumDocumentFromUrl(input: unknown): Promise<Impo
   const isYouTube = extractYouTubeVideoId(parsed.data.url) !== null
 
   logger.info('[UrlImport] Extraction — START', { userId: user.id, isYouTube })
-  const extraction = isYouTube ? await extractYouTubeTranscript(parsed.data.url) : await extractWebsiteContent(parsed.data.url)
+  const extraction = isYouTube ? await extractYouTubeContent(parsed.data.url) : await extractWebsiteContent(parsed.data.url)
   if (!extraction.success) {
     logger.warn('[UrlImport] Extraction — FAIL', { userId: user.id, isYouTube, error: extraction.error })
     return { success: false, error: extraction.error }
   }
-  logger.info('[UrlImport] Extraction — SUCCESS', { userId: user.id, isYouTube, contentLength: extraction.content.length })
+  // Honest Metadata Fallback™ — only the YouTube path can ever be
+  // 'metadata' (a real transcript unavailable, falling back to the
+  // video's own real title/description); the website path is always a
+  // real, full Readability-extracted article.
+  const isMetadataOnlySummary = extraction.source === 'metadata'
+  logger.info('[UrlImport] Extraction — SUCCESS', { userId: user.id, isYouTube, isMetadataOnlySummary, contentLength: extraction.content.length })
 
   logger.info('[UrlImport] AI Intelligence Generated — START', { userId: user.id, targetLanguage })
   const intelligence = await generateQuantumDocumentIntelligence(extraction.title, extraction.content, targetLanguage)
@@ -116,6 +121,7 @@ export async function importQuantumDocumentFromUrl(input: unknown): Promise<Impo
       recall_questions: payload.recall_questions,
       target_language: targetLanguage,
       reading_text: readingText,
+      is_metadata_only_summary: isMetadataOnlySummary,
     })
     .select('id')
     .single()

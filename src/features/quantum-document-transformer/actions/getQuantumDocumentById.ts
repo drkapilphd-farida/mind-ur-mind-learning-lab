@@ -86,6 +86,7 @@ export async function getQuantumDocumentById(documentId: string): Promise<GetQua
     shortStory: row.short_story,
     recallQuestions: row.recall_questions ?? [],
     createdAt: row.created_at,
+    isMetadataOnlySummary: row.is_metadata_only_summary,
   }
 
   return { success: true, document }
