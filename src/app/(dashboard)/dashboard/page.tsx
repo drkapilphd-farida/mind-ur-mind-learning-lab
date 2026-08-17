@@ -36,6 +36,15 @@ export const metadata: Metadata = {
   title: 'Transformation Dashboard',
 }
 
+// Paste URL / YouTube™ — a Server Action invoked from this page
+// (importQuantumDocumentFromUrl, called by AIDocumentTransformerWidget)
+// inherits ITS route's own maxDuration, not one it could export itself
+// ("use server" files may only export async functions). A page fetch
+// (website or YouTube watch page + transcript) plus one Claude call plus
+// a DB insert needs the same real room as the sibling file-upload Route
+// Handler's own `maxDuration = 60` (/api/quantum-documents/transform).
+export const maxDuration = 60
+
 const EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((ex) => ex.exerciseId)
 
 // Mind Score: weighted blend of Reading progress (60%) and streak

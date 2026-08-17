@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FileText, RotateCcw, Sparkles, UploadCloud, X } from 'lucide-react'
+import { FileText, Link2, RotateCcw, Sparkles, UploadCloud, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -18,12 +18,19 @@ import { cn } from '@/lib/utils'
 import type { QuantumDocument } from '@/features/quantum-document-transformer/types'
 import { getLanguageName } from '@/features/quantum-document-transformer/supportedLanguages'
 import { type QuantumDocumentHistoryItem } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
+import { importQuantumDocumentFromUrl } from '@/features/quantum-document-transformer/actions/importQuantumDocumentFromUrl'
 import { UpgradeToProBanner } from '@/features/quantum-document-transformer/components/UpgradeToProBanner'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
 import { MAX_SYNCHRONOUS_UPLOAD_BYTES } from '@/features/quantum-document-transformer/maxSynchronousUploadSize'
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type SupportedLanguage } from '@/features/quantum-document-transformer/supportedLanguages'
 import { DocumentHistorySidebar } from '@/features/quantum-document-transformer/components/DocumentHistorySidebar'
 import { logger } from '@/lib/logger'
+
+// A UI-only, best-effort check (just for choosing which processing-step
+// copy to show, e.g. "Fetching transcript…" vs "Fetching article
+// content…") — the server action does its own authoritative detection
+// via extractYouTubeVideoId, independent of this.
+const LOOKS_LIKE_YOUTUBE_URL = /youtube\.com|youtu\.be/i
 
 const ACCEPT = [
   'application/pdf',
@@ -50,9 +57,21 @@ const PROCESSING_STEPS = [
   { threshold: 75, message: 'Preparing Quantum Session...' },
 ] as const
 
-function getProcessingMessage(progress: number): string {
-  let message: string = PROCESSING_STEPS[0].message
-  for (const step of PROCESSING_STEPS) {
+const URL_PROCESSING_STEPS_WEBSITE = [
+  { threshold: 0, message: 'Fetching article content...' },
+  { threshold: 35, message: 'Building Spider Notes & AI Summary...' },
+  { threshold: 75, message: 'Generating quantum mind maps...' },
+] as const
+
+const URL_PROCESSING_STEPS_YOUTUBE = [
+  { threshold: 0, message: 'Fetching transcript...' },
+  { threshold: 35, message: 'Building Spider Notes & AI Summary...' },
+  { threshold: 75, message: 'Generating quantum mind maps...' },
+] as const
+
+function getProcessingMessage(progress: number, steps: readonly { threshold: number; message: string }[] = PROCESSING_STEPS): string {
+  let message: string = steps[0]!.message
+  for (const step of steps) {
     if (progress >= step.threshold) message = step.message
   }
   return message
@@ -63,6 +82,13 @@ type UploadState = {
   displaySizeBytes: number
   status: UploadProgressStatus
   progress: number
+  errorMessage: string | null
+}
+
+type UrlTransformState = {
+  status: 'transforming' | 'error'
+  progress: number
+  isYouTube: boolean
   errorMessage: string | null
 }
 
@@ -153,6 +179,152 @@ function TransformingProgress({ fileName, sizeBytes, progress }: { fileName: str
       </div>
       <Progress value={progress} className="mt-4" />
       <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300" aria-live="polite">{getProcessingMessage(progress)}</p>
+    </div>
+  )
+}
+
+// Unified Upload & URL Input™ — a segmented control switching between
+// "Upload File" and "Paste URL / YouTube". Disabled (not hidden) while
+// a transform is in flight, so the layout doesn't jump mid-progress —
+// the active tab stays visibly pinned instead.
+function InputMethodTabs({
+  activeTab,
+  onChange,
+  disabled,
+}: {
+  activeTab: 'upload' | 'url'
+  onChange: (tab: 'upload' | 'url') => void
+  disabled: boolean
+}): React.JSX.Element {
+  return (
+    <div role="tablist" aria-label="Choose input method" className="mb-4 grid grid-cols-2 gap-1 rounded-full bg-muted/60 p-1">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={activeTab === 'upload'}
+        disabled={disabled}
+        onClick={() => onChange('upload')}
+        className={cn(
+          'rounded-full px-3 py-2 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+          activeTab === 'upload' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Upload File
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={activeTab === 'url'}
+        disabled={disabled}
+        onClick={() => onChange('url')}
+        className={cn(
+          'rounded-full px-3 py-2 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+          activeTab === 'url' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Paste URL / YouTube
+      </button>
+    </div>
+  )
+}
+
+// The URL/YouTube input row — a sleek single-line field plus a primary
+// "Transform URL" CTA, matching the file-upload tab's own gradient
+// button treatment for visual consistency between the two tabs.
+function UrlInputForm({
+  value,
+  onChange,
+  onSubmit,
+}: {
+  value: string
+  onChange: (value: string) => void
+  onSubmit: () => void
+}): React.JSX.Element {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-card px-4 py-3 transition-colors focus-within:border-cyan-500/60 dark:border-slate-800/80">
+        <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <input
+          type="url"
+          inputMode="url"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              onSubmit()
+            }
+          }}
+          placeholder="Paste YouTube video, article, or web link..."
+          aria-label="YouTube video, article, or web link"
+          className="w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
+      </div>
+      <Button
+        type="button"
+        size="lg"
+        disabled={value.trim().length === 0}
+        className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm transition-all duration-300 hover:from-cyan-500 hover:to-cyan-400 hover:shadow-md active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+        onClick={onSubmit}
+      >
+        Transform URL
+      </Button>
+    </div>
+  )
+}
+
+// The URL tab's own progress/error card — the same visual language as
+// TransformingProgress/UploadProgress above, but without a file name/
+// size (there isn't one), and with URL-specific status copy (transcript
+// vs. article) driven by which extractor the request is actually using.
+function UrlTransformStatusCard({
+  status,
+  progress,
+  isYouTube,
+  errorMessage,
+  onRetry,
+  onCancel,
+}: {
+  status: 'transforming' | 'error'
+  progress: number
+  isYouTube: boolean
+  errorMessage: string | null
+  onRetry: () => void
+  onCancel: () => void
+}): React.JSX.Element {
+  if (status === 'error') {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+        <p className="text-sm font-medium text-destructive" role="alert">
+          {errorMessage ?? 'Something went wrong. Please try again.'}
+        </p>
+        <div className="mt-4 flex gap-2">
+          <Button type="button" variant="outline" size="sm" className="flex-1 rounded-full" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="button" size="sm" className="flex-1 rounded-full" onClick={onRetry}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200/80 p-5 dark:border-slate-800/80">
+      <div className="flex items-center gap-3">
+        <div aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <Sparkles className="size-5 animate-pulse text-primary" />
+        </div>
+        <p className="truncate text-sm font-medium text-foreground">{isYouTube ? 'YouTube Video' : 'Web Article'}</p>
+      </div>
+      <Progress value={progress} className="mt-4" />
+      <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300" aria-live="polite">
+        {getProcessingMessage(progress, isYouTube ? URL_PROCESSING_STEPS_YOUTUBE : URL_PROCESSING_STEPS_WEBSITE)}
+      </p>
     </div>
   )
 }
@@ -257,9 +429,13 @@ function RecentDocuments({ documents }: { documents: readonly QuantumDocumentHis
 // pipeline at /api/quantum-documents/transform: real text extraction for
 // PDF/DOCX/TXT/Image (images via Claude vision, see extractImage.ts), one
 // Claude Haiku call forced into a strict tool-use JSON shape, saved to
-// quantum_documents. On success, this widget navigates straight to the
-// document's own page (/library/[id]) — Isolated Document View™ — so the
-// main dashboard feed never has to render the heavy output inline.
+// quantum_documents. Paste URL / YouTube™ is the same pipeline's sibling
+// entry point (importQuantumDocumentFromUrl, a Server Action): Readability
+// article extraction or a YouTube transcript instead of a parsed file,
+// same Claude call, same quantum_documents row shape. On success, either
+// tab navigates straight to the document's own page (/library/[id]) —
+// Isolated Document View™ — so the main dashboard feed never has to
+// render the heavy output inline.
 type AIDocumentTransformerWidgetProps = {
   isPro: boolean
   initialDocumentCount: number
@@ -283,6 +459,12 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
   const searchParams = useSearchParams()
+
+  // Unified Upload & URL Input™
+  const [activeTab, setActiveTab] = useState<'upload' | 'url'>('upload')
+  const [urlInput, setUrlInput] = useState('')
+  const [urlTransform, setUrlTransform] = useState<UrlTransformState | null>(null)
+  const urlProgressTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Document History & Library — the sidebar nav's "My Library" link is
   // the only entry point now (the in-widget History button was removed
@@ -385,6 +567,68 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
     setSelectedFile(file)
   }
 
+  function stopUrlProgressTimer(): void {
+    if (urlProgressTimer.current) {
+      clearInterval(urlProgressTimer.current)
+      urlProgressTimer.current = null
+    }
+  }
+
+  async function submitUrl(): Promise<void> {
+    const trimmedUrl = urlInput.trim()
+    if (trimmedUrl.length === 0) return
+
+    const isYouTube = LOOKS_LIKE_YOUTUBE_URL.test(trimmedUrl)
+    setUrlTransform({ status: 'transforming', progress: 0, isYouTube, errorMessage: null })
+
+    urlProgressTimer.current = setInterval(() => {
+      setUrlTransform((current) => {
+        if (!current || current.status !== 'transforming') return current
+        const next = Math.min(current.progress + Math.random() * 8, 92)
+        return { ...current, progress: next }
+      })
+    }, 260)
+
+    try {
+      const result = await importQuantumDocumentFromUrl({ url: trimmedUrl, targetLanguage })
+      stopUrlProgressTimer()
+
+      if (!result.success) {
+        logger.error('[QuantumDocumentTransformer] URL transform failed', { error: result.error, code: result.code })
+
+        // Pro Paywall — same fallback as the file-upload path: fall
+        // through to the proactive banner rather than a generic,
+        // retry-able error.
+        if (result.code === 'free_limit_reached') {
+          setDocumentCount(FREE_TIER_DOCUMENT_LIMIT)
+          setUrlTransform(null)
+          return
+        }
+
+        setUrlTransform((current) => (current ? { ...current, status: 'error', progress: 0, errorMessage: result.error } : current))
+        return
+      }
+
+      // Same deliberate held beat as the file-upload path, so success
+      // doesn't feel like an abrupt jump cut.
+      setUrlTransform((current) => (current ? { ...current, progress: 100 } : current))
+      await new Promise((resolve) => setTimeout(resolve, 650))
+
+      setDocumentCount((current) => current + 1)
+      setUrlInput('')
+      router.push(`/library/${result.documentId}`)
+    } catch (error) {
+      stopUrlProgressTimer()
+      logger.error('[QuantumDocumentTransformer] URL transform threw', { error: error instanceof Error ? error.message : 'Unknown error.' })
+      setUrlTransform((current) => (current ? { ...current, status: 'error', progress: 0, errorMessage: 'Something went wrong. Please try again.' } : current))
+    }
+  }
+
+  function handleUrlCancel(): void {
+    stopUrlProgressTimer()
+    setUrlTransform(null)
+  }
+
   function handleReplaceChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) void handleFileSelected(file)
@@ -424,59 +668,78 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
 
       <div className="mt-4">
         {!isBlocked && (
-          <LanguageSelector value={targetLanguage} onChange={setTargetLanguage} disabled={upload !== null} />
+          <LanguageSelector value={targetLanguage} onChange={setTargetLanguage} disabled={upload !== null || urlTransform !== null} />
         )}
 
         {isBlocked ? (
           <UpgradeToProBanner documentLimit={FREE_TIER_DOCUMENT_LIMIT} />
-        ) : upload ? (
-          upload.status === 'error' ? (
-            <UploadProgress
-              fileName={upload.displayName}
-              sizeBytes={upload.displaySizeBytes}
-              progress={upload.progress}
-              status={upload.status}
-              errorMessage={upload.errorMessage}
-              onRetry={handleRetry}
-              onCancel={handleCancel}
-            />
-          ) : (
-            <TransformingProgress fileName={upload.displayName} sizeBytes={upload.displaySizeBytes} progress={upload.progress} />
-          )
-        ) : selectedFile ? (
-          <div className="space-y-4">
-            <FilePreview file={selectedFile} onReplace={() => replaceInputRef.current?.click()} onRemove={handleRemove} />
-            <input ref={replaceInputRef} type="file" accept={ACCEPT} className="sr-only" onChange={handleReplaceChange} />
-            <Button
-              type="button"
-              size="lg"
-              className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm transition-all duration-300 hover:from-cyan-500 hover:to-cyan-400 hover:shadow-md active:scale-95"
-              onClick={() => void submitDocument(selectedFile)}
-            >
-              Transform into study material
-            </Button>
-          </div>
         ) : (
           <>
-            {recentDocuments.length > 0 && <RecentDocuments documents={recentDocuments} />}
+            <InputMethodTabs activeTab={activeTab} onChange={setActiveTab} disabled={upload !== null || selectedFile !== null || urlTransform !== null} />
 
-            {/* Smart Transformer, Responsive Cross-Device™ — a compact
-                tap-to-upload row below the sm breakpoint (640px), the
-                shared UploadZone's full drag-and-drop surface at sm and
-                above. Same handleFileSelected callback either way. */}
-            <div className="sm:hidden">
-              <CompactUploadTrigger onFileSelected={(file) => void handleFileSelected(file)} errorMessage={zoneError} />
-            </div>
-            <div className="hidden sm:block">
-              <UploadZone
-                onFileSelected={(file) => void handleFileSelected(file)}
-                accept={ACCEPT}
-                title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
-                subtitle="or click to browse"
-                helperText="PDF · Word (.docx) · Text · PNG/JPEG"
-                errorMessage={zoneError}
+            {activeTab === 'upload' ? (
+              upload ? (
+                upload.status === 'error' ? (
+                  <UploadProgress
+                    fileName={upload.displayName}
+                    sizeBytes={upload.displaySizeBytes}
+                    progress={upload.progress}
+                    status={upload.status}
+                    errorMessage={upload.errorMessage}
+                    onRetry={handleRetry}
+                    onCancel={handleCancel}
+                  />
+                ) : (
+                  <TransformingProgress fileName={upload.displayName} sizeBytes={upload.displaySizeBytes} progress={upload.progress} />
+                )
+              ) : selectedFile ? (
+                <div className="space-y-4">
+                  <FilePreview file={selectedFile} onReplace={() => replaceInputRef.current?.click()} onRemove={handleRemove} />
+                  <input ref={replaceInputRef} type="file" accept={ACCEPT} className="sr-only" onChange={handleReplaceChange} />
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm transition-all duration-300 hover:from-cyan-500 hover:to-cyan-400 hover:shadow-md active:scale-95"
+                    onClick={() => void submitDocument(selectedFile)}
+                  >
+                    Transform into study material
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {recentDocuments.length > 0 && <RecentDocuments documents={recentDocuments} />}
+
+                  {/* Smart Transformer, Responsive Cross-Device™ — a compact
+                      tap-to-upload row below the sm breakpoint (640px), the
+                      shared UploadZone's full drag-and-drop surface at sm and
+                      above. Same handleFileSelected callback either way. */}
+                  <div className="sm:hidden">
+                    <CompactUploadTrigger onFileSelected={(file) => void handleFileSelected(file)} errorMessage={zoneError} />
+                  </div>
+                  <div className="hidden sm:block">
+                    <UploadZone
+                      onFileSelected={(file) => void handleFileSelected(file)}
+                      accept={ACCEPT}
+                      title="Drop PDFs, Word Docs, Text files, or Images/Notes here"
+                      subtitle="or click to browse"
+                      helperText="PDF · Word (.docx) · Text · PNG/JPEG"
+                      errorMessage={zoneError}
+                    />
+                  </div>
+                </>
+              )
+            ) : urlTransform ? (
+              <UrlTransformStatusCard
+                status={urlTransform.status}
+                progress={urlTransform.progress}
+                isYouTube={urlTransform.isYouTube}
+                errorMessage={urlTransform.errorMessage}
+                onRetry={() => void submitUrl()}
+                onCancel={handleUrlCancel}
               />
-            </div>
+            ) : (
+              <UrlInputForm value={urlInput} onChange={setUrlInput} onSubmit={() => void submitUrl()} />
+            )}
           </>
         )}
       </div>
