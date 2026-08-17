@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Flame, Quote, Rocket, Sparkles, Tags, TriangleAlert } from 'lucide-react'
+import { BookOpen, Flame, Quote, Rocket, Sparkles, Tags } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -65,18 +65,44 @@ function ReadingTextSection({ readingText }: { readingText: string }): React.JSX
   )
 }
 
-// Honest YouTube Fallback™ — permanent, can't-miss disclosure (not a
-// dismissible toast) for a document built from a YouTube video's real
-// title/description because no transcript could be retrieved. Sits
-// above the tabs so it's visible no matter which tab is active.
+// Honest YouTube Fallback™ — a permanent, can't-miss disclosure (still
+// never a dismissible toast — this is a real, ongoing fact about the
+// document, not a one-time notice) that a document was built from a
+// YouTube video's real title/description because no transcript could be
+// retrieved. Sits above the tabs so it's visible no matter which tab is
+// active. Styled as an intentional product mode — the same
+// quantum-icon-chip + Sparkles language the Summary tab's own AI cards
+// already use, a calm indigo tint, no alarm color/icon — rather than an
+// error state, because it isn't one: this is a deliberate, working
+// fallback, just for thinner source material.
 function MetadataOnlySummaryBanner(): React.JSX.Element {
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-amber-800 dark:text-amber-400">
-      <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-      <p className="text-xs leading-relaxed">
-        <span className="font-semibold">This overview is based on the video&rsquo;s title &amp; description only.</span> We couldn&rsquo;t retrieve its
-        transcript, so this isn&rsquo;t a summary of the actual video content — quiz and recall features are turned off for this document.
-      </p>
+    <div className="flex items-start gap-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.04] px-4 py-3">
+      <div className="quantum-icon-chip mt-0.5 shrink-0" aria-hidden="true">
+        <Sparkles className="size-3.5 text-indigo-500" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold tracking-wide text-foreground">Quick Overview</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          Built from this video&rsquo;s title &amp; description — a full transcript wasn&rsquo;t available. Quiz, Recall Questions, and the Feynman
+          Challenge unlock automatically once we can verify a real transcript.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// The positively-framed stand-in wherever a factual-recall feature
+// (Quiz, Recall Questions, Feynman Challenge) is unavailable for a
+// Quick Overview document — same card language as the rest of this
+// view, so the gap reads as "not yet" rather than "broken."
+function QuickOverviewFeatureNotice({ label }: { label: string }): React.JSX.Element {
+  return (
+    <div className="quantum-section-card flex items-center gap-3 border-dashed p-4">
+      <div className="quantum-icon-chip shrink-0" aria-hidden="true">
+        <Sparkles className="size-3.5 text-indigo-400" />
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">{label} unlocks once we can verify this video&rsquo;s transcript.</p>
     </div>
   )
 }
@@ -283,7 +309,11 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                     topic back — a self-assessment against specific
                     content, so it's excluded for a metadata-only
                     summary along with the Quiz/Recall Questions below. */}
-                {!document.isMetadataOnlySummary && <FeynmanChallengeCard challenge={document.feynmanChallenge} />}
+                {document.isMetadataOnlySummary ? (
+                  <QuickOverviewFeatureNotice label="The Feynman Challenge" />
+                ) : (
+                  <FeynmanChallengeCard challenge={document.feynmanChallenge} />
+                )}
                 <MnemonicsListView mnemonics={document.mnemonics} />
                 <SubjectLensView lens={document.subjectLens} />
               </TabsContent>
@@ -298,7 +328,9 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
                     (see MetadataOnlySummaryBanner); reading practice
                     itself (no grading) stays available via the Summary
                     tab's own "Practice this summary" button. */}
-                {!document.isMetadataOnlySummary && (
+                {document.isMetadataOnlySummary ? (
+                  <QuickOverviewFeatureNotice label="The full Quiz session" />
+                ) : (
                   <Button type="button" size="lg" className="w-full rounded-full" onClick={() => setSessionPhase('reading')}>
                     🚀 Start Quantum Speed Reading ({document.quizQuestions.length} recall question{document.quizQuestions.length !== 1 ? 's' : ''})
                   </Button>
@@ -306,7 +338,11 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
 
                 <DocumentOutcomeProfileCard profile={outcomeProfile} />
 
-                {!document.isMetadataOnlySummary && <RecallQuestionsCard questions={document.recallQuestions} />}
+                {document.isMetadataOnlySummary ? (
+                  <QuickOverviewFeatureNotice label="Recall Questions" />
+                ) : (
+                  <RecallQuestionsCard questions={document.recallQuestions} />
+                )}
 
                 <ReadingTextSection readingText={document.readingText} />
               </TabsContent>
