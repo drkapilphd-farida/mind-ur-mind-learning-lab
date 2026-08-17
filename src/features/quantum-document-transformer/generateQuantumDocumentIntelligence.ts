@@ -130,6 +130,14 @@ export async function generateQuantumDocumentIntelligence(
   documentTitle: string,
   documentText: string,
   targetLanguage: SupportedLanguage,
+  // Quick Overview™ — true only for a YouTube import that fell back to
+  // real title/description (no transcript available). Adds one
+  // reinforcing, uncached instruction (see METADATA_ONLY_SOURCE_NOTE)
+  // asking for the best honest writing that thinner material supports —
+  // never a license to invent. Every other call site (file upload,
+  // website import, a YouTube import that DID get a real transcript)
+  // omits this and behaves exactly as before.
+  isMetadataOnly = false,
 ): Promise<GenerateQuantumDocumentIntelligenceResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey || apiKey.includes('stub') || apiKey.includes('placeholder')) {
@@ -192,7 +200,9 @@ export async function generateQuantumDocumentIntelligence(
       system: [{ type: 'text', text: QUANTUM_DOCUMENT_TRANSFORMER_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       tools: [tool],
       tool_choice: { type: 'tool', name: tool.name },
-      messages: [{ role: 'user', content: buildQuantumDocumentTransformerUserMessage(documentTitle, promptText, targetLanguage, targetQuestionCount) }],
+      messages: [
+        { role: 'user', content: buildQuantumDocumentTransformerUserMessage(documentTitle, promptText, targetLanguage, targetQuestionCount, isMetadataOnly) },
+      ],
     })
 
     const toolUseBlock = response.content.find((block) => block.type === 'tool_use')

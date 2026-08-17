@@ -83,8 +83,8 @@ export async function importQuantumDocumentFromUrl(input: unknown): Promise<Impo
   const isMetadataOnlySummary = extraction.source === 'metadata'
   logger.info('[UrlImport] Extraction — SUCCESS', { userId: user.id, isYouTube, isMetadataOnlySummary, contentLength: extraction.content.length })
 
-  logger.info('[UrlImport] AI Intelligence Generated — START', { userId: user.id, targetLanguage })
-  const intelligence = await generateQuantumDocumentIntelligence(extraction.title, extraction.content, targetLanguage)
+  logger.info('[UrlImport] AI Intelligence Generated — START', { userId: user.id, targetLanguage, isMetadataOnlySummary })
+  const intelligence = await generateQuantumDocumentIntelligence(extraction.title, extraction.content, targetLanguage, isMetadataOnlySummary)
   if (!intelligence.success) {
     logger.error('[UrlImport] AI Intelligence Generated — FAIL', { userId: user.id, error: intelligence.error })
     return { success: false, error: intelligence.error }
