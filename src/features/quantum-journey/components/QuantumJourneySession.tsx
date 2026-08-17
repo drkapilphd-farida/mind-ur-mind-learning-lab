@@ -1,14 +1,15 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Flame, Target, Zap } from 'lucide-react'
+import { Flame, SkipForward, Target, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
+import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
-import { playClickChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
+import { playClickChime, startAmbientDrone, stopAmbientDrone } from '@/app/unified-quantum-session-preview/components/soundEngine'
 import { MindAwakeningPhase } from '@/app/unified-quantum-session-preview/components/MindAwakeningPhase'
 import { QuantumReadingSprintPhase, type QuantumReadingSprintResult } from '@/app/unified-quantum-session-preview/components/QuantumReadingSprintPhase'
 import { RetentionCheckPhase } from '@/app/unified-quantum-session-preview/components/RetentionCheckPhase'
@@ -234,8 +235,31 @@ export function QuantumJourneySession({
   const [isSavingDay, setIsSavingDay] = useState(false)
   const [coachMessage, setCoachMessage] = useState<string | null>(null)
 
+  // Ambient Session Drone™ — one quiet, tuned background drone for the
+  // whole active session (Step 1 through the completion screen), the
+  // same tasteful recipe already proven on this app's reading-mode
+  // exercises. Started once per session (not per step, so the fade-in
+  // never restarts between Steps 1-4) and always faded out on unmount —
+  // e.g. the user navigating away mid-session — not just on a clean
+  // finish, so it can never keep humming after the page is gone.
+  useEffect(() => {
+    if (level === 'briefing') return undefined
+    startAmbientDrone()
+    return () => stopAmbientDrone()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level === 'briefing'])
+
+  // Clean Step Haptics™ — one light, guarded vibrate at each real step
+  // transition (never continuous, never on every tap) — the same inline
+  // `'vibrate' in navigator` idiom every other haptic call site in this
+  // app already uses; there is no shared wrapper to reuse.
+  function triggerStepHaptic(): void {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(12)
+  }
+
   function advance(): void {
     playClickChime()
+    triggerStepHaptic()
     setLevel((current) => (typeof current === 'number' ? ((current + 1) as LevelState) : current))
   }
 
@@ -265,6 +289,7 @@ export function QuantumJourneySession({
 
   function handleReadingComplete(result: QuantumReadingSprintResult | JourneyReadingModeResult | GuidingLinePacerResult | RsvpModeResult): void {
     playClickChime()
+    triggerStepHaptic()
     setReadingResult(result)
     setLevel(4)
   }
@@ -302,13 +327,17 @@ export function QuantumJourneySession({
     })
   }
 
-  async function handleRetentionComplete(correctCount: number, totalCount: number): Promise<void> {
+  // Shared by a real Retention Check completion AND a skipped one — the
+  // reading step's own result (WPM/accuracy, already comprehension-
+  // penalized) is real and saves identically either way; only
+  // `retentionXp` differs, and computeRetentionXp(0, 0) already floors to
+  // a natural 0 for "no questions answered" rather than needing a
+  // separate fabricated-vs-real branch.
+  async function finalizeDay(retentionXp: number): Promise<void> {
     if (readingResult === null) return
-    playClickChime()
     setIsSavingDay(true)
     const trueWpm = computeTrueWpm(readingResult.wpm, readingResult.accuracyPercent)
     const readingXp = computeReadingXp(readingResult.score)
-    const retentionXp = computeRetentionXp(correctCount, totalCount)
     const [, coach] = await Promise.all([
       saveDailyQuantumSession({
         readingWpm: trueWpm,
@@ -321,8 +350,52 @@ export function QuantumJourneySession({
     setIsSavingDay(false)
     setDayReadingSummary({ wpm: trueWpm, accuracyPercent: readingResult.accuracyPercent })
     setCoachMessage(coach)
+    triggerStepHaptic()
     setLevel('complete')
   }
+
+  async function handleRetentionComplete(correctCount: number, totalCount: number): Promise<void> {
+    playClickChime()
+    await finalizeDay(computeRetentionXp(correctCount, totalCount))
+  }
+
+  // Honest Skip™ — matches the 30-Day Masterclass's "Skip Exercise"
+  // consistency without ever fabricating a comprehension score: the real
+  // reading result still saves exactly as measured, only the optional
+  // retention-quiz XP bonus is skipped (computeRetentionXp's own 0-XP
+  // floor for 0 questions answered, not an invented number).
+  function handleSkipRetention(): void {
+    playClickChime()
+    void finalizeDay(0)
+  }
+
+  // Auxiliary Steps 1-2 have no accuracy concept for several pool
+  // exercises already (Eye Warm-up, Schulte Grid, Word Flash, Brain Gym)
+  // — handleAuxiliaryComplete already treats a missing accuracyPercent as
+  // "nothing to record," so skipping this way is identical in honesty to
+  // those exercises' own normal completion, never a fabricated score.
+  function handleSkipCurrentAuxiliary(): void {
+    handleAuxiliaryComplete(level === 1 ? step1 : step2)
+  }
+
+  // Step 3 (the actual reading exercise) deliberately has NO skip here —
+  // per this component's own "Metric Separation" principle (see the
+  // top-of-file doc comment), the reading step's WPM is the one number
+  // this whole day exists to honestly measure; skipping it would mean
+  // either fabricating a WPM or "completing" a day with no real reading
+  // data, both worse than just not offering the shortcut.
+  function handleSkipClick(): void {
+    if (level === 4) {
+      handleSkipRetention()
+      return
+    }
+    if (level === 1 || level === 2) {
+      handleSkipCurrentAuxiliary()
+    }
+  }
+
+  const canSkipCurrentStep =
+    (level === 1 && !isFoundationBreathingDay && hasStartedWarmup) || level === 2 || (level === 4 && readingResult !== null)
 
   // Dynamic Chunking™ days have no Retention Check to pair with (see
   // getReadingMode's own comment) — this exercise's own real result IS
@@ -341,6 +414,7 @@ export function QuantumJourneySession({
     setIsSavingDay(false)
     setDayReadingSummary({ wpm: trueWpm, accuracyPercent })
     setCoachMessage(coach)
+    triggerStepHaptic()
     setLevel('complete')
   }
 
@@ -474,13 +548,36 @@ export function QuantumJourneySession({
 
   return (
     <div>
+      {/* Persistent Nav™ — this route had NO chrome at all before (not
+          even a back link): unlike DayMasterPlayer's 30-Day wizard, this
+          session is a normal in-flow scrolling page, never viewport-
+          locked (no useImmersiveExerciseLock here), so there's no
+          full-bleed immersive mode this could conflict with. Rendered at
+          every level, including the briefing/completion screens, so
+          Sign Out and the rest of the app stay one tap away throughout. */}
+      <LabNavHeader currentSection="21-Day Journey" />
+
       {level !== 'complete' && level !== 'briefing' && (
         <div className="mx-auto max-w-2xl px-6 pt-8">
-          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
-            <span>
+          <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
+            <span className="min-w-0 flex-1 truncate">
               Day {day} — Step {level} of {totalSteps}: {stepLabel}
             </span>
-            <span className="tabular-nums">{Math.round(progressPercent)}%</span>
+            <div className="flex shrink-0 items-center gap-3">
+              {canSkipCurrentStep && (
+                <button
+                  type="button"
+                  onClick={handleSkipClick}
+                  className="flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground sm:px-3"
+                  data-skip-step="true"
+                >
+                  <span className="hidden sm:inline">{level === 4 ? 'Skip Retention Check' : 'Skip Exercise'}</span>
+                  <span className="sm:hidden">Skip</span>
+                  <SkipForward className="size-3.5" aria-hidden="true" />
+                </button>
+              )}
+              <span className="tabular-nums">{Math.round(progressPercent)}%</span>
+            </div>
           </div>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
             <motion.div

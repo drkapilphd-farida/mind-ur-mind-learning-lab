@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
@@ -119,6 +119,21 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 // loop now writes `translate3d` straight to the track element via a ref,
 // every real display frame, completely bypassing React re-renders for the
 // motion itself.
+// Stutter fix — isolates the full sentence list from the 10Hz elapsedMs
+// tick driving the rest of this component; see VerticalWordReadingCanvas's
+// identical TrackWords for the full rationale.
+const TrackWords = memo(function TrackWords({ units, textClassName }: { units: readonly ReadingUnit[]; textClassName: string }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit) => (
+        <span key={unit.id} className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>
+          {unit.text}
+        </span>
+      ))}
+    </>
+  )
+})
+
 export function SentenceReadingModeCanvas({
   units,
   currentUnitIndex,
@@ -370,11 +385,7 @@ export function SentenceReadingModeCanvas({
             className="absolute top-0 flex h-full items-center will-change-transform"
             style={{ left: '50%', gap: UNIT_GAP_PX }}
           >
-            {units.map((unit) => (
-              <span key={unit.id} className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>
-                {unit.text}
-              </span>
-            ))}
+            <TrackWords units={units} textClassName={textClassName} />
           </div>
         </div>
 

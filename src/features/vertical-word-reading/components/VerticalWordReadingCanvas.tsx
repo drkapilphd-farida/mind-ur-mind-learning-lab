@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
@@ -93,6 +93,26 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   }
   return impulse
 }
+
+// Stutter fix — the full word list (every unit in the session, not just
+// the visible window) previously rendered inline inside the main
+// component, which re-renders 10×/sec from useReadingRuntime's elapsedMs
+// tick. React was reconciling this entire list every 100ms even though
+// the actual scroll motion never touches React at all (see the rAF loop
+// below — it writes translateY straight to the DOM via a ref). Isolating
+// it into its own memoized component means it only re-renders when
+// `units` itself changes (once per session), not on every engine tick.
+const TrackWords = memo(function TrackWords({ units }: { units: readonly ReadingUnit[] }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit) => (
+        <div key={unit.id} className="flex items-center justify-center px-6" style={{ height: UNIT_ROW_HEIGHT_PX, width: '100%' }}>
+          <span className={`${WORD_TEXT_CLASS_NAME} ${WORD_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
+        </div>
+      ))}
+    </>
+  )
+})
 
 export function VerticalWordReadingCanvas({
   units,
@@ -281,11 +301,7 @@ export function VerticalWordReadingCanvas({
           className="absolute left-0 flex w-full flex-col items-center will-change-transform"
           style={{ top: '50%', gap: UNIT_GAP_PX }}
         >
-          {units.map((unit) => (
-            <div key={unit.id} className="flex items-center justify-center px-6" style={{ height: UNIT_ROW_HEIGHT_PX, width: '100%' }}>
-              <span className={`${WORD_TEXT_CLASS_NAME} ${WORD_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
-            </div>
-          ))}
+          <TrackWords units={units} />
         </div>
       </div>
 

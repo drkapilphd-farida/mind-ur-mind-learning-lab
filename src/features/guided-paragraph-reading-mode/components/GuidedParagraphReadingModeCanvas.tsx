@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { measureWrappedWordYCentersPx } from '@/hooks/reading-engine/measureWrappedWordYCenters'
@@ -28,7 +28,6 @@ const FONT_SIZE_STYLE: Record<GuidedParagraphFontSize, { fontSize: number; lineH
 }
 
 const ENGINE_TICK_MS = 100
-const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
 // Cinematic Reader palette — same frosted-glass card every sibling Reading
@@ -116,6 +115,24 @@ function computeConstantVelocityOffsetPx(startOffsetPx: number, endOffsetPx: num
 // with genuine rAF-driven continuous motion. The bar's own height and
 // glow are the only "highlight" — the text underneath never dims, fades,
 // or changes brightness, exactly like every sibling Reading Mode.
+// Stutter fix — isolates the full paragraph text from the 10Hz elapsedMs
+// tick driving the rest of this component; see VerticalWordReadingCanvas's
+// identical TrackWords for the full rationale. The moving highlight
+// itself is a separate ref-driven element (trackRef, above), unaffected
+// by this — only the static word spans move out of the tick-driven tree.
+const TrackWords = memo(function TrackWords({ units }: { units: readonly ReadingUnit[] }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit, index) => (
+        <span key={unit.id}>
+          {unit.text}
+          {index < units.length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </>
+  )
+})
+
 export function GuidedParagraphReadingModeCanvas({
   units,
   currentUnitIndex,
@@ -209,7 +226,6 @@ export function GuidedParagraphReadingModeCanvas({
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
   const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
-  const lastHapticUnitIndexRef = useRef(0)
 
   const lastEngineElapsedMsRef = useRef(elapsedMs)
   const lastEngineTickAtRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -224,13 +240,6 @@ export function GuidedParagraphReadingModeCanvas({
   currentUnitIndexRef.current = currentUnitIndex
   isPausedRef.current = isPaused
   totalDurationMsRef.current = totalDurationMs
-
-  useEffect(() => {
-    if (currentUnitIndex === lastHapticUnitIndexRef.current) return
-    lastHapticUnitIndexRef.current = currentUnitIndex
-    if (currentUnitIndex === 0) return
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(HAPTIC_TRANSITION_MS)
-  }, [currentUnitIndex])
 
   useEffect(() => {
     const audioContext = new AudioContext()
@@ -386,12 +395,7 @@ export function GuidedParagraphReadingModeCanvas({
               className={`relative ${TEXT_COLOR_CLASS_NAME}`}
               style={{ fontSize: fontSizePx, lineHeight: `${lineHeight}px`, width: measuredWrapWidth ?? undefined }}
             >
-              {units.map((unit, index) => (
-                <span key={unit.id}>
-                  {unit.text}
-                  {index < units.length - 1 ? ' ' : ''}
-                </span>
-              ))}
+              <TrackWords units={units} />
             </p>
           </div>
         </div>

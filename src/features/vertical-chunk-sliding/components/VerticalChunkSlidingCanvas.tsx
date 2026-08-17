@@ -33,7 +33,6 @@ const CHANNEL_HEIGHT_PX = UNIT_ROW_HEIGHT_PX * VISIBLE_ROWS + UNIT_GAP_PX * (VIS
 const CHUNK_TEXT_CLASS_NAME = 'text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold whitespace-nowrap'
 
 const ENGINE_TICK_MS = 100
-const HAPTIC_TRANSITION_MS = 10
 
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
@@ -148,7 +147,6 @@ export function VerticalChunkSlidingCanvas({
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
   const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
-  const lastHapticUnitIndexRef = useRef(0)
 
   const lastEngineElapsedMsRef = useRef(elapsedMs)
   const lastEngineTickAtRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -163,13 +161,6 @@ export function VerticalChunkSlidingCanvas({
   currentUnitIndexRef.current = currentUnitIndex
   targetWpmRef.current = targetWpm
   isPausedRef.current = isPaused
-
-  useEffect(() => {
-    if (currentUnitIndex === lastHapticUnitIndexRef.current) return
-    lastHapticUnitIndexRef.current = currentUnitIndex
-    if (currentUnitIndex === 0) return
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(HAPTIC_TRANSITION_MS)
-  }, [currentUnitIndex])
 
   useEffect(() => {
     const audioContext = new AudioContext()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { measureWrappedWordPositionsPx, type WrappedLineMeta } from '@/hooks/reading-engine/measureWrappedWordPositions'
@@ -144,6 +144,24 @@ function computeGuidePosition(
 // line's start once that line finishes — the natural "return sweep" a
 // real reading guide (finger, ruler, index card) makes, now genuinely
 // continuous and rAF-driven rather than a CSS-transition snap.
+// Stutter fix — isolates the full paragraph text from the 10Hz elapsedMs
+// tick driving the rest of this component; see VerticalWordReadingCanvas's
+// identical TrackWords for the full rationale. The moving highlight
+// itself is a separate ref-driven element (trackRef, above), unaffected
+// by this — only the static word spans move out of the tick-driven tree.
+const TrackWords = memo(function TrackWords({ units }: { units: readonly ReadingUnit[] }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit, index) => (
+        <span key={unit.id}>
+          {unit.text}
+          {index < units.length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </>
+  )
+})
+
 export function GuidedParagraphReadingModeHorizontalCanvas({
   units,
   currentUnitIndex,
@@ -398,12 +416,7 @@ export function GuidedParagraphReadingModeHorizontalCanvas({
               className={`relative ${TEXT_COLOR_CLASS_NAME}`}
               style={{ fontSize: fontSizePx, lineHeight: `${lineHeight}px`, width: measuredWrapWidth ?? undefined }}
             >
-              {units.map((unit, index) => (
-                <span key={unit.id}>
-                  {unit.text}
-                  {index < units.length - 1 ? ' ' : ''}
-                </span>
-              ))}
+              <TrackWords units={units} />
             </p>
           </div>
         </div>

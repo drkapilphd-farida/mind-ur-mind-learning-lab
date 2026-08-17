@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { measureSingleLineWidthsPx } from '@/hooks/reading-engine/measureSingleLineWidths'
@@ -133,6 +133,21 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
 // Still uses measureSingleLineWidthsPx (imported unmodified) for each
 // word's true rendered width, since the constant-velocity distance is
 // still measured against real layout, not an estimate.
+// Stutter fix — isolates the full paragraph list from the 10Hz elapsedMs
+// tick driving the rest of this component; see VerticalWordReadingCanvas's
+// identical TrackWords for the full rationale.
+const TrackWords = memo(function TrackWords({ units, textClassName }: { units: readonly ReadingUnit[]; textClassName: string }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit) => (
+        <span key={unit.id} className={`${textClassName} ${TEXT_COLOR_CLASS_NAME}`}>
+          {unit.text}
+        </span>
+      ))}
+    </>
+  )
+})
+
 export function ParagraphReadingModeCanvas({
   units,
   currentUnitIndex,
@@ -394,11 +409,7 @@ export function ParagraphReadingModeCanvas({
             className="absolute top-0 flex h-full items-center will-change-transform"
             style={{ left: '50%', gap: UNIT_GAP_PX }}
           >
-            {units.map((unit) => (
-              <span key={unit.id} className={`${textClassName} ${TEXT_COLOR_CLASS_NAME}`}>
-                {unit.text}
-              </span>
-            ))}
+            <TrackWords units={units} textClassName={textClassName} />
           </div>
         </div>
 

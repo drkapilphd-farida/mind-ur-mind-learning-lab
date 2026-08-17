@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { measureWrappedWordYCentersPx } from '@/hooks/reading-engine/measureWrappedWordYCenters'
@@ -52,7 +52,6 @@ const FONT_SIZE_STYLE: Record<ParagraphFontSize, { fontSize: number; lineHeight:
 const VISIBLE_LINES = 5
 
 const ENGINE_TICK_MS = 100
-const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
 // Same frosted-glass palette as the horizontal Canvas (own-copy), with the
@@ -124,6 +123,21 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   }
   return impulse
 }
+
+// Stutter fix — isolates the full paragraph word-flow from the 10Hz
+// elapsedMs tick driving the rest of this component; see
+// VerticalWordReadingCanvas's identical TrackWords for the full rationale.
+const TrackWords = memo(function TrackWords({ units, textClassName }: { units: readonly ReadingUnit[]; textClassName: string }): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit) => (
+        <span key={unit.id} className={textClassName}>
+          {unit.text}{' '}
+        </span>
+      ))}
+    </>
+  )
+})
 
 export function ParagraphReadingModeVerticalCanvas({
   units,
@@ -197,7 +211,6 @@ export function ParagraphReadingModeVerticalCanvas({
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
   const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
-  const lastHapticUnitIndexRef = useRef(0)
 
   const lastEngineElapsedMsRef = useRef(elapsedMs)
   const lastEngineTickAtRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -214,13 +227,6 @@ export function ParagraphReadingModeVerticalCanvas({
   targetWpmRef.current = targetWpm
   isPausedRef.current = isPaused
   totalDurationMsRef.current = totalDurationMs
-
-  useEffect(() => {
-    if (currentUnitIndex === lastHapticUnitIndexRef.current) return
-    lastHapticUnitIndexRef.current = currentUnitIndex
-    if (currentUnitIndex === 0) return
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(HAPTIC_TRANSITION_MS)
-  }, [currentUnitIndex])
 
   useEffect(() => {
     const audioContext = new AudioContext()
@@ -390,11 +396,7 @@ export function ParagraphReadingModeVerticalCanvas({
               fontWeight: 600,
             }}
           >
-            {units.map((unit) => (
-              <span key={unit.id} className={textClassName}>
-                {unit.text}{' '}
-              </span>
-            ))}
+            <TrackWords units={units} textClassName={textClassName} />
           </div>
         </div>
 

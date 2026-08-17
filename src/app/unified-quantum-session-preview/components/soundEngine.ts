@@ -116,3 +116,97 @@ export function playCertificateFanfare(): void {
   playTone(1318.51, 550, 520, 0.11)
   playTone(1567.98, 550, 520, 0.11)
 }
+
+// Ambient Session Drone™ — the exact tuned recipe already proven across
+// this app's reading-mode exercises (VerticalWordReadingCanvas and
+// siblings, own-copy there): a quiet, heavily low-passed sine drone with
+// 4 harmonic layers, slow to fade in/out so it's never a jarring on/off
+// click. Reused here (not re-copied) for the 21-Day Journey, which has
+// its own multi-step flow spanning several different exercise
+// components — one drone started once per session, at the orchestrator
+// level, is simpler and more robust than threading a separate audio
+// graph through every step. Shares this file's one lazy AudioContext
+// (getAudioContext) rather than opening a second one.
+const AMBIENT_FUNDAMENTAL_HZ = 110
+const AMBIENT_RESTING_GAIN = 0.014
+const AMBIENT_FADE_IN_TIME_CONSTANT_S = 2.5
+const AMBIENT_RELEASE_TIME_CONSTANT_S = 1.6
+const AMBIENT_RELEASE_SETTLE_MS = AMBIENT_RELEASE_TIME_CONSTANT_S * 5 * 1000
+const AMBIENT_LOWPASS_CUTOFF_HZ = 900
+
+const AMBIENT_HARMONIC_LAYERS: readonly { multiplier: number; weight: number; pan: number }[] = [
+  { multiplier: 1, weight: 1, pan: 0 },
+  { multiplier: 2 ** (7 / 1200), weight: 0.85, pan: 0 },
+  { multiplier: 2, weight: 0.3, pan: 0.2 },
+  { multiplier: 3, weight: 0.15, pan: -0.2 },
+]
+
+type AmbientVoice = { oscillator: OscillatorNode }
+let ambientState: { masterGain: GainNode; voices: readonly AmbientVoice[] } | null = null
+
+// Idempotent and preference-gated at call time only (matching playTone's
+// own convention) — safe to call repeatedly (e.g. on every step
+// transition) without stacking a second drone on top of the first.
+export function startAmbientDrone(): void {
+  if (ambientState !== null) return
+  if (!loadSoundEnabledPreference()) return
+  const ctx = getAudioContext()
+  if (ctx === null) return
+  const now = ctx.currentTime
+
+  const masterGain = ctx.createGain()
+  masterGain.gain.setValueAtTime(0, now)
+  masterGain.gain.setTargetAtTime(AMBIENT_RESTING_GAIN, now, AMBIENT_FADE_IN_TIME_CONSTANT_S)
+
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.frequency.setValueAtTime(AMBIENT_LOWPASS_CUTOFF_HZ, now)
+  filter.Q.setValueAtTime(0.7, now)
+  masterGain.connect(filter)
+  filter.connect(ctx.destination)
+
+  const voices: AmbientVoice[] = AMBIENT_HARMONIC_LAYERS.map(({ multiplier, weight, pan }) => {
+    const oscillator = ctx.createOscillator()
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(AMBIENT_FUNDAMENTAL_HZ * multiplier, now)
+
+    const voiceGain = ctx.createGain()
+    voiceGain.gain.setValueAtTime(weight, now)
+
+    const panner = ctx.createStereoPanner()
+    panner.pan.setValueAtTime(pan, now)
+
+    oscillator.connect(voiceGain)
+    voiceGain.connect(panner)
+    panner.connect(masterGain)
+    oscillator.start()
+
+    return { oscillator }
+  })
+
+  ambientState = { masterGain, voices }
+}
+
+// Always safe to call, even if the drone was never started (a no-op) —
+// callers don't need to track whether startAmbientDrone actually ran
+// (e.g. because sound was off at the time).
+export function stopAmbientDrone(): void {
+  const state = ambientState
+  if (state === null) return
+  ambientState = null
+
+  const ctx = getAudioContext()
+  if (ctx === null) {
+    for (const voice of state.voices) voice.oscillator.stop()
+    return
+  }
+
+  const stopNow = ctx.currentTime
+  state.masterGain.gain.cancelScheduledValues(stopNow)
+  state.masterGain.gain.setValueAtTime(state.masterGain.gain.value, stopNow)
+  state.masterGain.gain.setTargetAtTime(0, stopNow, AMBIENT_RELEASE_TIME_CONSTANT_S)
+
+  setTimeout(() => {
+    for (const voice of state.voices) voice.oscillator.stop()
+  }, AMBIENT_RELEASE_SETTLE_MS)
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useCountUp } from '@/hooks/exercises/useCountUp'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { computeContinuousStreamOffsetPx } from '@/hooks/reading-engine/continuousStreamOffset'
@@ -43,7 +43,6 @@ const SENTENCE_WIDTH_TEXT_CLASSES: Record<SentenceWidth, string> = {
 const UNIT_GAP_PX = 24
 const VISIBLE_ROWS = 3
 const ENGINE_TICK_MS = 100
-const HAPTIC_TRANSITION_MS = 10
 const CHROME_AUTO_HIDE_DELAY_MS = 2_200
 
 // Same frosted-glass palette as the horizontal Canvas (own-copy).
@@ -100,6 +99,29 @@ function createBowlResonanceImpulse(audioContext: AudioContext): AudioBuffer {
   return impulse
 }
 
+// Stutter fix — isolates the full sentence list from the 10Hz elapsedMs
+// tick driving the rest of this component; see VerticalWordReadingCanvas's
+// identical TrackWords for the full rationale.
+const TrackWords = memo(function TrackWords({
+  units,
+  textClassName,
+  rowHeight,
+}: {
+  units: readonly ReadingUnit[]
+  textClassName: string
+  rowHeight: number
+}): React.JSX.Element {
+  return (
+    <>
+      {units.map((unit) => (
+        <div key={unit.id} className="flex items-center justify-center px-6 text-center" style={{ height: rowHeight, width: '100%' }}>
+          <span className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
+        </div>
+      ))}
+    </>
+  )
+})
+
 export function SentenceReadingModeVerticalCanvas({
   units,
   currentUnitIndex,
@@ -152,7 +174,6 @@ export function SentenceReadingModeVerticalCanvas({
   const audioContextRef = useRef<AudioContext | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
   const harmonicVoicesRef = useRef<readonly HarmonicVoice[]>([])
-  const lastHapticUnitIndexRef = useRef(0)
 
   const lastEngineElapsedMsRef = useRef(elapsedMs)
   const lastEngineTickAtRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0)
@@ -167,13 +188,6 @@ export function SentenceReadingModeVerticalCanvas({
   currentUnitIndexRef.current = currentUnitIndex
   targetWpmRef.current = targetWpm
   isPausedRef.current = isPaused
-
-  useEffect(() => {
-    if (currentUnitIndex === lastHapticUnitIndexRef.current) return
-    lastHapticUnitIndexRef.current = currentUnitIndex
-    if (currentUnitIndex === 0) return
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(HAPTIC_TRANSITION_MS)
-  }, [currentUnitIndex])
 
   useEffect(() => {
     const audioContext = new AudioContext()
@@ -330,11 +344,7 @@ export function SentenceReadingModeVerticalCanvas({
             className="absolute left-0 flex w-full flex-col items-center will-change-transform"
             style={{ top: '50%', gap: UNIT_GAP_PX }}
           >
-            {units.map((unit) => (
-              <div key={unit.id} className="flex items-center justify-center px-6 text-center" style={{ height: rowHeight, width: '100%' }}>
-                <span className={`${textClassName} ${SENTENCE_TEXT_COLOR_CLASS_NAME}`}>{unit.text}</span>
-              </div>
-            ))}
+            <TrackWords units={units} textClassName={textClassName} rowHeight={rowHeight} />
           </div>
         </div>
 
