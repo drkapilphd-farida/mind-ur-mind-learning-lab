@@ -68,14 +68,20 @@ describe('markCurriculumDayComplete', () => {
 })
 
 describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
-  it('day 1 is always unlocked', () => {
-    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {} })).toBe(true)
+  it('30-Day Masterclass Paywall: every day, including day 1, is locked for a non-Pro user', () => {
+    const progress: CurriculumProgress = { completedDays: [1, 2], checkpoints: {} }
+    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {} }, false)).toBe(false)
+    expect(isCurriculumDayUnlocked(2, progress, false)).toBe(false)
   })
 
-  it('day N unlocks only once day N-1 is complete', () => {
+  it('day 1 is unlocked for a Pro user', () => {
+    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {} }, true)).toBe(true)
+  })
+
+  it('for a Pro user, day N unlocks only once day N-1 is complete', () => {
     const progress: CurriculumProgress = { completedDays: [1], checkpoints: {} }
-    expect(isCurriculumDayUnlocked(2, progress)).toBe(true)
-    expect(isCurriculumDayUnlocked(3, progress)).toBe(false)
+    expect(isCurriculumDayUnlocked(2, progress, true)).toBe(true)
+    expect(isCurriculumDayUnlocked(3, progress, true)).toBe(false)
   })
 
   it('getHighestUnlockedDay walks the unbroken completion streak from day 1', () => {
@@ -89,19 +95,23 @@ describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
       vi.unstubAllEnvs()
     })
 
-    it('unlocks every day, regardless of completion, when the platform-wide dev/test bypass is on', () => {
+    it('unlocks every day, regardless of Pro status or completion, when the platform-wide dev/test bypass is on', () => {
       vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'true')
       const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {} }
-      expect(isCurriculumDayUnlocked(1, emptyProgress)).toBe(true)
-      expect(isCurriculumDayUnlocked(15, emptyProgress)).toBe(true)
-      expect(isCurriculumDayUnlocked(30, emptyProgress)).toBe(true)
-      expect(getHighestUnlockedDay(emptyProgress)).toBe(30)
+      expect(isCurriculumDayUnlocked(1, emptyProgress, false)).toBe(true)
+      expect(isCurriculumDayUnlocked(15, emptyProgress, false)).toBe(true)
+      expect(isCurriculumDayUnlocked(30, emptyProgress, false)).toBe(true)
+      // getHighestUnlockedDay is a pure content-sequencing display helper,
+      // deliberately decoupled from isPro/dev-unlock — it always reflects
+      // real completion progress only, so it stays 1 here regardless.
+      expect(getHighestUnlockedDay(emptyProgress)).toBe(1)
     })
 
-    it('leaves the real sequential gate untouched when the bypass is off', () => {
+    it('leaves the real Pro + sequential gate untouched when the bypass is off', () => {
       vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'false')
       const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {} }
-      expect(isCurriculumDayUnlocked(15, emptyProgress)).toBe(false)
+      expect(isCurriculumDayUnlocked(15, emptyProgress, true)).toBe(false)
+      expect(isCurriculumDayUnlocked(1, emptyProgress, false)).toBe(false)
       expect(getHighestUnlockedDay(emptyProgress)).toBe(1)
     })
   })

@@ -12,13 +12,14 @@ import { WHATSAPP_MASTERCLASS_INQUIRY_LINK } from '@/config/whatsappSupportLink'
 const CURRICULUM_ROUTE = '/labs/quantum-speed-reading/thirty-day-curriculum'
 
 // Tier 3 · Flagship Mastery Program — the 3-Tier Value Ladder's premium
-// hero card, presenting the real, free, self-paced 30-Day Curriculum
-// (client-only progress, no payment gate — see curriculumProgress.ts)
-// alongside a direct Live Cohort enrollment CTA. The ₹4,999 checkout
-// opens Razorpay's real hosted payment link in a new tab — completing it
-// takes real payment; it does not automatically unlock anything in this
-// app (no entitlement is wired to it), so this card only ever promises
-// what's true: enrollment/scheduling happens after payment, not before.
+// hero card, presenting the 30-Day Curriculum (client-only progress
+// tracking, server-verified Pro gate on every day — see
+// curriculumProgress.ts / ThirtyDayCurriculumExperience.tsx) alongside a
+// direct Live Cohort enrollment CTA. The ₹4,999 checkout opens
+// Razorpay's real hosted payment link in a new tab — completing it takes
+// real payment; it does not automatically unlock anything in this app
+// (no entitlement is wired to it), so this card only ever promises what's
+// true: enrollment/scheduling happens after payment, not before.
 export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
   const [nextDay, setNextDay] = useState<number | null>(null)
   const [hasStarted, setHasStarted] = useState(false)
@@ -129,12 +130,12 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
           <div className="flex-1">
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Your Curriculum Progress</p>
             <p className="mt-0.5 text-sm font-medium text-foreground" data-curriculum-status={hasStarted ? 'in-progress' : 'not-started'}>
-              {nextDay === null ? 'Loading…' : hasStarted && theme !== null ? `Day ${nextDay} — ${theme.title}` : 'Not started yet — free to begin'}
+              {nextDay === null ? 'Loading…' : hasStarted && theme !== null ? `Day ${nextDay} — ${theme.title}` : 'Not started yet — enroll to begin'}
             </p>
             {hasStarted && <p className="text-xs text-slate-700 dark:text-slate-300">{consistencyPercent}% of the 30 days complete</p>}
           </div>
           <Button asChild size="lg" variant="outline" className="w-full rounded-full transition-all duration-300 active:scale-95 sm:w-auto">
-            <Link href={CURRICULUM_ROUTE}>{nextDay === null ? 'Open Curriculum' : hasStarted ? `Continue Day ${nextDay}` : 'Start Day 1 — Free'}</Link>
+            <Link href={CURRICULUM_ROUTE}>{nextDay === null ? 'Open Curriculum' : hasStarted ? `Continue Day ${nextDay}` : 'View Curriculum'}</Link>
           </Button>
         </div>
 

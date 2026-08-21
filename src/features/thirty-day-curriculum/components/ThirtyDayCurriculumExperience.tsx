@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { CurriculumAssessmentCanvas } from './CurriculumAssessmentCanvas'
+import { MasterclassPaywallModal } from './MasterclassPaywallModal'
 import { ThirtyDayCurriculumDayDetail } from './ThirtyDayCurriculumDayDetail'
 import { ThirtyDayCurriculumOverview } from './ThirtyDayCurriculumOverview'
 import { TOTAL_CURRICULUM_DAYS } from '../curriculumDatabase'
-import { loadCurriculumProgress, recordCurriculumCheckpoint, type CurriculumCheckpointResult } from '../curriculumProgress'
+import { isCurriculumDayUnlocked, loadCurriculumProgress, recordCurriculumCheckpoint, type CurriculumCheckpointResult } from '../curriculumProgress'
 
 type CurriculumView = 'overview' | 'day-detail' | 'assessment'
 
@@ -44,22 +45,54 @@ function parseValidDay(rawDay: string | null): number | null {
 // playlist's final step, the completion celebration — survives that one
 // real page round-trip. Every other, embeddable exercise never leaves
 // this route at all; see DayMasterPlayer.tsx.
-export function ThirtyDayCurriculumExperience(): React.JSX.Element {
+type ThirtyDayCurriculumExperienceProps = {
+  // 30-Day Masterclass Paywall™ — resolved server-side (see this
+  // route's page.tsx, hasQuantumSpeedReadingProAccess) and passed down
+  // as the one real source of truth every gate in this component tree
+  // reads from. Never re-derived client-side.
+  isPro: boolean
+}
+
+export function ThirtyDayCurriculumExperience({ isPro }: ThirtyDayCurriculumExperienceProps): React.JSX.Element {
   const searchParams = useSearchParams()
   const initialDay = searchParams.get('view') === 'day' ? parseValidDay(searchParams.get('day')) : null
 
-  const [view, setView] = useState<CurriculumView>(initialDay !== null ? 'day-detail' : 'overview')
-  const [selectedDay, setSelectedDay] = useState<number | null>(initialDay)
-  const [justCompletedDay, setJustCompletedDay] = useState(initialDay !== null && searchParams.get('dayComplete') === '1')
-  const [refreshKey, setRefreshKey] = useState(0)
   const [progress, setProgress] = useState(() => loadCurriculumProgress())
+  // Defense in depth — `?view=day&day=N` is a real, legitimate URL this
+  // app itself generates (curriculumReturnRouting.ts, returning from a
+  // gated exercise mid-day), but it's also just a URL anyone could type
+  // or bookmark. Validating it against the exact same
+  // isCurriculumDayUnlocked gate every click already goes through means
+  // landing here with an actually-locked day can never skip straight to
+  // real content — it resolves to the overview with the paywall already
+  // open instead.
+  const initialDayIsUnlocked = initialDay !== null && isCurriculumDayUnlocked(initialDay, progress, isPro)
+
+  const [view, setView] = useState<CurriculumView>(initialDayIsUnlocked ? 'day-detail' : 'overview')
+  const [selectedDay, setSelectedDay] = useState<number | null>(initialDayIsUnlocked ? initialDay : null)
+  const [justCompletedDay, setJustCompletedDay] = useState(initialDayIsUnlocked && searchParams.get('dayComplete') === '1')
+  const [paywallDay, setPaywallDay] = useState<number | null>(initialDay !== null && !initialDayIsUnlocked ? initialDay : null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   function refreshProgress(): void {
     setProgress(loadCurriculumProgress())
     setRefreshKey((key) => key + 1)
   }
 
+  function openPaywall(day: number): void {
+    setPaywallDay(day)
+  }
+
+  // The one real gate every entry into a day's content passes through —
+  // DayCell only ever calls this for a day it already knows is
+  // unlocked, but this re-checks anyway rather than trusting the caller,
+  // the same "never trust the client-side hint alone" discipline this
+  // gate itself was built to enforce.
   function handleSelectDay(day: number): void {
+    if (!isCurriculumDayUnlocked(day, progress, isPro)) {
+      openPaywall(day)
+      return
+    }
     setSelectedDay(day)
     setJustCompletedDay(false)
     setView('day-detail')
@@ -114,7 +147,8 @@ export function ThirtyDayCurriculumExperience(): React.JSX.Element {
   return (
     <>
       <LabNavHeader currentSection="30-Day Masterclass" />
-      <ThirtyDayCurriculumOverview onSelectDay={handleSelectDay} refreshKey={refreshKey} />
+      <ThirtyDayCurriculumOverview onSelectDay={handleSelectDay} onLockedDayClick={openPaywall} isPro={isPro} refreshKey={refreshKey} />
+      <MasterclassPaywallModal open={paywallDay !== null} onOpenChange={(open) => { if (!open) setPaywallDay(null) }} day={paywallDay} />
     </>
   )
 }

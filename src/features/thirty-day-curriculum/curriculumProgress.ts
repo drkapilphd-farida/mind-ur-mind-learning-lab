@@ -88,18 +88,32 @@ function saveCurriculumProgress(progress: CurriculumProgress): void {
   }
 }
 
-export function isCurriculumDayUnlocked(day: number, progress: CurriculumProgress): boolean {
+// 30-Day Masterclass Paywall™ — every one of the 30 days requires real
+// Pro access now (`isPro`, resolved server-side via
+// hasQuantumSpeedReadingProAccess and threaded down as a prop — see
+// ThirtyDayCurriculumExperience.tsx). Day 1 is no longer a free
+// exception the way it used to be. The sequential "day N needs day N-1
+// complete" structure is kept underneath that gate, for a paying
+// learner — this isn't a change to the program's pacing design, only to
+// who can enter it at all.
+export function isCurriculumDayUnlocked(day: number, progress: CurriculumProgress, isPro: boolean): boolean {
   if (isDevUnlockEnabled()) return true
+  if (!isPro) return false
   if (day === 1) return true
   return progress.completedDays.includes(day - 1)
 }
 
-// The highest day the learner could open right now — day N+1 once day N
-// is complete, capped at TOTAL_CURRICULUM_DAYS.
+// The highest day the learner has progressed to by real completion —
+// day N+1 once day N is complete, capped at TOTAL_CURRICULUM_DAYS. A
+// pure content-sequencing display helper (the dashboard hero card's
+// "Continue Day N" label), deliberately decoupled from isPro/paywall
+// status — it answers "where did they leave off," not "can they enter
+// right now." The real gate is isCurriculumDayUnlocked, enforced where
+// a day is actually opened.
 export function getHighestUnlockedDay(progress: CurriculumProgress): number {
   let highest = 1
   for (let day = 2; day <= TOTAL_CURRICULUM_DAYS; day++) {
-    if (isCurriculumDayUnlocked(day, progress)) highest = day
+    if (progress.completedDays.includes(day - 1)) highest = day
     else break
   }
   return highest

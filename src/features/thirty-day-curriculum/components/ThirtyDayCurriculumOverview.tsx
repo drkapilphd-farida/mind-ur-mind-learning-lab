@@ -19,6 +19,8 @@ const CARD_CLASS_NAME = 'rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 s
 
 type ThirtyDayCurriculumOverviewProps = {
   onSelectDay: (day: number) => void
+  onLockedDayClick: (day: number) => void
+  isPro: boolean
   refreshKey: number
 }
 
@@ -26,7 +28,7 @@ function metricLabel(value: number | null, suffix: string): string {
   return value === null ? '—' : `${value}${suffix}`
 }
 
-export function ThirtyDayCurriculumOverview({ onSelectDay, refreshKey }: ThirtyDayCurriculumOverviewProps): React.JSX.Element {
+export function ThirtyDayCurriculumOverview({ onSelectDay, onLockedDayClick, isPro, refreshKey }: ThirtyDayCurriculumOverviewProps): React.JSX.Element {
   // Client-only load — same SSR-hydration-mismatch reasoning every other
   // localStorage-backed exercise in this project already follows.
   const [progress, setProgress] = useState<CurriculumProgress | null>(null)
@@ -72,10 +74,14 @@ export function ThirtyDayCurriculumOverview({ onSelectDay, refreshKey }: ThirtyD
 
       <div className={`${CARD_CLASS_NAME} p-6`}>
         <h2 className="font-heading text-lg font-bold tracking-tight text-foreground">All 30 Days</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Day N unlocks once Day N-1 is complete. Star days are real WPM + comprehension checkpoints.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {isPro
+            ? 'Day N unlocks once Day N-1 is complete. Star days are real WPM + comprehension checkpoints.'
+            : 'Enroll to unlock the full 30-day curriculum. Star days are real WPM + comprehension checkpoints.'}
+        </p>
         <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-10">
           {Array.from({ length: TOTAL_CURRICULUM_DAYS }, (_, index) => index + 1).map((day) => (
-            <DayCell key={day} day={day} progress={progress} onSelectDay={onSelectDay} />
+            <DayCell key={day} day={day} progress={progress} isPro={isPro} onSelectDay={onSelectDay} onLockedDayClick={onLockedDayClick} />
           ))}
         </div>
       </div>
@@ -116,27 +122,43 @@ function PhaseCard({ phaseId, progress }: { phaseId: CurriculumPhaseId; progress
   )
 }
 
-function DayCell({ day, progress, onSelectDay }: { day: number; progress: CurriculumProgress; onSelectDay: (day: number) => void }): React.JSX.Element {
-  const unlocked = isCurriculumDayUnlocked(day, progress)
+function DayCell({
+  day,
+  progress,
+  isPro,
+  onSelectDay,
+  onLockedDayClick,
+}: {
+  day: number
+  progress: CurriculumProgress
+  isPro: boolean
+  onSelectDay: (day: number) => void
+  onLockedDayClick: (day: number) => void
+}): React.JSX.Element {
+  const unlocked = isCurriculumDayUnlocked(day, progress, isPro)
   const completed = progress.completedDays.includes(day)
   const isCheckpoint = CHECKPOINT_DAYS.includes(day)
   const theme = getCurriculumDayTheme(day)
 
+  // 30-Day Masterclass Paywall™ — a locked cell is never `disabled`
+  // anymore: every one of the 30 days is a real, clickable entry point
+  // into the paywall (MasterclassPaywallModal), not a dead end. Only
+  // an actually-unlocked cell calls onSelectDay and opens real content.
   return (
     <button
       type="button"
-      disabled={!unlocked}
-      onClick={() => onSelectDay(day)}
-      title={theme.title}
+      onClick={() => (unlocked ? onSelectDay(day) : onLockedDayClick(day))}
+      title={unlocked ? theme.title : `Day ${day} — enroll to unlock`}
       data-day={day}
       data-day-unlocked={unlocked}
       data-day-completed={completed}
+      data-day-locked-pro={!unlocked}
       className={`relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl border text-xs font-semibold tabular-nums transition-colors ${
         completed
           ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
           : unlocked
             ? 'border-border/60 bg-card/60 text-foreground hover:bg-accent/20'
-            : 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50'
+            : 'border-border/30 bg-muted/30 text-muted-foreground/50 hover:bg-muted/50'
       }`}
     >
       {isCheckpoint && <Sparkles className="absolute top-1 right-1 size-2.5 text-amber-500" aria-hidden="true" />}
