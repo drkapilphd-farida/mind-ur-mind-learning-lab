@@ -34,9 +34,17 @@ export type CurriculumCheckpointResult = {
 export type CurriculumProgress = {
   completedDays: readonly number[]
   checkpoints: Readonly<Record<number, CurriculumCheckpointResult>>
+  // Streak Badge Port™ — when each curriculum day was actually completed
+  // (ISO timestamp), keyed by day number. `completedDays` alone only says
+  // WHICH days are done, never WHEN — a real calendar-day streak (see
+  // computeDailyCurriculumStreak) needs the "when." Additive: progress
+  // saved before this field existed just has no streak data for those
+  // already-completed days, which is honest — there's no way to know
+  // retroactively when they really happened.
+  completedDayTimestamps: Readonly<Record<number, string>>
 }
 
-const EMPTY_PROGRESS: CurriculumProgress = { completedDays: [], checkpoints: {} }
+const EMPTY_PROGRESS: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }
 
 function isValidCheckpointResult(value: unknown): value is CurriculumCheckpointResult {
   if (typeof value !== 'object' || value === null) return false
@@ -57,7 +65,7 @@ export function loadCurriculumProgress(): CurriculumProgress {
     if (!raw) return EMPTY_PROGRESS
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return EMPTY_PROGRESS
-    const record = parsed as { completedDays?: unknown; checkpoints?: unknown }
+    const record = parsed as { completedDays?: unknown; checkpoints?: unknown; completedDayTimestamps?: unknown }
 
     const completedDays = Array.isArray(record.completedDays)
       ? record.completedDays.filter((day): day is number => typeof day === 'number' && day >= 1 && day <= TOTAL_CURRICULUM_DAYS)
@@ -73,7 +81,17 @@ export function loadCurriculumProgress(): CurriculumProgress {
       }
     }
 
-    return { completedDays, checkpoints }
+    const completedDayTimestamps: Record<number, string> = {}
+    if (typeof record.completedDayTimestamps === 'object' && record.completedDayTimestamps !== null) {
+      for (const [key, value] of Object.entries(record.completedDayTimestamps as Record<string, unknown>)) {
+        const day = Number(key)
+        if (Number.isInteger(day) && typeof value === 'string') {
+          completedDayTimestamps[day] = value
+        }
+      }
+    }
+
+    return { completedDays, checkpoints, completedDayTimestamps }
   } catch {
     return EMPTY_PROGRESS
   }
@@ -121,8 +139,14 @@ export function getHighestUnlockedDay(progress: CurriculumProgress): number {
 
 export function markCurriculumDayComplete(day: number): CurriculumProgress {
   const previous = loadCurriculumProgress()
-  const completedDays = previous.completedDays.includes(day) ? previous.completedDays : [...previous.completedDays, day].sort((a, b) => a - b)
-  const next: CurriculumProgress = { completedDays, checkpoints: previous.checkpoints }
+  const alreadyCompleted = previous.completedDays.includes(day)
+  const completedDays = alreadyCompleted ? previous.completedDays : [...previous.completedDays, day].sort((a, b) => a - b)
+  // Never overwrite an already-recorded completion timestamp — re-marking
+  // a day (e.g. a replay) shouldn't move its real "first completed" date.
+  const completedDayTimestamps = alreadyCompleted
+    ? previous.completedDayTimestamps
+    : { ...previous.completedDayTimestamps, [day]: new Date().toISOString() }
+  const next: CurriculumProgress = { completedDays, checkpoints: previous.checkpoints, completedDayTimestamps }
   saveCurriculumProgress(next)
   return next
 }
@@ -133,12 +157,48 @@ export function markCurriculumDayComplete(day: number): CurriculumProgress {
 export function recordCurriculumCheckpoint(result: CurriculumCheckpointResult): CurriculumProgress {
   const previous = loadCurriculumProgress()
   const checkpoints = { ...previous.checkpoints, [result.day]: result }
-  const completedDays = previous.completedDays.includes(result.day)
-    ? previous.completedDays
-    : [...previous.completedDays, result.day].sort((a, b) => a - b)
-  const next: CurriculumProgress = { completedDays, checkpoints }
+  const alreadyCompleted = previous.completedDays.includes(result.day)
+  const completedDays = alreadyCompleted ? previous.completedDays : [...previous.completedDays, result.day].sort((a, b) => a - b)
+  const completedDayTimestamps = alreadyCompleted
+    ? previous.completedDayTimestamps
+    : { ...previous.completedDayTimestamps, [result.day]: result.completedAt }
+  const next: CurriculumProgress = { completedDays, checkpoints, completedDayTimestamps }
   saveCurriculumProgress(next)
   return next
+}
+
+function toDateKey(isoTimestamp: string): string {
+  return isoTimestamp.slice(0, 10)
+}
+
+function dateKeyOffset(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T00:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+function todayDateKey(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+// Streak Badge Port™ — the exact same "alive through today" semantics as
+// the 21-Day Journey's computeDailyQuantumStreak (dailyQuantumSessionTracking.ts):
+// a streak survives with today still pending as long as yesterday has a
+// real completion, and resets the moment a full day passes with nothing
+// done. completedDayTimestamps (not completedDays, which has no dates)
+// is what makes this a real day-by-day streak rather than a fabricated
+// number derived from day-count alone.
+export function computeDailyCurriculumStreak(progress: CurriculumProgress, referenceDateKey: string = todayDateKey()): number {
+  const completionDateKeys = new Set(Object.values(progress.completedDayTimestamps).map(toDateKey))
+  if (completionDateKeys.size === 0) return 0
+
+  let streak = 0
+  let cursor = completionDateKeys.has(referenceDateKey) ? referenceDateKey : dateKeyOffset(referenceDateKey, -1)
+  while (completionDateKeys.has(cursor)) {
+    streak += 1
+    cursor = dateKeyOffset(cursor, -1)
+  }
+  return streak
 }
 
 function getOrderedCheckpoints(progress: CurriculumProgress): readonly CurriculumCheckpointResult[] {
@@ -165,6 +225,32 @@ export function computeReadingGrowthPercent(progress: CurriculumProgress): numbe
   if (baseline.trueWpm <= 0) return null
   const growth = Math.round(((latest.trueWpm - baseline.trueWpm) / baseline.trueWpm) * 100)
   return Math.max(0, growth)
+}
+
+export type CurriculumCheckpointDelta = {
+  wpmGrowthPercent: number
+  comprehensionDeltaPercent: number
+}
+
+// Checkpoint Delta Cards™ — real growth since the Day 1 baseline
+// specifically, for the checkpoint card shown ON a given checkpoint day
+// (7/14/21/30). Deliberately NOT computeReadingGrowthPercent's own
+// "first vs latest recorded checkpoint" — those happen to be the same
+// values when viewing the most-recently-recorded checkpoint, but this
+// function is explicit about what it's comparing rather than leaning on
+// that coincidence. Unlike computeReadingGrowthPercent (feeds a
+// composite score, clamped at 0 so a dip can't show as a nonsensical
+// negative contribution), a real dip here is shown honestly — this card
+// exists specifically to show real growth, including when there isn't
+// any.
+export function computeCheckpointDelta(progress: CurriculumProgress, day: number): CurriculumCheckpointDelta | null {
+  if (day === 1) return null
+  const baseline = progress.checkpoints[1]
+  const current = progress.checkpoints[day]
+  if (baseline === undefined || current === undefined || baseline.trueWpm <= 0) return null
+  const wpmGrowthPercent = Math.round(((current.trueWpm - baseline.trueWpm) / baseline.trueWpm) * 100)
+  const comprehensionDeltaPercent = current.comprehensionAccuracyPercent - baseline.comprehensionAccuracyPercent
+  return { wpmGrowthPercent, comprehensionDeltaPercent }
 }
 
 export function computeConsistencyPercent(progress: CurriculumProgress): number {

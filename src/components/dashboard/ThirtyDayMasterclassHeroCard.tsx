@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { GraduationCap, MessageCircle, PlayCircle, Sparkles } from 'lucide-react'
+import { Flame, GraduationCap, MessageCircle, PlayCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurriculumDayTheme } from '@/features/thirty-day-curriculum/curriculumDatabase'
-import { computeConsistencyPercent, getHighestUnlockedDay, loadCurriculumProgress } from '@/features/thirty-day-curriculum/curriculumProgress'
+import {
+  computeConsistencyPercent,
+  computeDailyCurriculumStreak,
+  getHighestUnlockedDay,
+  loadCurriculumProgress,
+} from '@/features/thirty-day-curriculum/curriculumProgress'
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
 import { WHATSAPP_MASTERCLASS_INQUIRY_LINK } from '@/config/whatsappSupportLink'
 
@@ -24,12 +29,14 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
   const [nextDay, setNextDay] = useState<number | null>(null)
   const [hasStarted, setHasStarted] = useState(false)
   const [consistencyPercent, setConsistencyPercent] = useState(0)
+  const [currentStreak, setCurrentStreak] = useState(0)
 
   useEffect(() => {
     const progress = loadCurriculumProgress()
     setHasStarted(progress.completedDays.length > 0)
     setNextDay(getHighestUnlockedDay(progress))
     setConsistencyPercent(computeConsistencyPercent(progress))
+    setCurrentStreak(computeDailyCurriculumStreak(progress))
   }, [])
 
   const theme = nextDay !== null ? getCurriculumDayTheme(nextDay) : null
@@ -59,6 +66,15 @@ export function ThirtyDayMasterclassHeroCard(): React.JSX.Element {
                 >
                   🟢 Batch 01 Filling Fast
                 </span>
+                {currentStreak > 0 && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-orange-600 dark:text-orange-400"
+                    data-streak-badge="true"
+                  >
+                    <Flame className="size-2.5" aria-hidden="true" />
+                    Current Streak: {currentStreak} {currentStreak === 1 ? 'Day' : 'Days'}
+                  </span>
+                )}
               </div>
               <h2 className="mt-2 font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
                 ⚡ 30-Day Quantum Speed Reading Mastery™ + Live Mentorship

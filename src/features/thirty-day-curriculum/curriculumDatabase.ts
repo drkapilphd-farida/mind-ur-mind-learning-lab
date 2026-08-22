@@ -76,6 +76,16 @@ export function getCurriculumPhase(phaseId: CurriculumPhaseId): CurriculumPhase 
   return phase
 }
 
+// Phase-Complete Celebration Screens™ — the phase whose LAST day this is
+// (Day 7 -> Phase 1, Day 14 -> Phase 2, Day 21 -> Phase 3), or null on any
+// other day. Deliberately excludes Phase 4 (Day 30): there's no Phase 5
+// to transition into — Day 30 is the whole curriculum's own finale, a
+// separate concern from this mid-journey phase-transition moment.
+export function getPhaseJustCompleted(day: number): CurriculumPhaseId | null {
+  const phase = CURRICULUM_PHASES.find((candidate) => candidate.id !== 4 && candidate.dayRange[1] === day)
+  return phase?.id ?? null
+}
+
 export type CurriculumDayTheme = {
   day: number
   title: string

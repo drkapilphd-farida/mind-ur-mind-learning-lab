@@ -10,6 +10,7 @@ import {
   getCurriculumDayTheme,
   getCurriculumPhase,
   getPhaseForDay,
+  getPhaseJustCompleted,
   isCheckpointDay,
 } from './curriculumDatabase'
 
@@ -80,6 +81,24 @@ describe('CHECKPOINT_DAYS / isCheckpointDay', () => {
     expect(isCheckpointDay(1)).toBe(true)
     expect(isCheckpointDay(21)).toBe(true)
     expect(isCheckpointDay(2)).toBe(false)
+  })
+})
+
+describe('getPhaseJustCompleted', () => {
+  it('returns the phase whose last day this is, for Days 7/14/21', () => {
+    expect(getPhaseJustCompleted(7)).toBe(1)
+    expect(getPhaseJustCompleted(14)).toBe(2)
+    expect(getPhaseJustCompleted(21)).toBe(3)
+  })
+
+  it('returns null for Day 30 — no Phase 5 to transition into', () => {
+    expect(getPhaseJustCompleted(30)).toBeNull()
+  })
+
+  it('returns null for every non-phase-boundary day', () => {
+    expect(getPhaseJustCompleted(1)).toBeNull()
+    expect(getPhaseJustCompleted(6)).toBeNull()
+    expect(getPhaseJustCompleted(15)).toBeNull()
   })
 })
 

@@ -3,9 +3,10 @@
 import { ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
-import { buildCurriculumDayPlan, getCurriculumPhase, isCheckpointDay } from '../curriculumDatabase'
-import type { CurriculumProgress } from '../curriculumProgress'
+import { buildCurriculumDayPlan, getCurriculumPhase, getPhaseJustCompleted, isCheckpointDay } from '../curriculumDatabase'
+import { computeCheckpointDelta, type CurriculumProgress } from '../curriculumProgress'
 import { DayMasterPlayer } from './DayMasterPlayer'
+import { PhaseCompleteCelebration } from './PhaseCompleteCelebration'
 
 const CARD_CLASS_NAME = 'relative rounded-3xl border-2 border-border/60 bg-[#FBF9F4]/95 shadow-sm backdrop-blur-md dark:bg-[#16171A]/95'
 
@@ -42,6 +43,12 @@ export function ThirtyDayCurriculumDayDetail({
   const isCompleted = progress.completedDays.includes(day)
   const checkpoint = progress.checkpoints[day]
   const requiresCheckpoint = isCheckpointDay(day)
+  // Phase-Complete Celebration Screens™ — non-null only on Days 7/14/21,
+  // each of which IS the last day of `phase` above by construction, so
+  // `phase` doubles as "the phase that was just completed" here.
+  const phaseJustCompleted = getPhaseJustCompleted(day)
+  const nextPhase = phaseJustCompleted !== null ? getCurriculumPhase((phaseJustCompleted + 1) as 2 | 3 | 4) : null
+  const checkpointDelta = computeCheckpointDelta(progress, day)
 
   // True Full-Screen Viewport Lock™ — while a day isn't complete yet,
   // DayMasterPlayer renders as a real fixed-inset-0 full-screen wizard
@@ -80,6 +87,8 @@ export function ThirtyDayCurriculumDayDetail({
         </div>
       )}
 
+      {phaseJustCompleted !== null && nextPhase !== null && <PhaseCompleteCelebration completedPhase={phase} nextPhase={nextPhase} />}
+
       <div className={`${CARD_CLASS_NAME} p-6`}>
         <BrandWatermark className="absolute top-4 left-6" />
         <div className="mt-8 flex flex-col gap-2 sm:mt-6">
@@ -112,13 +121,32 @@ export function ThirtyDayCurriculumDayDetail({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-teal-500/10 p-4">
                 <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">True WPM</p>
-                <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.trueWpm} WPM</p>
+                <p className="font-heading text-xl font-bold tabular-nums text-foreground">
+                  {checkpoint.trueWpm} WPM
+                  {checkpointDelta !== null && (
+                    <span className={`ml-1 text-xs font-semibold ${checkpointDelta.wpmGrowthPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      {checkpointDelta.wpmGrowthPercent >= 0 ? '+' : ''}
+                      {checkpointDelta.wpmGrowthPercent}%
+                    </span>
+                  )}
+                </p>
               </div>
               <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
                 <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Comprehension</p>
-                <p className="font-heading text-xl font-bold tabular-nums text-foreground">{checkpoint.comprehensionAccuracyPercent}%</p>
+                <p className="font-heading text-xl font-bold tabular-nums text-foreground">
+                  {checkpoint.comprehensionAccuracyPercent}%
+                  {checkpointDelta !== null && (
+                    <span
+                      className={`ml-1 text-xs font-semibold ${checkpointDelta.comprehensionDeltaPercent >= 0 ? 'text-success' : 'text-destructive'}`}
+                    >
+                      {checkpointDelta.comprehensionDeltaPercent >= 0 ? '+' : ''}
+                      {checkpointDelta.comprehensionDeltaPercent}pp
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
+            {checkpointDelta !== null && <p className="text-center text-xs text-muted-foreground">vs. your Day 1 baseline</p>}
           </div>
         ) : (
           <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
