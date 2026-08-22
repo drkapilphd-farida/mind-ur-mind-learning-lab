@@ -12,6 +12,7 @@ import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK } from '@/config/quantumMindsetHabitBuilderPaymentLink'
 
 // 21-Day Journey Paywall™ — Days 1 through 7 (the full first week) are
 // free for every user (the real "try it for real, not a demo" window);
@@ -21,7 +22,7 @@ import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 const FREE_JOURNEY_DAYS = 7
 
 export const metadata: Metadata = {
-  title: '21-Day Quantum Reading & Mind Expansion™',
+  title: 'Quantum Mindset & Habit Builder™',
   description: 'An adaptive, week-by-week guided daily session across Reading, Intuition, Right Brain, and Visualisation.',
 }
 
@@ -50,11 +51,14 @@ export default async function QuantumJourneyDayPage({ params }: QuantumJourneyDa
 
   // 21-Day Journey Paywall™ — checked before anything else below: no
   // point resolving weakest-domain/streak/baseline data for a session the
-  // user isn't allowed to start.
+  // user isn't allowed to start. Locked days go straight to the real
+  // Razorpay one-time payment link (RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK),
+  // not the general /pricing page — same "one real checkout URL" pattern
+  // the 30-Day Masterclass's own paywall already uses.
   if (dayNumber > FREE_JOURNEY_DAYS && !isDevUnlockEnabled()) {
     const isPaidUser = user ? await getIsPaidUser(user.id) : false
     if (!isPaidUser) {
-      redirect('/pricing#family-pro')
+      redirect(RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK)
     }
   }
 

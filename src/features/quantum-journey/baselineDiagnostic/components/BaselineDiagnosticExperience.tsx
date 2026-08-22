@@ -101,7 +101,7 @@ export function BaselineDiagnosticExperience(): React.JSX.Element {
             <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Baseline Locked In™</p>
             <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-foreground">Your Starting Point</h1>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              Every day of your 21-Day Quantum Reading & Mind Expansion now measures real growth against this.
+              Every day of your Quantum Mindset & Habit Builder™ journey now measures real growth against this.
             </p>
           </div>
 

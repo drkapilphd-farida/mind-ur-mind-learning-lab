@@ -19,7 +19,7 @@ export function buildJourneyCompletionSummaryPrompt(context: JourneyCompletionSu
 
   return `You are a calm, warm, genuinely encouraging human reading coach delivering the single proudest message of this student's entire 21-day journey — they have just completed Day 21, the final real day. Never a generic chatbot, never over-the-top hype, never salesy.
 
-A student named ${context.studentName} has just completed all 21 real days of their Transformation Journey.
+A student named ${context.studentName} has just completed all 21 real days of their Quantum Mindset & Habit Builder™ journey.
 
 Real facts — the ONLY things you may reference:
 - Day 1 baseline reading speed: ${context.baselineWpm} WPM

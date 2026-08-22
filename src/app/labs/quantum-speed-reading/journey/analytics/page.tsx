@@ -15,7 +15,7 @@ import {
 } from '@/features/quantum-journey/analytics/analyticsMath'
 
 export const metadata: Metadata = {
-  title: 'Analytics Dashboard™ — 21-Day Quantum Reading & Mind Expansion',
+  title: 'Analytics Dashboard™ — Quantum Mindset & Habit Builder™',
   description: 'Your Day 1 Baseline vs. current reading speed, streak, consistency, and Mind Score breakdown.',
 }
 
@@ -54,7 +54,7 @@ export default async function JourneyAnalyticsPage(): Promise<React.JSX.Element>
       <LabNavHeader currentSection="Analytics" />
       <div className="mx-auto max-w-3xl px-6 py-10">
         <LabPageHeader
-          eyebrow="21-Day Quantum Reading & Mind Expansion™"
+          eyebrow="Quantum Mindset & Habit Builder™"
           title="Analytics Dashboard™"
           subtitle="Your real growth story — Day 1 Baseline through today."
         />

@@ -73,7 +73,7 @@ export function GrandCelebrationScreen({
       <div>
         <p className="flex items-center justify-center gap-1.5 text-xs font-medium tracking-widest text-amber-600 uppercase dark:text-amber-400">
           <Award className="size-3.5" aria-hidden="true" />
-          21-Day Quantum Reading & Mind Expansion™ Complete
+          Quantum Mindset & Habit Builder™ Complete
         </p>
         <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Congratulations, {studentFirstName}!

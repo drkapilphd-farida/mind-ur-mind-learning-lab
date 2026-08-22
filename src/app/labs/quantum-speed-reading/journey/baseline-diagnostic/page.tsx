@@ -4,7 +4,7 @@ import { BaselineDiagnosticExperience } from '@/features/quantum-journey/baselin
 import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagnostic/queries/getBaselineDiagnostic'
 
 export const metadata: Metadata = {
-  title: 'Baseline Reading Speed Diagnostic™ — 21-Day Quantum Reading & Mind Expansion',
+  title: 'Baseline Reading Speed Diagnostic™ — Quantum Mindset & Habit Builder™',
   description: 'A mandatory, one-time reading speed and comprehension check before Day 1.',
 }
 

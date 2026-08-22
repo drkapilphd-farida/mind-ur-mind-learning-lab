@@ -555,7 +555,7 @@ export function QuantumJourneySession({
           full-bleed immersive mode this could conflict with. Rendered at
           every level, including the briefing/completion screens, so
           Sign Out and the rest of the app stay one tap away throughout. */}
-      <LabNavHeader currentSection="21-Day Journey" />
+      <LabNavHeader currentSection="Quantum Mindset & Habit Builder" />
 
       {level !== 'complete' && level !== 'briefing' && (
         <div className="mx-auto max-w-2xl px-6 pt-8">

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Check, FlaskConical, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK } from '@/config/quantumMindsetHabitBuilderPaymentLink'
 
 type TwentyOneDayJourneyCardProps = {
   isPaidUser: boolean
@@ -30,14 +30,16 @@ function journeyDayHref(day: number): string {
   return `/labs/quantum-speed-reading/journey/${day}`
 }
 
-// 21-Day Quantum Reading & Mind Expansion™ — every day (1-21) launches
+// Quantum Mindset & Habit Builder™ — every day (1-21) launches
 // the real QuantumJourneySession (see src/features/quantum-journey/), a
 // guided 4-level session chaining a real Reading Intelligence, Intuition
 // Development, Right Brain Activation, and Visualisation exercise (which
 // exact exercises per day is QuantumJourneySession's own, real, deterministic
-// day-parity rotation — never fabricated). Locked days (Day 4+ for a
-// free user) are real links to /pricing, not dead ends — tapping one is
-// exactly how a free user is meant to discover the upgrade.
+// day-parity rotation — never fabricated). Locked days (Day 8+ for a
+// free user) are real links straight to the Razorpay one-time payment
+// link, not dead ends — tapping one is exactly how a free user is meant
+// to discover the upgrade. Opened in a new tab (external checkout,
+// target="_blank") so the dashboard itself is never navigated away from.
 export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay }: TwentyOneDayJourneyCardProps): React.JSX.Element {
   const otherDays = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).filter((day) => day !== currentDay)
   const hasProAccess = isPaidUser || isDevUnlocked
@@ -53,7 +55,7 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
             Tier 2 · Structured Program
           </span>
           <h2 className="mt-2 font-heading text-lg font-bold tracking-tight text-foreground sm:text-xl">
-            21-Day Quantum Reading &amp; Mind Expansion™
+            Quantum Mindset &amp; Habit Builder™
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -72,35 +74,41 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
         </div>
       </div>
 
-      <Link
-        href={isCurrentDayUnlocked ? journeyDayHref(currentDay) : '/pricing#family-pro'}
-        className={cn(
-          'mt-4 flex items-center gap-4 rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          isCurrentDayUnlocked
-            ? 'border-indigo-500/15 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.05]'
-            : 'border-dashed bg-muted/30 hover:bg-muted/50',
-        )}
-      >
-        <div
-          className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-            isCurrentDayUnlocked
-              ? 'bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm shadow-indigo-500/20'
-              : 'bg-muted-foreground/20 text-muted-foreground',
-          )}
+      {isCurrentDayUnlocked ? (
+        <Link
+          href={journeyDayHref(currentDay)}
+          className="mt-4 flex items-center gap-4 rounded-xl border border-indigo-500/15 bg-indigo-500/[0.02] p-4 transition-colors hover:bg-indigo-500/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          {isCurrentDayUnlocked ? currentDay : <Lock className="size-3.5" aria-hidden="true" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">Day {currentDay}</p>
-          <p className="truncate text-xs text-slate-700 dark:text-slate-300">
-            {isCurrentDayUnlocked ? 'Reading · Intuition · Right Brain · Visualisation' : 'Upgrade to Pro to unlock this day'}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-300 hover:from-indigo-500 hover:to-indigo-400 active:scale-95">
-          {isCurrentDayUnlocked ? (isReplay ? 'Continue →' : 'Begin →') : 'Upgrade →'}
-        </span>
-      </Link>
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-indigo-500 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20">
+            {currentDay}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Day {currentDay}</p>
+            <p className="truncate text-xs text-slate-700 dark:text-slate-300">Reading · Intuition · Right Brain · Visualisation</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-300 hover:from-indigo-500 hover:to-indigo-400 active:scale-95">
+            {isReplay ? 'Continue →' : 'Begin →'}
+          </span>
+        </Link>
+      ) : (
+        <a
+          href={RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center gap-4 rounded-xl border border-dashed bg-muted/30 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted-foreground/20 text-sm font-semibold text-muted-foreground">
+            <Lock className="size-3.5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Day {currentDay}</p>
+            <p className="truncate text-xs text-slate-700 dark:text-slate-300">Upgrade to Pro to unlock this day</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-300 hover:from-indigo-500 hover:to-indigo-400 active:scale-95">
+            Upgrade →
+          </span>
+        </a>
+      )}
 
       <div className="mt-4 grid grid-cols-10 gap-2 sm:grid-cols-10">
         {otherDays.map((day) => {
@@ -130,20 +138,22 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
               {day}
             </Link>
           ) : (
-            // Locked days are real links to pricing, not dead <div>s —
-            // clicking a locked day is a real upgrade entry point, per
-            // the brief ("clicking them should prompt the user to
-            // upgrade and redirect them to /pricing"), not just a
-            // visual indicator.
-            <Link
+            // Locked days are real links straight to the Razorpay
+            // one-time payment link, not dead <div>s — clicking a locked
+            // day is a real upgrade entry point, exactly how a free user
+            // is meant to discover the upgrade. Opened in a new tab so
+            // the dashboard stays put behind the checkout.
+            <a
               key={day}
-              href="/pricing#family-pro"
+              href={RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label={`Day ${day}, locked, upgrade to Pro`}
               className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200/60 bg-muted/40 text-[11px] font-medium text-muted-foreground/50 transition-colors hover:bg-muted/60 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-slate-800/60"
             >
               <Lock className="size-2.5" aria-hidden="true" />
               {day}
-            </Link>
+            </a>
           )
         })}
       </div>
