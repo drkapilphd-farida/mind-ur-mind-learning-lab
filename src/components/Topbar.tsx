@@ -19,6 +19,7 @@ import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { InstallButton } from '@/components/InstallButton'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
+import type { AppDomain } from '@/lib/domains/appDomain'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -37,6 +38,8 @@ type TopbarProps = {
   // School Dashboard white-labeling — see AppSidebar.tsx's identical props.
   brandName?: string | null
   brandLogoUrl?: string | null
+  // Domain Split™ — see AppSidebar.tsx's identical prop.
+  appDomain: AppDomain
 }
 
 export function Topbar({
@@ -46,6 +49,7 @@ export function Topbar({
   warmthIntensity,
   brandName = null,
   brandLogoUrl = null,
+  appDomain,
 }: TopbarProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const glowA = interpolateHexColor(BRAND_A, WARNING_RED, warmthIntensity)
@@ -77,7 +81,7 @@ export function Topbar({
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto py-4">
-            <NavLinks onSelect={() => setOpen(false)} />
+            <NavLinks onSelect={() => setOpen(false)} appDomain={appDomain} />
           </div>
           <SheetFooter className="border-t border-border/60 p-2">
             <MobileSignOutButton />

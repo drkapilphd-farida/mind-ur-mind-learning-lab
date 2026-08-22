@@ -1,8 +1,35 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
+import { APP_DOMAIN_HEADER, resolveAppDomain, type AppDomain } from '@/lib/domains/appDomain'
 
 const PROTECTED_PATHS = ['/dashboard', '/labs', '/practice', '/progress', '/settings', '/admin', '/preview', '/parent-dashboard', '/school-admin', '/partner-admin']
 const AUTH_PATHS = ['/login', '/signup']
+
+// Domain Split™ — checked independently of PROTECTED_PATHS/auth state,
+// since /unified-quantum-session-preview is intentionally login-optional
+// today (anonymous visitors already degrade gracefully there). Ordered
+// most-specific-first: /labs/quantum-speed-reading/journey must be
+// checked before the broader /labs/quantum-speed-reading catch-all.
+const DOMAIN_ROUTES: { prefix: string; domain: AppDomain }[] = [
+  // habit-only
+  { prefix: '/labs/quantum-speed-reading/journey', domain: 'habit' },
+  { prefix: '/unified-quantum-session-preview', domain: 'habit' },
+  // app-only
+  { prefix: '/preview', domain: 'app' },
+  { prefix: '/parent-dashboard', domain: 'app' },
+  { prefix: '/progress', domain: 'app' },
+  { prefix: '/library', domain: 'app' },
+  { prefix: '/labs/visual-intelligence', domain: 'app' },
+  { prefix: '/labs/quantum-speed-reading', domain: 'app' }, // catch-all, checked last
+]
+
+function domainGuardRedirect(appDomain: AppDomain, pathname: string, request: NextRequest): NextResponse | null {
+  const match = DOMAIN_ROUTES.find((route) => pathname.startsWith(route.prefix))
+  if (match && match.domain !== appDomain) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+  return null
+}
 
 // Dedicated portal logins — school admins/franchise partners never touch
 // the shared /login page. Both sit under an otherwise-protected prefix
@@ -23,8 +50,9 @@ function portalHomeFor(pathname: string): string {
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl
+  const appDomain = resolveAppDomain(request.headers.get('host'))
 
-  const { response, user } = await updateSession(request)
+  const { response: sessionResponse, user } = await updateSession(request)
 
   const isPortalLoginPage = PORTAL_LOGIN_PATHS.includes(pathname)
   const isProtected = !isPortalLoginPage && PROTECTED_PATHS.some((path) => pathname.startsWith(path))
@@ -47,7 +75,24 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(new URL(portalHomeFor(pathname), request.url))
   }
 
-  return response
+  const domainRedirect = domainGuardRedirect(appDomain, pathname, request)
+  if (domainRedirect) return domainRedirect
+
+  // Forward the resolved domain to Server Components via `headers()` —
+  // the officially documented pattern is cloning into a new Headers
+  // instance and passing it to NextResponse.next({ request: { headers } }),
+  // never mutating `request.headers` in place (undocumented behavior we
+  // don't want this to depend on). Since this builds a NEW response
+  // rather than reusing `sessionResponse`, updateSession's refreshed
+  // Supabase auth cookies (the only thing it ever sets on its own
+  // response — see lib/supabase/middleware.ts) are copied across
+  // explicitly so a session refresh here is never silently dropped.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set(APP_DOMAIN_HEADER, appDomain)
+  const finalResponse = NextResponse.next({ request: { headers: requestHeaders } })
+  sessionResponse.cookies.getAll().forEach((cookie) => finalResponse.cookies.set(cookie))
+
+  return finalResponse
 }
 
 export const config = {

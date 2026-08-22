@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions'
 import { computeDailyStreak, computeStreakWarmthIntensity, computeTodaysProgress } from '@/lib/exercises/practiceHistory'
 import { getTenantBrandingForUser } from '@/features/school-dashboard/queries/getTenantBrandingForUser'
+import { getAppDomain } from '@/lib/domains/appDomain'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Topbar } from '@/components/Topbar'
 
@@ -29,10 +30,11 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
-  const [profile, labSessions, tenantBranding] = await Promise.all([
+  const [profile, labSessions, tenantBranding, appDomain] = await Promise.all([
     getCurrentUserProfile(user.id),
     getPracticeSessions('quantum-speed-reading'),
     getTenantBrandingForUser(user.id),
+    getAppDomain(),
   ])
 
   // Brand Logo Warmth™ — the header logo's streak-based tint needs a real
@@ -51,7 +53,7 @@ export default async function DashboardLayout({
     <div className={`bg-muted/30 flex h-screen overflow-hidden ${plusJakartaSans.variable} ${inter.variable}`}>
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
-        <AppSidebar warmthIntensity={warmthIntensity} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} />
+        <AppSidebar warmthIntensity={warmthIntensity} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} appDomain={appDomain} />
       </div>
 
       {/* Main column */}
@@ -63,6 +65,7 @@ export default async function DashboardLayout({
           warmthIntensity={warmthIntensity}
           brandName={tenantBranding?.name ?? null}
           brandLogoUrl={tenantBranding?.logoUrl ?? null}
+          appDomain={appDomain}
         />
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8">{children}</div>

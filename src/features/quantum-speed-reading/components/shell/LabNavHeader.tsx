@@ -13,16 +13,26 @@ import { MobileSignOutButton } from '@/components/MobileSignOutButton'
 
 const HUB_HREF = '/labs/quantum-speed-reading'
 
-const NAV_LINKS = [
+// Domain Split™ — this header renders on both domains (habit-only
+// /journey/* pages and app-only coach/intelligence/reports/etc. pages
+// alike), so its own sub-nav row must never mix the two: a journey page
+// showing a link to "Reading DNA" (app-only, redirected away by
+// src/middleware.ts's DOMAIN_ROUTES) would be a dead link — technically
+// blocked, but a visibly broken nav.
+const HABIT_LAB_SUB_NAV = [
+  { href: '/labs/quantum-speed-reading/journey/analytics', label: 'Analytics' },
+  { href: '/labs/quantum-speed-reading/journey/certificate', label: 'Certificate' },
+] as const
+
+const QSR_LAB_SUB_NAV = [
   { href: '/labs/quantum-speed-reading/coach', label: 'Dashboard' },
   { href: '/labs/quantum-speed-reading/intelligence', label: 'Reading DNA' },
   { href: '/labs/quantum-speed-reading/intelligence/history', label: 'History' },
   { href: '/labs/quantum-speed-reading/intelligence/achievements', label: 'Achievements' },
   { href: '/labs/quantum-speed-reading/reports', label: 'Reports' },
-  { href: '/labs/quantum-speed-reading/journey/analytics', label: 'Analytics' },
-  { href: '/labs/quantum-speed-reading/journey/certificate', label: 'Certificate' },
-  { href: '/settings', label: 'Settings' },
 ] as const
+
+const SHARED_LAB_SUB_NAV = [{ href: '/settings', label: 'Settings' }] as const
 
 type LabNavHeaderProps = {
   currentSection: string
@@ -42,17 +52,24 @@ type LabNavHeaderProps = {
 // else on the page.
 //
 // Global Nav Drawer™ — this lab has its own richer sub-navigation (the
-// NAV_LINKS row below), but that's DIFFERENT from the app's global
+// navLinks row below), but that's DIFFERENT from the app's global
 // sections (My Library, 30-Day Masterclass, Settings...) and reads as an
 // unreadable wrapped wall of tiny links on a phone screen. The hamburger
 // here opens the exact same global NavLinks + Sign Out every other
 // authenticated page's Topbar exposes, so a mobile learner deep in the
 // Reading Intelligence Lab is never stranded without a way back to the
-// rest of the app (or out of their account) — the desktop-only NAV_LINKS
+// rest of the app (or out of their account) — the desktop-only navLinks
 // row stays as this lab's own secondary sub-nav, unchanged, at sm+.
 export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.Element {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  // Mirrors src/middleware.ts's own DOMAIN_ROUTES classification for this
+  // lab: only /journey/* is habit-domain, everything else under
+  // /labs/quantum-speed-reading is app-domain. Inferred locally (this
+  // component only ever renders under that one lab) rather than threaded
+  // as a prop through 27 call sites.
+  const appDomain = pathname.startsWith('/labs/quantum-speed-reading/journey') ? 'habit' : 'app'
+  const navLinks = [...(appDomain === 'habit' ? HABIT_LAB_SUB_NAV : QSR_LAB_SUB_NAV), ...SHARED_LAB_SUB_NAV]
 
   return (
     <nav aria-label="Reading Intelligence Lab" className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-sm">
@@ -69,7 +86,7 @@ export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.E
                 <SheetTitle className="text-sm font-semibold tracking-tight">Quantum Mind</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto py-4">
-                <NavLinks onSelect={() => setOpen(false)} />
+                <NavLinks onSelect={() => setOpen(false)} appDomain={appDomain} />
               </div>
               <SheetFooter className="border-t border-border/60 p-2">
                 <MobileSignOutButton />
@@ -93,7 +110,7 @@ export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.E
           </span>
 
           <div className="hidden flex-wrap items-center gap-x-5 gap-y-1 sm:flex">
-            {NAV_LINKS.map((link) => {
+            {navLinks.map((link) => {
               const isActive = pathname === link.href
               return (
                 <Link

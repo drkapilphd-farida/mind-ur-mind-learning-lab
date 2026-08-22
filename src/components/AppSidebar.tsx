@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { NavLinks } from '@/components/NavLinks'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
+import type { AppDomain } from '@/lib/domains/appDomain'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -21,9 +22,12 @@ type AppSidebarProps = {
   // users, who aren't part of any tenant).
   brandName?: string | null
   brandLogoUrl?: string | null
+  // Domain Split™ — resolved once in (dashboard)/layout.tsx from the
+  // request's own Host header, threaded straight through to NavLinks.
+  appDomain: AppDomain
 }
 
-export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = null }: AppSidebarProps): React.JSX.Element {
+export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = null, appDomain }: AppSidebarProps): React.JSX.Element {
   const glowA = interpolateHexColor(BRAND_A, WARNING_RED, warmthIntensity)
   const glowB = interpolateHexColor(BRAND_B, WARNING_RED, warmthIntensity)
 
@@ -55,7 +59,7 @@ export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = n
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto py-3">
-        <NavLinks />
+        <NavLinks appDomain={appDomain} />
       </div>
     </aside>
   )
