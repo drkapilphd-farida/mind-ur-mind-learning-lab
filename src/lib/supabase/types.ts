@@ -1754,6 +1754,7 @@ export type Database = {
           id: string
           occurred_at: string
           quantum_document_id: string
+          score_percent: number | null
           total_questions_count: number
           user_id: string
           xp_earned: number
@@ -1763,6 +1764,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           quantum_document_id: string
+          score_percent?: number | null
           total_questions_count: number
           user_id: string
           xp_earned: number
@@ -1772,6 +1774,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           quantum_document_id?: string
+          score_percent?: number | null
           total_questions_count?: number
           user_id?: string
           xp_earned?: number

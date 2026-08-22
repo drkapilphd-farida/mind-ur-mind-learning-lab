@@ -2,11 +2,13 @@ import { getPracticeSessions } from '@/lib/exercises/queries/getPracticeSessions
 import { computeDailyStreak, computeTodaysProgress } from '@/lib/exercises/practiceHistory'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
 import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
+import { getQuantumDocumentChapterScores } from '@/features/quantum-document-transformer/actions/getQuantumDocumentChapterScores'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { computeComprehensionSummary, computeDocumentMasterySummary } from '../comprehensionStats'
 import { TodaysStatusCard } from './TodaysStatusCard'
 import { ReadingSpeedTrendCard } from './ReadingSpeedTrendCard'
 import { ComprehensionScoreCard } from './ComprehensionScoreCard'
+import { ChapterScoresCard } from './ChapterScoresCard'
 import { ConsistencyCard } from './ConsistencyCard'
 import { DocumentMasteryCard } from './DocumentMasteryCard'
 import { PremiumUpsellCard } from './PremiumUpsellCard'
@@ -30,11 +32,12 @@ type ParentDashboardProps = {
 // left is the 7/14/30-day toggle inside ReadingSpeedTrendCard, which is
 // its own small client island.
 export async function ParentDashboard({ userId }: ParentDashboardProps): Promise<React.JSX.Element> {
-  const [practiceSessions, dailyQuantumSessions, documentSessions, documentCount] = await Promise.all([
+  const [practiceSessions, dailyQuantumSessions, documentSessions, documentCount, chapterScores] = await Promise.all([
     getPracticeSessions('quantum-speed-reading'),
     getDailyQuantumSessionHistory(90),
     getQuantumDocumentSessionHistory(500),
     getQuantumDocumentCount(userId),
+    getQuantumDocumentChapterScores(),
   ])
 
   const todaysProgress = computeTodaysProgress(practiceSessions)
@@ -51,7 +54,12 @@ export async function ParentDashboard({ userId }: ParentDashboardProps): Promise
         </div>
 
         {/* Strict 1-5 order per spec — only adjacent items (3 and 4) are
-            paired side by side; nothing is reordered to fit a grid. */}
+            paired side by side; nothing is reordered to fit a grid.
+            Transparent Comprehension Scoring™ (Phase 4) adds Chapter
+            Scores as a 6th section, right after Document Mastery — the
+            same aggregate-then-drill-down order those two cards already
+            have (avg. comprehension % → the exact per-chapter numbers
+            behind it). */}
         <TodaysStatusCard practicedToday={todaysProgress.exercisesCompletedToday > 0} minutesSpentMs={todaysProgress.totalDurationMsToday} />
 
         <ReadingSpeedTrendCard sessions={dailyQuantumSessions} />
@@ -62,6 +70,8 @@ export async function ParentDashboard({ userId }: ParentDashboardProps): Promise
         </div>
 
         <DocumentMasteryCard documentsCompleted={masterySummary.documentsCompleted} averageComprehensionPercent={masterySummary.averageComprehensionPercent} />
+
+        <ChapterScoresCard chapters={chapterScores} />
 
         <PremiumUpsellCard href="/pricing#family-pro" />
       </div>
