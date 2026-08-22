@@ -3,6 +3,7 @@ import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/
 import { LabPageHeader } from '@/features/quantum-speed-reading/components/shell/LabPageHeader'
 import { CompletionCertificate } from '@/features/quantum-journey/certificate/components/CompletionCertificate'
 import { DownloadCertificateButton } from '@/features/quantum-journey/certificate/components/DownloadCertificateButton'
+import { AppTwoFinaleUpsellCta } from '@/features/quantum-journey/components/AppTwoFinaleUpsellCta'
 import { getDay21Session, computeCertificateStats } from '@/features/quantum-journey/certificate/certificateMath'
 import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagnostic/queries/getBaselineDiagnostic'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
@@ -88,6 +89,7 @@ export default async function JourneyCertificatePage(): Promise<React.JSX.Elemen
                     certificateId={certificateId}
                   />
                   <DownloadCertificateButton />
+                  <AppTwoFinaleUpsellCta />
                 </div>
               )
             })()

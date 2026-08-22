@@ -29,6 +29,7 @@ import { QuantumMentalRotationExperience } from '@/features/quantum-mental-rotat
 import { JourneyReadingModePlayer, type JourneyReadingModeResult } from './JourneyReadingModePlayer'
 import { PreSessionBriefingScreen } from './PreSessionBriefingScreen'
 import { GrandCelebrationScreen } from './GrandCelebrationScreen'
+import { AppTwoMilestoneBanner } from './AppTwoMilestoneBanner'
 import { ReadingModeSelector } from '../readingModes/components/ReadingModeSelector'
 import { GuidingLinePacerPlayer, type GuidingLinePacerResult } from '../readingModes/components/GuidingLinePacerPlayer'
 import { RsvpModePlayer, type RsvpModeResult } from '../readingModes/components/RsvpModePlayer'
@@ -687,6 +688,15 @@ export function QuantumJourneySession({
                 <span className="text-sm font-semibold text-foreground">{resultingStreak}-Day Streak</span>
               </div>
             </div>
+
+            {/* App 1 → App 2 Soft Upsell™ — only the two real mid-journey
+                momentum days (see AppTwoMilestoneBanner's own comment);
+                every other day's completion screen is unchanged. */}
+            {(day === 7 || day === 14) && (
+              <div className="w-full max-w-sm">
+                <AppTwoMilestoneBanner day={day} />
+              </div>
+            )}
 
             <div className="flex flex-col items-center gap-3 sm:flex-row">
               {day < 21 && (

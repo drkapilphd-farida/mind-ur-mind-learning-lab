@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { playCertificateFanfare } from '@/app/unified-quantum-session-preview/components/soundEngine'
 import { ConfettiBurst } from './ConfettiBurst'
+import { AppTwoFinaleUpsellCta } from './AppTwoFinaleUpsellCta'
 import { generateJourneyCompletionSummary } from '../actions/generateJourneyCompletionSummary'
 
 const CERTIFICATE_HREF = '/labs/quantum-speed-reading/journey/certificate'
@@ -125,6 +126,8 @@ export function GrandCelebrationScreen({
           Return to Dashboard
         </Button>
       </div>
+
+      <AppTwoFinaleUpsellCta />
     </div>
   )
 }
