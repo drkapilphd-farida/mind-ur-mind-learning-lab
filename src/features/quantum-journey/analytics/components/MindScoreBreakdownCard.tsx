@@ -9,7 +9,7 @@ type SubScore = { label: string; value: number | null }
 
 type MindScoreBreakdownCardProps = {
   mindScore: number // 0-1000
-  readingComprehensionScore: number | null
+  retentionAccuracyScore: number | null
   brainGymAccuracyScore: number | null
 }
 
@@ -54,23 +54,26 @@ function SubScoreRing({ value, size = 44 }: { value: number | null; size?: numbe
 }
 
 // Mind Score™ — computed only from real, already-persisted data (never
-// fabricated). Reading Comprehension comes from daily_quantum_sessions'
-// own accuracy_percent; Brain-Gym Accuracy from domain_performance_
-// sessions (Intuition/Right Brain/Visualisation combined — see
-// getDomainPerformanceSummary's own comment on why Reading is excluded
-// there). Focus has no real tracked source anywhere in the app today, so
-// it renders locked — the exact same "no fake numbers, ever" convention
-// MindScoreCard already established on the main dashboard.
+// fabricated). Retention Accuracy comes from daily_quantum_sessions' own
+// accuracy_percent (the Retention Check quiz across every pillar the
+// journey covers, not just its reading exercises — see
+// analyticsMath.ts's computeAverageAccuracyPercent for why this is never
+// labeled "Reading Comprehension" here, per Habit App Isolation™);
+// Brain-Gym Accuracy from domain_performance_sessions (Intuition/Right
+// Brain/Visualisation combined — see getDomainPerformanceSummary's own
+// comment). Focus has no real tracked source anywhere in the app today,
+// so it renders locked — the exact same "no fake numbers, ever"
+// convention MindScoreCard already established on the main dashboard.
 export function MindScoreBreakdownCard({
   mindScore,
-  readingComprehensionScore,
+  retentionAccuracyScore,
   brainGymAccuracyScore,
 }: MindScoreBreakdownCardProps): React.JSX.Element {
   const prefersReducedMotion = usePrefersReducedMotion()
   const animatedScore = useCountUp(mindScore, 900, prefersReducedMotion)
 
   const subScores: SubScore[] = [
-    { label: 'Reading Comprehension', value: readingComprehensionScore },
+    { label: 'Retention Accuracy', value: retentionAccuracyScore },
     { label: 'Brain-Gym Accuracy', value: brainGymAccuracyScore },
     { label: 'Focus', value: null },
   ]

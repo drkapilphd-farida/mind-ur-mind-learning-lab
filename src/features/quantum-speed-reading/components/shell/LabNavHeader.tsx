@@ -57,8 +57,8 @@ type LabNavHeaderProps = {
 // unreadable wrapped wall of tiny links on a phone screen. The hamburger
 // here opens the exact same global NavLinks + Sign Out every other
 // authenticated page's Topbar exposes, so a mobile learner deep in the
-// Reading Intelligence Lab is never stranded without a way back to the
-// rest of the app (or out of their account) — the desktop-only navLinks
+// this lab (either domain's variant) is never stranded without a way
+// back to the rest of the app (or out of their account) — the desktop-only navLinks
 // row stays as this lab's own secondary sub-nav, unchanged, at sm+.
 export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.Element {
   const pathname = usePathname()
@@ -70,9 +70,19 @@ export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.E
   // as a prop through 27 call sites.
   const appDomain = pathname.startsWith('/labs/quantum-speed-reading/journey') ? 'habit' : 'app'
   const navLinks = [...(appDomain === 'habit' ? HABIT_LAB_SUB_NAV : QSR_LAB_SUB_NAV), ...SHARED_LAB_SUB_NAV]
+  // Habit App Isolation™ — never "Reading Intelligence Lab™" on the habit
+  // domain (see this component's own HABIT_LAB_SUB_NAV/QSR_LAB_SUB_NAV
+  // split above for the same principle applied to the sub-nav row). The
+  // hub link itself also has to change: `/labs/quantum-speed-reading`
+  // (no /journey suffix) is app-only in src/middleware.ts's DOMAIN_ROUTES
+  // — pointing a habit-domain page at it would just bounce the click
+  // straight back via the domain guard, so this goes to the habit
+  // dashboard instead, the real "home" for this domain.
+  const hubLabel = appDomain === 'habit' ? 'Quantum Habit Journey™' : 'Reading Intelligence Lab™'
+  const hubHref = appDomain === 'habit' ? '/dashboard' : HUB_HREF
 
   return (
-    <nav aria-label="Reading Intelligence Lab" className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-sm">
+    <nav aria-label={appDomain === 'habit' ? 'Quantum Habit Journey' : 'Reading Intelligence Lab'} className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-1">
           <Sheet open={open} onOpenChange={setOpen}>
@@ -95,11 +105,11 @@ export function LabNavHeader({ currentSection }: LabNavHeaderProps): React.JSX.E
           </Sheet>
 
           <Link
-            href={HUB_HREF}
+            href={hubHref}
             className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-70"
           >
             <LivingBrainLogo size={20} decorative={false} animated={false} />
-            <span className="hidden sm:inline">Reading Intelligence Lab™</span>
+            <span className="hidden sm:inline">{hubLabel}</span>
           </Link>
         </div>
 

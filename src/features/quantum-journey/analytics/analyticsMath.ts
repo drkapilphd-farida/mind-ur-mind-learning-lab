@@ -1,4 +1,5 @@
 import type { DailyQuantumSessionRecord } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
+import { TOTAL_JOURNEY_DAYS } from '../quantumJourneyLevels'
 
 // Analytics Dashboard™ — pure transforms only, no DB access. Mirrors this
 // project's existing convention (mindScore.ts, dailyQuantumSessionTracking.ts):
@@ -22,42 +23,24 @@ export function computeConsistencyPercent(history: readonly DailyQuantumSessionR
   return Math.min(100, Math.round((activeDayKeys.size / daysSinceFirstSession) * 100))
 }
 
-// Speed Growth% — Day 1 Baseline vs the latest real session's True WPM.
-// Null when there's no honest percentage to compute yet: no baseline, no
-// sessions yet, or a baseline of 0 (a real, honest possibility under True
-// WPM™ — see trueWpm.ts) would divide by zero.
-export function computeSpeedGrowthPercent(baselineWpm: number | null, latestWpm: number | null): number | null {
-  if (baselineWpm === null || baselineWpm <= 0 || latestWpm === null) return null
-  return Math.round(((latestWpm - baselineWpm) / baselineWpm) * 100)
-}
-
-// Reading Comprehension score (0-100) — the real average accuracy_percent
-// across every real journey session so far. Null before any session
-// exists (Mind Score computation excludes it entirely rather than
-// treating "no data" as 0, per computeMindScore's own doc comment).
+// Retention Accuracy score (0-100) — the real average accuracy_percent
+// (the Retention Check quiz portion of each daily session, across every
+// pillar the journey covers — Reading, Intuition, Right Brain,
+// Visualisation — never just the reading exercises specifically) across
+// every real journey session so far. Null before any session exists
+// (Mind Score computation excludes it entirely rather than treating "no
+// data" as 0, per computeMindScore's own doc comment).
 export function computeAverageAccuracyPercent(history: readonly DailyQuantumSessionRecord[]): number | null {
   if (history.length === 0) return null
   return Math.round(history.reduce((sum, session) => sum + session.accuracyPercent, 0) / history.length)
 }
 
-export type WpmChartPoint = { label: string; wpm: number; isBaseline: boolean }
-
-// Builds the ordered point series for the WPM Progress Chart: the
-// immutable Day 1 Baseline first (if it exists), then every real journey
-// session in chronological (oldest-first) order. `history` itself arrives
-// most-recent-first (getDailyQuantumSessionHistory's own convention), so
-// it's reversed here.
-export function buildWpmChartPoints(
-  baselineWpm: number | null,
-  history: readonly DailyQuantumSessionRecord[],
-): readonly WpmChartPoint[] {
-  const points: WpmChartPoint[] = []
-  if (baselineWpm !== null) {
-    points.push({ label: 'Baseline', wpm: baselineWpm, isBaseline: true })
-  }
-  const oldestFirst = [...history].reverse()
-  oldestFirst.forEach((session, index) => {
-    points.push({ label: `Day ${index + 1}`, wpm: session.readingWpm, isBaseline: false })
-  })
-  return points
+// Habit Completion Rate% — real sessions completed so far against the
+// journey's fixed real length (TOTAL_JOURNEY_DAYS), capped at 100 (a
+// student who's already retried past days can't exceed "fully complete").
+// Habit App Isolation™ — this, not WPM growth, is the honest headline
+// metric for a pure habit-building program: "how much of the 21 days have
+// you actually shown up for," never a speed-reading figure.
+export function computeHabitCompletionPercent(sessionsCompleted: number): number {
+  return Math.min(100, Math.round((sessionsCompleted / TOTAL_JOURNEY_DAYS) * 100))
 }

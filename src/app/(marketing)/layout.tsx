@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
+import { getAppDomain } from '@/lib/domains/appDomain'
+import { getDomainTagline } from '@/lib/domains/domainTagline'
 
 // One-Click Entry™ — '/' now redirects straight to /welcome/choose-method
 // (see page.tsx), so the anchor links this nav used to point at
@@ -12,17 +14,27 @@ const NAV_LINKS = [
   { href: '/reviews', label: 'Success Stories' },
 ] as const
 
-export default function MarketingLayout({
+// Consistent Branding™ — this legacy marketing shell (pricing/reviews;
+// the real homepage now lives at the separate www.mindurmind.org.in
+// deployment) isn't domain-gated by src/middleware.ts, so it's reachable
+// on both hosts — resolve appDomain the same way (auth)/layout.tsx does
+// so the tagline next to the wordmark stays correct regardless.
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode
-}): React.JSX.Element {
+}): Promise<React.JSX.Element> {
+  const appDomain = await getAppDomain()
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b border-border/60 px-6 backdrop-blur-md sm:px-8">
         <Link href="/" className="mr-8 flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
           <LivingBrainLogo size={26} decorative={false} animated={false} />
-          Quantum Mind Learning Lab™
+          <span className="flex flex-col leading-tight">
+            Quantum Mind Learning Lab™
+            <span className="hidden text-[11px] font-normal text-muted-foreground sm:inline">{getDomainTagline(appDomain)}</span>
+          </span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">

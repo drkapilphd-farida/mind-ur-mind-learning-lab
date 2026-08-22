@@ -47,7 +47,7 @@ export function StreakConsistencyCard({
           <Target className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <div>
             <p className="text-xl font-bold tabular-nums text-foreground">{Math.round(animatedConsistency)}%</p>
-            <p className="text-[11px] text-muted-foreground">Consistency</p>
+            <p className="text-[11px] text-muted-foreground">Daily routine consistency</p>
           </div>
         </div>
       </div>

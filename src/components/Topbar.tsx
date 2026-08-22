@@ -20,6 +20,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { InstallButton } from '@/components/InstallButton'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
 import type { AppDomain } from '@/lib/domains/appDomain'
+import { getDomainTagline } from '@/lib/domains/domainTagline'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -80,6 +81,8 @@ export function Topbar({
               {brandName ?? 'Quantum Mind'}
             </SheetTitle>
           </SheetHeader>
+          {/* Consistent Branding™ — see AppSidebar.tsx's identical row. */}
+          <p className="border-b border-border/60 px-4 py-2 text-[11px] font-medium text-muted-foreground">{getDomainTagline(appDomain)}</p>
           <div className="flex-1 overflow-y-auto py-4">
             <NavLinks onSelect={() => setOpen(false)} appDomain={appDomain} />
           </div>

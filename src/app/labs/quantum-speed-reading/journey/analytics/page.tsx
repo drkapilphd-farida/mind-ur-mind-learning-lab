@@ -7,26 +7,27 @@ import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-pre
 import { getDomainPerformanceSummary } from '@/features/quantum-journey/analytics/queries/getDomainPerformanceSummary'
 import { computeDailyQuantumStreak } from '@/app/unified-quantum-session-preview/components/dailyQuantumSessionTracking'
 import { computeMindScore } from '@/lib/exercises/mindScore'
-import {
-  buildWpmChartPoints,
-  computeSpeedGrowthPercent,
-  computeConsistencyPercent,
-  computeAverageAccuracyPercent,
-} from '@/features/quantum-journey/analytics/analyticsMath'
+import { computeConsistencyPercent, computeAverageAccuracyPercent, computeHabitCompletionPercent } from '@/features/quantum-journey/analytics/analyticsMath'
 
 export const metadata: Metadata = {
   title: 'Analytics Dashboard™ — Quantum Mindset & Habit Builder™',
-  description: 'Your Day 1 Baseline vs. current reading speed, streak, consistency, and Mind Score breakdown.',
+  description: 'Your habit completion rate, streak, consistency, and Mind Score breakdown.',
 }
 
 // Analytics Dashboard™ — a dedicated page rather than more cards bolted
 // onto the already-long main dashboard (see AnalyticsDashboard.tsx's own
 // comment). Every figure here comes from real, already-persisted data:
-// journey_baseline_diagnostics (Day 1 Baseline), daily_quantum_sessions
-// (every real journey session since), and domain_performance_sessions
-// (Brain-Gym Accuracy). Nothing is fabricated — dimensions with no real
-// tracked source (Focus) render locked, the same convention the main
-// dashboard's MindScoreCard already established.
+// journey_baseline_diagnostics (gates access until Day 1's mandatory
+// baseline is done), daily_quantum_sessions (every real journey session
+// since), and domain_performance_sessions (Brain-Gym Accuracy). Nothing
+// is fabricated — dimensions with no real tracked source (Focus) render
+// locked, the same convention the main dashboard's MindScoreCard already
+// established.
+//
+// Habit App Isolation™ — this page is habit-domain-only (see
+// src/middleware.ts's DOMAIN_ROUTES), so its metrics are chosen for a
+// pure habit-building context: Habit Completion Rate, streak,
+// consistency, and Retention Accuracy — never WPM/speed-reading figures.
 export default async function JourneyAnalyticsPage(): Promise<React.JSX.Element> {
   const [baselineDiagnostic, readingHistory, domainSummary] = await Promise.all([
     getBaselineDiagnostic(),
@@ -34,17 +35,13 @@ export default async function JourneyAnalyticsPage(): Promise<React.JSX.Element>
     getDomainPerformanceSummary(),
   ])
 
-  const baselineWpm = baselineDiagnostic?.trueBaselineWpm ?? null
-  const latestSession = readingHistory[0] ?? null
-
-  const wpmChartPoints = buildWpmChartPoints(baselineWpm, readingHistory)
-  const speedGrowthPercent = computeSpeedGrowthPercent(baselineWpm, latestSession?.readingWpm ?? null)
   const currentStreak = computeDailyQuantumStreak(readingHistory)
   const consistencyPercent = computeConsistencyPercent(readingHistory)
+  const completionPercent = computeHabitCompletionPercent(readingHistory.length)
 
-  const readingComprehensionScore = computeAverageAccuracyPercent(readingHistory)
+  const retentionAccuracyScore = computeAverageAccuracyPercent(readingHistory)
   const brainGymAccuracyScore = domainSummary?.averageAccuracyPercent ?? null
-  const activeDimensionScores = [readingComprehensionScore, brainGymAccuracyScore].filter(
+  const activeDimensionScores = [retentionAccuracyScore, brainGymAccuracyScore].filter(
     (score): score is number => score !== null,
   )
   const mindScore = computeMindScore(activeDimensionScores)
@@ -62,15 +59,12 @@ export default async function JourneyAnalyticsPage(): Promise<React.JSX.Element>
         <div className="mt-8">
           <AnalyticsDashboard
             hasBaseline={baselineDiagnostic !== null}
-            wpmChartPoints={wpmChartPoints}
-            speedGrowthPercent={speedGrowthPercent}
-            latestWpm={latestSession?.readingWpm ?? null}
-            latestAccuracyPercent={latestSession?.accuracyPercent ?? null}
             currentStreak={currentStreak}
             totalSessions={readingHistory.length}
             consistencyPercent={consistencyPercent}
+            completionPercent={completionPercent}
             mindScore={mindScore}
-            readingComprehensionScore={readingComprehensionScore}
+            retentionAccuracyScore={retentionAccuracyScore}
             brainGymAccuracyScore={brainGymAccuracyScore}
           />
         </div>

@@ -4,6 +4,7 @@ import { NavLinks } from '@/components/NavLinks'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
 import type { AppDomain } from '@/lib/domains/appDomain'
+import { getDomainTagline } from '@/lib/domains/domainTagline'
 
 const BRAND_A = '#2b4ce8'
 const BRAND_B = '#0fd9a0'
@@ -58,6 +59,13 @@ export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = n
           <span className="brand-gradient-text">{brandName ?? 'Quantum Mind'}</span>
         </Link>
       </div>
+      {/* Consistent Branding™ — the one place a habit-domain visitor sees
+          "Quantum Mindset & Habit Builder" spelled out near the wordmark,
+          never anything about document upload or speed reading. Own row
+          below the h-14 header rather than crammed inline next to the
+          wordmark — the full tagline is too long to fit that single row
+          in a 240px-wide sidebar. */}
+      <p className="border-b border-border/60 px-4 py-2 text-[11px] font-medium text-muted-foreground">{getDomainTagline(appDomain)}</p>
       <div className="flex-1 overflow-y-auto py-3">
         <NavLinks appDomain={appDomain} />
       </div>
