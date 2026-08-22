@@ -57,14 +57,17 @@ export function ProcessingExperience({ projectId, projectTitle, documentId, docu
   const [isExiting, setIsExiting] = useState(false)
   const [attempt, setAttempt] = useState(0)
 
+  // Mode A / Mode B Fork™ (Phase 2) — same redirect-target change as
+  // processing/page.tsx's own server-side check: lands on the mode-choice
+  // fork, not the hub directly.
   const goToWorkspace = useCallback((): void => {
     const goalParam = goal ? `?goal=${goal}` : ''
     if (prefersReducedMotion) {
-      router.push(`/preview/learning-projects/${projectId}${goalParam}`)
+      router.push(`/preview/learning-projects/${projectId}/mode-choice${goalParam}`)
       return
     }
     setIsExiting(true)
-    window.setTimeout(() => router.push(`/preview/learning-projects/${projectId}${goalParam}`), 250)
+    window.setTimeout(() => router.push(`/preview/learning-projects/${projectId}/mode-choice${goalParam}`), 250)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, goal, prefersReducedMotion])
 

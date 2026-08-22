@@ -51,8 +51,11 @@ export default async function LearningProjectProcessingPage({ params, searchPara
   const document = documents[0]
   if (!document) notFound()
 
+  // Mode A / Mode B Fork™ (Phase 2) — processing now lands the learner on
+  // the mode-choice fork instead of the hub directly; that page itself
+  // owns routing into Mode A (/read) or Mode B (this same hub URL).
   if (document.status !== 'processing') {
-    redirect(`/preview/learning-projects/${id}${goal ? `?goal=${goal}` : ''}`)
+    redirect(`/preview/learning-projects/${id}/mode-choice${goal ? `?goal=${goal}` : ''}`)
   }
 
   return <ProcessingExperience projectId={project.id} projectTitle={project.title} documentId={document.id} documentTitle={document.title} goal={goal ?? null} />

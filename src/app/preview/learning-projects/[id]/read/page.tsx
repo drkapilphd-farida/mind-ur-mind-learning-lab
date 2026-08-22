@@ -15,6 +15,7 @@ import { listDocumentComprehensionSignals } from '@/features/quantum-speed-readi
 import type { DocumentComprehensionSignal } from '@/features/quantum-speed-reading-runtime/presentation/listDocumentComprehensionSignals'
 import { checkReadingAssessmentExists } from '@/features/quantum-speed-reading-runtime/assessment/actions/checkReadingAssessmentExists'
 import { selectAssessmentPassages } from '@/features/quantum-speed-reading-runtime/assessment/selectAssessmentPassages'
+import type { QsrModeId } from '@/features/quantum-speed-reading-runtime/presentation/recommendQsrMode'
 import type { ReadingWorkspaceInitialState } from '@/features/quantum-speed-reading-runtime/types'
 import type { UniversalLearningObject } from '@/core/universal-learning-engine/universal-learning-object'
 
@@ -24,6 +25,28 @@ export const metadata: Metadata = {
 
 type PageProps = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ qsrMode?: string }>
+}
+
+const VALID_QSR_MODE_IDS: readonly QsrModeId[] = [
+  'sequential',
+  'presence',
+  'smart-chunk',
+  'guided-eye-flow',
+  'sprint',
+  'comprehension-check',
+  'speed-ladder',
+  'intelligent-reading',
+]
+
+// Mode A / Mode B Fork™ (Phase 2) — `?qsrMode=` is an unvalidated query
+// param (the mode-choice screen's own Mode A link sets it to
+// 'intelligent-reading'); only a real, known QsrModeId is ever honored,
+// anything else falls through to ReadingWorkspace's own real default —
+// the same "never trust a raw client value unchecked" discipline
+// `[id]/page.tsx`'s own `?goal=` parsing already follows.
+function parseQsrModeParam(qsrMode: string | undefined): QsrModeId | undefined {
+  return VALID_QSR_MODE_IDS.find((candidate) => candidate === qsrMode)
 }
 
 // Quantum Speed Reading™ Production Sprint-2 — the real reading route.
@@ -44,8 +67,10 @@ type PageProps = {
 // with no session yet, or a real "not processed yet" gap (nothing in
 // this app currently triggers UCE processing + ULO persistence
 // automatically — see docs/PRODUCTION_HANDOFF_QSR_SPRINT_2.md).
-export default async function ReadDocumentPage({ params }: PageProps): Promise<React.JSX.Element> {
+export default async function ReadDocumentPage({ params, searchParams }: PageProps): Promise<React.JSX.Element> {
   const { id } = await params
+  const { qsrMode } = await searchParams
+  const initialQsrMode = parseQsrModeParam(qsrMode)
 
   const supabase = await createClient()
   const {
@@ -116,6 +141,7 @@ export default async function ReadDocumentPage({ params }: PageProps): Promise<R
       initial={initial}
       projectId={project.id}
       comprehensionSignals={comprehensionSignals}
+      {...(initialQsrMode !== undefined ? { initialQsrMode } : {})}
     />
   )
 }

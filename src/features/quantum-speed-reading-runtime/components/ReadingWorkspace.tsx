@@ -50,6 +50,15 @@ type ReadingWorkspaceProps = {
   // computes its own equivalent pooled data server-side and passes it
   // down as a plain prop).
   comprehensionSignals: readonly DocumentComprehensionSignal[]
+  // Mode A / Mode B Fork™ (Phase 2) — additive-only override of qsrMode's
+  // own default 'sequential' starting value (see that state's own doc
+  // comment for why it normally always starts there). Absent everywhere
+  // else in the app; only the Mode A entry point (read/page.tsx's own
+  // `?qsrMode=` search param) ever sets this, landing directly in
+  // Intelligent Reading instead of requiring an extra in-Hub pick. The
+  // Hub itself stays exactly as reachable/switchable as before — this
+  // only changes which mode is selected on mount.
+  initialQsrMode?: QsrModeId
 }
 
 type LiveState =
@@ -102,7 +111,7 @@ const THEME_CLASS: Record<ReadingTheme, string> = { light: '', dark: 'dark', sep
 // fade rather than an instant swap — no new animation primitive, no new
 // dependency, and the platform's own global `prefers-reduced-motion`
 // fallback in globals.css still applies automatically.
-export function ReadingWorkspace({ documentId, documentTitle, chunkStrategy, initial, projectId, comprehensionSignals }: ReadingWorkspaceProps): React.JSX.Element {
+export function ReadingWorkspace({ documentId, documentTitle, chunkStrategy, initial, projectId, comprehensionSignals, initialQsrMode }: ReadingWorkspaceProps): React.JSX.Element {
   const [state, setState] = useState<LiveState>(() =>
     initial.kind === 'in-progress'
       ? { kind: 'active', snapshot: initial.snapshot, currentChunk: initial.currentChunk, queueIndex: initial.queueIndex, totalChunks: initial.totalChunks, estimatedTimeLeftSeconds: initial.estimatedTimeLeftSeconds }
@@ -120,7 +129,7 @@ export function ReadingWorkspace({ documentId, documentTitle, chunkStrategy, ini
   // start or a resumed in-progress session; the Hub itself is always
   // reachable above the chapter, never a one-time gate, per the brief's
   // own "do not force sequential completion."
-  const [qsrMode, setQsrMode] = useState<QsrModeId>('sequential')
+  const [qsrMode, setQsrMode] = useState<QsrModeId>(initialQsrMode ?? 'sequential')
   const [speedSamples, setSpeedSamples] = useState<readonly ReadingSpeedSample[]>([])
   const [streak, setStreak] = useState(0)
 

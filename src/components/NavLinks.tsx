@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, GraduationCap, Library, LayoutDashboard, Settings, Users } from 'lucide-react'
+import { BarChart3, GraduationCap, Layers, Library, LayoutDashboard, Settings, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // "My Library" doesn't navigate to its own page — it opens the Document
@@ -11,10 +11,23 @@ import { cn } from '@/lib/utils'
 // real signal that survives a full navigation from any other dashboard
 // page (e.g. from /labs/quantum-speed-reading/thirty-day-curriculum), not
 // just a same-page state toggle.
+//
+// Real Navigation Integration™ (Phase 2) — "Study Projects" is this
+// dashboard's first real link into the Learning Projects engine
+// (src/app/preview/learning-projects/*): a fully built, previously
+// nav-less system (6-stage reading flow, MCQs, Research/Revision/Focus/
+// Memory/Smart Notes modes, the new Mode A/Mode B fork). Its own routes
+// still live under the `/preview` URL prefix — that engine's own
+// navConfig.ts already documents promoting them to root paths as a later,
+// separate, low-risk folder move, not a same-day change bundled with
+// finally making it discoverable. Points at its real project list
+// (/preview/dashboard), not straight to "new" — a returning user should
+// land on their own past projects, not be forced into another upload.
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/labs/quantum-speed-reading/thirty-day-curriculum', label: '30-Day Masterclass', icon: GraduationCap },
   { href: '/dashboard?library=open', label: 'My Library', icon: Library },
+  { href: '/preview/dashboard', label: 'Study Projects', icon: Layers },
   { href: '/progress', label: 'Mind Score™', icon: BarChart3 },
   { href: '/parent-dashboard', label: 'Parents Dashboard', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },

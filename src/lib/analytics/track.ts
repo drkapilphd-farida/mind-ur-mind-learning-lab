@@ -35,6 +35,9 @@ export type LearningProjectAnalyticsEvent =
   | 'qsr_journey_assessment_completed'
   | 'qsr_journey_chapter_completed'
   | 'qsr_journey_abandoned'
+  // Phase 2 — Mode A / Mode B Fork™. Which mode a learner picked right
+  // after their upload finished processing (see ModeChoiceExperience.tsx).
+  | 'mode_choice_selected'
 
 // Dev-only console output today (via the existing logger, silent in
 // production) — swapping in a real analytics backend later is a change
