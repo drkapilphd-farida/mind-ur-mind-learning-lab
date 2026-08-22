@@ -70,6 +70,7 @@ function makeDocument(overrides: Partial<Document> = {}): Document {
     learningProjectId: 'project-1',
     title: 'Physics 101',
     storagePath: 'user-1/uuid/physics.pdf',
+    storagePaths: null,
     mimeType: 'application/pdf',
     sizeBytes: 1000,
     status: 'workspace_ready',

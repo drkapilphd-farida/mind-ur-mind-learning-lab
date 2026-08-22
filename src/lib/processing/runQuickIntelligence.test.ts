@@ -10,6 +10,7 @@ const hoisted = vi.hoisted(() => ({
   createServiceClient: vi.fn(),
   parse: vi.fn(),
   extractUniversalLearningDocument: vi.fn(),
+  extractUniversalLearningDocumentFromImages: vi.fn(),
   chunkUniversalLearningDocument: vi.fn(),
   buildLearningChunks: vi.fn(),
   buildLearningKnowledgeGraph: vi.fn(),
@@ -27,7 +28,10 @@ vi.mock('@/features/learning-mode-runtime', () => ({
 }))
 vi.mock('@/lib/supabase/service', () => ({ createServiceClient: hoisted.createServiceClient }))
 vi.mock('@/core/universal-learning-engine/upload', () => ({ universalUploadParser: { parse: hoisted.parse } }))
-vi.mock('@/core/universal-learning-engine/extraction', () => ({ extractUniversalLearningDocument: hoisted.extractUniversalLearningDocument }))
+vi.mock('@/core/universal-learning-engine/extraction', () => ({
+  extractUniversalLearningDocument: hoisted.extractUniversalLearningDocument,
+  extractUniversalLearningDocumentFromImages: hoisted.extractUniversalLearningDocumentFromImages,
+}))
 vi.mock('@/core/universal-learning-engine/chunking', () => ({ chunkUniversalLearningDocument: hoisted.chunkUniversalLearningDocument }))
 vi.mock('@/core/universal-learning-engine/learning-chunk', () => ({ buildLearningChunks: hoisted.buildLearningChunks }))
 vi.mock('@/core/universal-learning-engine/knowledge-graph', () => ({ buildLearningKnowledgeGraph: hoisted.buildLearningKnowledgeGraph }))
@@ -49,6 +53,7 @@ function makeDocument(overrides: Partial<Document> = {}): Document {
     learningProjectId: 'project-1',
     title: 'Physics 101',
     storagePath: 'user-1/uuid/physics.pdf',
+    storagePaths: null,
     mimeType: 'application/pdf',
     sizeBytes: 1000,
     status: 'processing',
@@ -131,6 +136,91 @@ describe('runQuickIntelligence', () => {
     hoisted.loadUniversalLearningObject.mockRejectedValue(new Error('boom'))
     const result = await runQuickIntelligence(supabase, makeDocument())
     expect(result.outcome).toBe('failed')
+  })
+
+  describe('Multi-Image / Batch Photo Upload™', () => {
+    it('downloads every page in order and extracts via extractUniversalLearningDocumentFromImages for a genuine multi-image batch', async () => {
+      hoisted.loadUniversalLearningObject.mockResolvedValue(null)
+      const downloadedPaths: string[] = []
+      const download = vi.fn((path: string) => {
+        downloadedPaths.push(path)
+        return Promise.resolve({ data: new Blob(['x']), error: null })
+      })
+      const multiImageSupabase = { storage: { from: () => ({ download }) } } as unknown as SupabaseClient<Database>
+      hoisted.parse.mockResolvedValue({ success: true, source: { sourceType: 'image' } })
+      hoisted.extractUniversalLearningDocumentFromImages.mockResolvedValue({ success: true, document: { id: 'fresh-doc-id', title: 'Physics 101' } })
+      hoisted.chunkUniversalLearningDocument.mockReturnValue({ chunked: true })
+      hoisted.buildLearningChunks.mockReturnValue([{ id: 'chunk-1' }])
+      hoisted.buildLearningKnowledgeGraph.mockResolvedValue({ id: 'graph-1' })
+      hoisted.buildLearningAnalysis.mockResolvedValue({ id: 'analysis-1' })
+      hoisted.buildUniversalLearningObject.mockReturnValue({ id: 'ulo-1', documentId: 'doc-1' })
+      hoisted.saveUniversalLearningObject.mockResolvedValue(true)
+
+      const storagePaths = ['user-1/uuid/page-1.jpg', 'user-1/uuid/page-2.jpg', 'user-1/uuid/page-3.jpg']
+      const result = await runQuickIntelligence(multiImageSupabase, makeDocument({ storagePath: storagePaths[0] ?? null, storagePaths }))
+
+      expect(result).toEqual({ outcome: 'workspace-ready' })
+      expect(downloadedPaths).toEqual(storagePaths)
+      expect(hoisted.extractUniversalLearningDocumentFromImages).toHaveBeenCalledTimes(1)
+      expect(hoisted.extractUniversalLearningDocument).not.toHaveBeenCalled()
+      const [passedFiles] = hoisted.extractUniversalLearningDocumentFromImages.mock.calls[0] as [File[], unknown]
+      expect(passedFiles).toHaveLength(3)
+      expect(hoisted.initializeDocumentProcessingProgress).toHaveBeenCalledWith({}, 'doc-1', 1)
+    })
+
+    it('reports a real, friendly failure when any page in the batch cannot be downloaded', async () => {
+      hoisted.loadUniversalLearningObject.mockResolvedValue(null)
+      const download = vi
+        .fn()
+        .mockResolvedValueOnce({ data: new Blob(['x']), error: null })
+        .mockResolvedValueOnce({ data: null, error: { message: 'not found' } })
+      const flakySupabase = { storage: { from: () => ({ download }) } } as unknown as SupabaseClient<Database>
+
+      const storagePaths = ['user-1/uuid/page-1.jpg', 'user-1/uuid/page-2.jpg']
+      const result = await runQuickIntelligence(flakySupabase, makeDocument({ storagePath: storagePaths[0] ?? null, storagePaths }))
+
+      expect(result.outcome).toBe('failed')
+      expect(hoisted.extractUniversalLearningDocumentFromImages).not.toHaveBeenCalled()
+    })
+
+    it('falls through to the single-file path when storagePaths has only one entry', async () => {
+      hoisted.loadUniversalLearningObject.mockResolvedValue(null)
+      const download = vi.fn(() => Promise.resolve({ data: new Blob(['x']), error: null }))
+      const singlePageSupabase = { storage: { from: () => ({ download }) } } as unknown as SupabaseClient<Database>
+      hoisted.parse.mockResolvedValue({ success: true, source: { sourceType: 'pdf' } })
+      hoisted.extractUniversalLearningDocument.mockResolvedValue({ success: true, document: { id: 'fresh-doc-id', title: 'Physics 101' } })
+      hoisted.chunkUniversalLearningDocument.mockReturnValue({ chunked: true })
+      hoisted.buildLearningChunks.mockReturnValue([{ id: 'chunk-1' }])
+      hoisted.buildLearningKnowledgeGraph.mockResolvedValue({ id: 'graph-1' })
+      hoisted.buildLearningAnalysis.mockResolvedValue({ id: 'analysis-1' })
+      hoisted.buildUniversalLearningObject.mockReturnValue({ id: 'ulo-1', documentId: 'doc-1' })
+      hoisted.saveUniversalLearningObject.mockResolvedValue(true)
+
+      const result = await runQuickIntelligence(singlePageSupabase, makeDocument({ storagePaths: ['user-1/uuid/page-1.jpg'] }))
+
+      expect(result).toEqual({ outcome: 'workspace-ready' })
+      expect(hoisted.extractUniversalLearningDocumentFromImages).not.toHaveBeenCalled()
+      expect(hoisted.extractUniversalLearningDocument).toHaveBeenCalledTimes(1)
+    })
+
+    it('falls through to the single-file path when storagePaths is null', async () => {
+      hoisted.loadUniversalLearningObject.mockResolvedValue(null)
+      const download = vi.fn(() => Promise.resolve({ data: new Blob(['x']), error: null }))
+      const pdfSupabase = { storage: { from: () => ({ download }) } } as unknown as SupabaseClient<Database>
+      hoisted.parse.mockResolvedValue({ success: true, source: { sourceType: 'pdf' } })
+      hoisted.extractUniversalLearningDocument.mockResolvedValue({ success: true, document: { id: 'fresh-doc-id', title: 'Physics 101' } })
+      hoisted.chunkUniversalLearningDocument.mockReturnValue({ chunked: true })
+      hoisted.buildLearningChunks.mockReturnValue([{ id: 'chunk-1' }])
+      hoisted.buildLearningKnowledgeGraph.mockResolvedValue({ id: 'graph-1' })
+      hoisted.buildLearningAnalysis.mockResolvedValue({ id: 'analysis-1' })
+      hoisted.buildUniversalLearningObject.mockReturnValue({ id: 'ulo-1', documentId: 'doc-1' })
+      hoisted.saveUniversalLearningObject.mockResolvedValue(true)
+
+      const result = await runQuickIntelligence(pdfSupabase, makeDocument({ storagePaths: null }))
+
+      expect(result).toEqual({ outcome: 'workspace-ready' })
+      expect(hoisted.extractUniversalLearningDocumentFromImages).not.toHaveBeenCalled()
+    })
   })
 })
 

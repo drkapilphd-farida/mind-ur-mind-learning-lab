@@ -12,6 +12,7 @@ export function makeDocument(overrides: Partial<Document> = {}): Document {
     learningProjectId: 'project-1',
     title: 'Understanding Cell Biology',
     storagePath: null,
+    storagePaths: null,
     mimeType: 'application/pdf',
     sizeBytes: 500_000,
     status: 'ready',

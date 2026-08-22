@@ -25,6 +25,11 @@ export type Document = {
   learningProjectId: string | null
   title: string
   storagePath: string | null
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — ordered Storage paths
+  // for a genuine multi-page photo batch (2+ pages), null for every
+  // single-file document (see storagePath for those). See
+  // supabase/migrations/20260822000001_add_storage_paths_to_documents.sql.
+  storagePaths: readonly string[] | null
   mimeType: string | null
   sizeBytes: number | null
   status: DocumentStatus

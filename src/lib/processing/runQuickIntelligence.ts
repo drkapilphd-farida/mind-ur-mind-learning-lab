@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/types'
 import { universalUploadParser } from '@/core/universal-learning-engine/upload'
-import { extractUniversalLearningDocument } from '@/core/universal-learning-engine/extraction'
+import { extractUniversalLearningDocument, extractUniversalLearningDocumentFromImages } from '@/core/universal-learning-engine/extraction'
 import { chunkUniversalLearningDocument } from '@/core/universal-learning-engine/chunking'
 import { buildLearningChunks } from '@/core/universal-learning-engine/learning-chunk'
 import { buildLearningKnowledgeGraph } from '@/core/universal-learning-engine/knowledge-graph'
@@ -14,6 +14,7 @@ import { markDocumentReady, markDocumentWorkspaceReady, markDocumentFailed } fro
 import { logger } from '@/lib/logger'
 import { diagnoseSupabaseError, type SupabaseOperationError } from '@/lib/processing/diagnoseSupabaseError'
 import type { Document } from '@/types/documents'
+import type { UniversalLearningDocument } from '@/core/universal-learning-engine/extraction'
 
 export type QuickIntelligenceResult =
   | { outcome: 'workspace-ready' }
@@ -53,6 +54,116 @@ function logStepFail(step: string, documentId: string, startedAt: number, error:
   })
 }
 
+// Shared by both the single-file and Multi-Image / Batch Photo Upload™
+// (Phase 3) paths — everything from "extraction just succeeded" through
+// "workspace is usable." Identical logic either way; only how
+// `extractedDocument` itself was produced differs between the two
+// callers.
+async function runDownstreamPipeline(
+  serviceClient: SupabaseClient<Database>,
+  document: Document,
+  extractedDocument: UniversalLearningDocument,
+): Promise<QuickIntelligenceResult> {
+  // Same real id-substitution fix as the pre-ALS-15 pipeline —
+  // extraction builds its own document with a freshly-generated id;
+  // every downstream step needs this real database document's own real
+  // id instead.
+  const universalDocument = { ...extractedDocument, id: document.id }
+
+  let stepStart = logStepStart('Chunks Created', document.id)
+  const chunkedDocument = chunkUniversalLearningDocument(universalDocument)
+  const chunks = buildLearningChunks(chunkedDocument, universalDocument)
+  logStepSuccess('Chunks Created', document.id, stepStart, { chunkCount: chunks.length })
+
+  // Zero AI calls: omitting `aiFoundation` gives a genuine, deterministic
+  // structural graph/analysis (no `builds-upon` edges, no
+  // `aiRefinedStrategy`) — real output, not a placeholder.
+  stepStart = logStepStart('Knowledge Graph Created (structural)', document.id)
+  const graph = await buildLearningKnowledgeGraph(chunks, universalDocument)
+  logStepSuccess('Knowledge Graph Created (structural)', document.id, stepStart, { nodeCount: graph.nodeCount, edgeCount: graph.edgeCount })
+
+  stepStart = logStepStart('Learning Analysis Created (structural)', document.id)
+  const analysis = await buildLearningAnalysis(chunks, universalDocument, graph)
+  logStepSuccess('Learning Analysis Created (structural)', document.id, stepStart)
+
+  const ulo = buildUniversalLearningObject(universalDocument, chunks, graph, analysis)
+
+  stepStart = logStepStart('Universal Learning Object Saved', document.id)
+  const saved = await saveUniversalLearningObject(serviceClient, ulo)
+  if (!saved) {
+    logStepFail('Universal Learning Object Saved', document.id, stepStart, new Error('saveUniversalLearningObject returned false'))
+    return { outcome: 'failed', error: 'We could not save your document. Please try again.' }
+  }
+  logStepSuccess('Universal Learning Object Saved', document.id, stepStart)
+
+  // Non-critical to Phase 1 success: Phase 3 background progress is a
+  // separate concern from "did the workspace become usable." A failure
+  // here (e.g. the document_processing_progress migration missing) is
+  // still logged loudly with full diagnosis — never silently
+  // continued past without a trace — but never blocks the workspace
+  // from opening, since Phase 1's real, load-bearing work (the ULO
+  // above) already succeeded.
+  stepStart = logStepStart('Background Progress Initialized', document.id)
+  await initializeDocumentProcessingProgress(serviceClient, document.id, chunks.length)
+  logStepSuccess('Background Progress Initialized', document.id, stepStart)
+
+  return { outcome: 'workspace-ready' }
+}
+
+// Multi-Image / Batch Photo Upload™ (Phase 3) — downloads every page (in
+// the student's own order — `storagePaths` is never re-sorted), builds
+// one combined document via extractUniversalLearningDocumentFromImages,
+// then joins the exact same downstream pipeline the single-file path
+// uses. Only ever called for a genuine 2+-page batch — see this
+// function's own caller.
+async function runMultiImageQuickIntelligence(
+  supabase: SupabaseClient<Database>,
+  serviceClient: SupabaseClient<Database>,
+  document: Document,
+  storagePaths: readonly string[],
+): Promise<QuickIntelligenceResult> {
+  let stepStart = logStepStart('Files Downloaded', document.id)
+  const files: File[] = []
+  for (const [index, path] of storagePaths.entries()) {
+    const { data: blob, error: downloadError } = await supabase.storage.from('learning-documents').download(path)
+    if (downloadError || !blob) {
+      logStepFail('Files Downloaded', document.id, stepStart, downloadError ?? new Error(`page ${index + 1} download returned no file`))
+      return { outcome: 'failed', error: 'We could not read one of your uploaded pages. Please try uploading again.' }
+    }
+    const fileName = path.split('/').pop() ?? `page-${index + 1}`
+    files.push(new File([blob], fileName, { type: document.mimeType ?? blob.type }))
+  }
+  logStepSuccess('Files Downloaded', document.id, stepStart, { pageCount: files.length })
+
+  stepStart = logStepStart('First Page Validated', document.id)
+  const firstPage = files[0]
+  if (!firstPage) {
+    logStepFail('First Page Validated', document.id, stepStart, new Error('no pages to validate'))
+    return { outcome: 'failed', error: 'We could not read your uploaded pages. Please try uploading again.' }
+  }
+  // One representative UniversalSource for the whole combined document —
+  // the same real validation every single-file upload already goes
+  // through, run against the first page (mirrors how the title/mimeType
+  // already come from the batch's own first-page-derived metadata — see
+  // createLearningProjectWithDocument's own comment).
+  const parsed = await universalUploadParser.parse(firstPage)
+  if (!parsed.success) {
+    logStepFail('First Page Validated', document.id, stepStart, new Error(parsed.error.message))
+    return { outcome: 'failed', error: parsed.error.message }
+  }
+  logStepSuccess('First Page Validated', document.id, stepStart)
+
+  stepStart = logStepStart('Document Extracted (multi-image)', document.id)
+  const extraction = await extractUniversalLearningDocumentFromImages(files, parsed.source)
+  if (!extraction.success) {
+    logStepFail('Document Extracted (multi-image)', document.id, stepStart, new Error(extraction.error.message))
+    return { outcome: 'failed', error: extraction.error.message }
+  }
+  logStepSuccess('Document Extracted (multi-image)', document.id, stepStart, { pageCount: files.length })
+
+  return runDownstreamPipeline(serviceClient, document, extraction.document)
+}
+
 // ALS-15 Instant Learning Engine™ — Phase 1 "Quick Intelligence." Target
 // ≤30s, zero AI calls. Does today's real parse/chunk work (unchanged from
 // the pre-ALS-15 pipeline) then builds a fully real, schema-complete
@@ -89,6 +200,19 @@ export async function runQuickIntelligence(supabase: SupabaseClient<Database>, d
     }
     logStepSuccess('Idempotency Check', document.id, idempotencyStart, { resuming: false })
 
+    // Multi-Image / Batch Photo Upload™ (Phase 3) — a genuine 2+-page
+    // batch takes a completely separate download+extraction path (real
+    // extraction, always attempted — that's the whole point of this
+    // feature), then rejoins the exact same downstream pipeline below.
+    // A single-image upload (storagePaths absent, or present with only
+    // one entry) is deliberately excluded from this branch and falls
+    // through to the existing single-file logic beneath it, completely
+    // unmodified — this sprint intentionally does not change single-image
+    // upload behavior (see this feature's own scope notes).
+    if (document.storagePaths !== null && document.storagePaths.length > 1) {
+      return await runMultiImageQuickIntelligence(supabase, serviceClient, document, document.storagePaths)
+    }
+
     let stepStart = logStepStart('File Downloaded', document.id)
     const { data: blob, error: downloadError } = await supabase.storage.from('learning-documents').download(document.storagePath)
     if (downloadError || !blob) {
@@ -121,50 +245,7 @@ export async function runQuickIntelligence(supabase: SupabaseClient<Database>, d
     }
     logStepSuccess('Document Extracted', document.id, stepStart)
 
-    // Same real id-substitution fix as the pre-ALS-15 pipeline —
-    // `extractUniversalLearningDocument` builds its own document with a
-    // freshly-generated id; every downstream step needs this real
-    // database document's own real id instead.
-    const universalDocument = { ...extraction.document, id: document.id }
-
-    stepStart = logStepStart('Chunks Created', document.id)
-    const chunkedDocument = chunkUniversalLearningDocument(universalDocument)
-    const chunks = buildLearningChunks(chunkedDocument, universalDocument)
-    logStepSuccess('Chunks Created', document.id, stepStart, { chunkCount: chunks.length })
-
-    // Zero AI calls: omitting `aiFoundation` gives a genuine, deterministic
-    // structural graph/analysis (no `builds-upon` edges, no
-    // `aiRefinedStrategy`) — real output, not a placeholder.
-    stepStart = logStepStart('Knowledge Graph Created (structural)', document.id)
-    const graph = await buildLearningKnowledgeGraph(chunks, universalDocument)
-    logStepSuccess('Knowledge Graph Created (structural)', document.id, stepStart, { nodeCount: graph.nodeCount, edgeCount: graph.edgeCount })
-
-    stepStart = logStepStart('Learning Analysis Created (structural)', document.id)
-    const analysis = await buildLearningAnalysis(chunks, universalDocument, graph)
-    logStepSuccess('Learning Analysis Created (structural)', document.id, stepStart)
-
-    const ulo = buildUniversalLearningObject(universalDocument, chunks, graph, analysis)
-
-    stepStart = logStepStart('Universal Learning Object Saved', document.id)
-    const saved = await saveUniversalLearningObject(serviceClient, ulo)
-    if (!saved) {
-      logStepFail('Universal Learning Object Saved', document.id, stepStart, new Error('saveUniversalLearningObject returned false'))
-      return { outcome: 'failed', error: 'We could not save your document. Please try again.' }
-    }
-    logStepSuccess('Universal Learning Object Saved', document.id, stepStart)
-
-    // Non-critical to Phase 1 success: Phase 3 background progress is a
-    // separate concern from "did the workspace become usable." A failure
-    // here (e.g. the document_processing_progress migration missing) is
-    // still logged loudly with full diagnosis — never silently
-    // continued past without a trace — but never blocks the workspace
-    // from opening, since Phase 1's real, load-bearing work (the ULO
-    // above) already succeeded.
-    stepStart = logStepStart('Background Progress Initialized', document.id)
-    await initializeDocumentProcessingProgress(serviceClient, document.id, chunks.length)
-    logStepSuccess('Background Progress Initialized', document.id, stepStart)
-
-    return { outcome: 'workspace-ready' }
+    return await runDownstreamPipeline(serviceClient, document, extraction.document)
   } catch (error) {
     logger.error('[QuickIntelligence] unexpected error — pipeline aborted', {
       documentId: document.id,

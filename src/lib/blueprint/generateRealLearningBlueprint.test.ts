@@ -16,6 +16,7 @@ function makeTestDocument(overrides: Partial<Document> = {}): Document {
     learningProjectId: 'project-1',
     title: 'Photosynthesis Basics',
     storagePath: null,
+    storagePaths: null,
     mimeType: 'application/pdf',
     sizeBytes: 500_000,
     status: 'ready',

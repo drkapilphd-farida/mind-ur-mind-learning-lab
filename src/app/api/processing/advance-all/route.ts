@@ -12,6 +12,7 @@ type DocumentRow = {
   learning_project_id: string | null
   title: string
   storage_path: string | null
+  storage_paths: readonly string[] | null
   mime_type: string | null
   size_bytes: number | null
   status: string
@@ -26,6 +27,7 @@ function toDocument(row: DocumentRow): Document {
     learningProjectId: row.learning_project_id,
     title: row.title,
     storagePath: row.storage_path,
+    storagePaths: row.storage_paths,
     mimeType: row.mime_type,
     sizeBytes: row.size_bytes,
     status: row.status as Document['status'],
@@ -87,7 +89,7 @@ async function runBatchAdvance(): Promise<{ recoveredCount: number; phase1Recove
 
   const { data: stuckPhase1Rows, error: phase1Error } = await supabase
     .from('documents')
-    .select('id, user_id, learning_project_id, title, storage_path, mime_type, size_bytes, status, created_at, updated_at')
+    .select('id, user_id, learning_project_id, title, storage_path, storage_paths, mime_type, size_bytes, status, created_at, updated_at')
     .eq('status', 'processing')
 
   if (phase1Error) {
@@ -105,7 +107,7 @@ async function runBatchAdvance(): Promise<{ recoveredCount: number; phase1Recove
 
   const { data: inFlightRows, error } = await supabase
     .from('documents')
-    .select('id, user_id, learning_project_id, title, storage_path, mime_type, size_bytes, status, created_at, updated_at')
+    .select('id, user_id, learning_project_id, title, storage_path, storage_paths, mime_type, size_bytes, status, created_at, updated_at')
     .eq('status', 'workspace_ready')
 
   if (error) {

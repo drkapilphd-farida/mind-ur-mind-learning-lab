@@ -7,13 +7,14 @@ import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMoti
 import { AIDetectionStep } from '@/components/learning/AIDetectionStep'
 import { LearningGoalStep } from '@/components/learning/LearningGoalStep'
 import { CameraCaptureExperience } from '@/components/learning/CameraCaptureExperience'
-import { ImagePreviewGrid } from '@/components/learning/ImagePreviewGrid'
+import { ImagePreviewGrid, type ImageUploadStatus } from '@/components/learning/ImagePreviewGrid'
 import { SingleFilePreview } from '@/components/learning/SingleFilePreview'
 import { UploadProgress, type UploadProgressStatus } from '@/components/learning/UploadProgress'
 import { UploadZone } from '@/components/learning/UploadZone'
 import { ACCEPTED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_SIZE_BYTES } from '@/constants/documents'
 import type { UploadLearningGoalId } from '@/constants/learning/uploadLearningGoals'
 import { universalUploadParser } from '@/core/universal-learning-engine/upload'
+import { compressImage } from '@/lib/upload/compressImage'
 import { analyzeDocumentContent } from '@/lib/processing/analyzeDocumentContent'
 import { trackEvent } from '@/lib/analytics/track'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
@@ -114,8 +115,15 @@ export function NewLearningProjectWizard(): React.JSX.Element {
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [showCamera, setShowCamera] = useState(false)
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — non-null only while a
+  // real batch upload is in flight; parallel to `selectedImages` by
+  // index. `null` the rest of the time, including during review (this is
+  // upload progress, not a review-stage concept).
+  const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[] | null>(null)
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null)
-  const lastSubmitInput = useRef<{ input: SubmitDocumentInput; goal: UploadLearningGoalId | null } | null>(null)
+  const lastSubmitInput = useRef<
+    { kind: 'single'; input: SubmitDocumentInput; goal: UploadLearningGoalId | null } | { kind: 'batch'; images: File[]; goal: UploadLearningGoalId | null } | null
+  >(null)
   const cancelledRef = useRef(false)
 
   function stopProgressTimer(): void {
@@ -173,30 +181,28 @@ export function NewLearningProjectWizard(): React.JSX.Element {
     return data.path
   }
 
-  async function submitDocument(input: SubmitDocumentInput, goal: UploadLearningGoalId | null): Promise<void> {
-    cancelledRef.current = false
-    lastSubmitInput.current = { input, goal }
-    setUpload({ displayName: input.documentTitle, displaySizeBytes: input.sizeBytes, status: 'uploading', progress: 0, errorMessage: null })
-    trackEvent('upload_started', { fileName: input.documentTitle, sizeBytes: input.sizeBytes })
-    logger.info('[UploadPipeline] Upload Started', { fileName: input.documentTitle, mimeType: input.mimeType, sizeBytes: input.sizeBytes })
+  // Shared by both the single-file and Multi-Image / Batch Photo Upload™
+  // (Phase 3) submission paths — everything from "the real Storage
+  // upload(s) already resolved" through navigation. Identical either way;
+  // only how the storage path(s) were produced differs between callers.
+  async function finalizeSubmission(params: {
+    documentTitle: string
+    mimeType: AcceptedMimeType
+    sizeBytes: number
+    storagePath: string | null
+    storagePaths?: readonly string[]
+    goal: UploadLearningGoalId | null
+  }): Promise<void> {
+    const { documentTitle, mimeType, sizeBytes, storagePath, storagePaths, goal } = params
 
-    progressTimer.current = setInterval(() => {
-      setUpload((current) => {
-        if (!current || current.status !== 'uploading') return current
-        const next = Math.min(current.progress + Math.random() * 18, 90)
-        return { ...current, progress: next }
-      })
-    }, 220)
-
-    const storagePath = await uploadDocumentFile(input.file)
-
-    logger.info('[UploadPipeline] Document Record Created — START', { hasStoragePath: storagePath !== null })
+    logger.info('[UploadPipeline] Document Record Created — START', { hasStoragePath: storagePath !== null, pageCount: storagePaths?.length ?? (storagePath !== null ? 1 : 0) })
     const result = await createLearningProjectWithDocument({
       ...(projectTitle.trim().length > 0 ? { projectTitle: projectTitle.trim() } : {}),
-      documentTitle: input.documentTitle,
-      mimeType: input.mimeType,
-      sizeBytes: input.sizeBytes,
+      documentTitle,
+      mimeType,
+      sizeBytes,
       ...(storagePath !== null ? { storagePath } : {}),
+      ...(storagePaths !== undefined ? { storagePaths: [...storagePaths] } : {}),
     })
 
     stopProgressTimer()
@@ -230,11 +236,115 @@ export function NewLearningProjectWizard(): React.JSX.Element {
     logger.info('[UploadPipeline] Document Record Created — SUCCESS', { projectId: result.projectId, documentId: result.documentId })
 
     setUpload((current) => (current ? { ...current, status: 'processing', progress: 100 } : current))
-    trackEvent('upload_completed', { fileName: input.documentTitle, sizeBytes: input.sizeBytes })
+    trackEvent('upload_completed', { fileName: documentTitle, sizeBytes })
     trackEvent('project_created', { projectId: result.projectId })
 
     const goalParam = goal ? `?goal=${goal}` : ''
     router.push(`/preview/learning-projects/${result.projectId}/processing${goalParam}`)
+  }
+
+  async function submitDocument(input: SubmitDocumentInput, goal: UploadLearningGoalId | null): Promise<void> {
+    cancelledRef.current = false
+    lastSubmitInput.current = { kind: 'single', input, goal }
+    setUpload({ displayName: input.documentTitle, displaySizeBytes: input.sizeBytes, status: 'uploading', progress: 0, errorMessage: null })
+    trackEvent('upload_started', { fileName: input.documentTitle, sizeBytes: input.sizeBytes })
+    logger.info('[UploadPipeline] Upload Started', { fileName: input.documentTitle, mimeType: input.mimeType, sizeBytes: input.sizeBytes })
+
+    progressTimer.current = setInterval(() => {
+      setUpload((current) => {
+        if (!current || current.status !== 'uploading') return current
+        const next = Math.min(current.progress + Math.random() * 18, 90)
+        return { ...current, progress: next }
+      })
+    }, 220)
+
+    const storagePath = await uploadDocumentFile(input.file)
+
+    await finalizeSubmission({ documentTitle: input.documentTitle, mimeType: input.mimeType, sizeBytes: input.sizeBytes, storagePath, goal })
+  }
+
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — every page is uploaded
+  // individually (never one monolithic multipart request), in the
+  // student's own page order, with a real per-image status reported via
+  // `onStatusChange` as each upload settles — never a fabricated
+  // progress bar.
+  async function uploadImagesSequentially(files: readonly File[], onStatusChange: (index: number, status: ImageUploadStatus) => void): Promise<(string | null)[]> {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      logger.error('[UploadPipeline] Storage Upload (batch) — FAIL', { reason: 'no authenticated user at upload time' })
+      files.forEach((_, index) => onStatusChange(index, 'error'))
+      return files.map(() => null)
+    }
+
+    const batchId = crypto.randomUUID()
+    const paths: (string | null)[] = []
+    for (const [index, file] of files.entries()) {
+      onStatusChange(index, 'uploading')
+      const path = `${user.id}/${batchId}/page-${index + 1}-${file.name}`
+      const { data, error } = await supabase.storage.from('learning-documents').upload(path, file)
+      if (error) {
+        logger.error('[UploadPipeline] Storage Upload (batch) — FAIL', { path, error: error.message, name: error.name })
+        onStatusChange(index, 'error')
+        paths.push(null)
+        continue
+      }
+      onStatusChange(index, 'done')
+      paths.push(data.path)
+    }
+    logger.info('[UploadPipeline] Storage Upload (batch) — SUCCESS', { pageCount: files.length, succeededCount: paths.filter((path) => path !== null).length })
+    return paths
+  }
+
+  async function submitImageBatch(images: readonly File[], goal: UploadLearningGoalId | null): Promise<void> {
+    const firstImage = images[0]
+    if (!firstImage) return
+
+    cancelledRef.current = false
+    lastSubmitInput.current = { kind: 'batch', images: [...images], goal }
+    const totalBytes = images.reduce((sum, file) => sum + file.size, 0)
+    const documentTitle = images.length === 1 ? stripExtension(firstImage.name) : `${images.length} images`
+    setUpload({ displayName: documentTitle, displaySizeBytes: totalBytes, status: 'uploading', progress: 0, errorMessage: null })
+    setImageUploadStatuses(images.map(() => 'pending'))
+    trackEvent('upload_started', { fileName: documentTitle, sizeBytes: totalBytes })
+    logger.info('[UploadPipeline] Upload Started (batch)', { pageCount: images.length, sizeBytes: totalBytes })
+
+    const uploadedPaths = await uploadImagesSequentially(images, (index, status) => {
+      setImageUploadStatuses((current) => (current ? current.map((existing, i) => (i === index ? status : existing)) : current))
+      setUpload((current) => {
+        if (!current || current.status !== 'uploading' || (status !== 'done' && status !== 'error')) return current
+        const completedCount = index + 1
+        return { ...current, progress: Math.min(95, Math.round((completedCount / images.length) * 100)) }
+      })
+    })
+
+    setImageUploadStatuses(null)
+
+    if (cancelledRef.current) {
+      cancelledRef.current = false
+      return
+    }
+
+    const successfulPaths = uploadedPaths.filter((path): path is string => path !== null)
+    if (successfulPaths.length === 0) {
+      logger.error('[UploadPipeline] Document Record Created — FAIL', { reason: 'every page failed to upload' })
+      setUpload((current) => (current ? { ...current, status: 'error', progress: 0, errorMessage: 'We could not upload your pages. Please try again.' } : current))
+      return
+    }
+    if (successfulPaths.length < images.length) {
+      logger.error('[UploadPipeline] Storage Upload (batch) — PARTIAL', { succeeded: successfulPaths.length, total: images.length })
+    }
+
+    await finalizeSubmission({
+      documentTitle,
+      mimeType: firstImage.type as AcceptedMimeType,
+      sizeBytes: totalBytes,
+      storagePath: successfulPaths[0] ?? null,
+      ...(successfulPaths.length >= 2 ? { storagePaths: successfulPaths } : {}),
+      goal,
+    })
   }
 
   // Sprint UCE-1 — Universal Upload Parser™. Every file now goes through
@@ -297,7 +407,10 @@ export function NewLearningProjectWizard(): React.JSX.Element {
     for (const file of files) {
       const outcome = await validateAndExtract(file)
       if (outcome.ok) {
-        validFiles.push(file)
+        // Lightweight client-side compression/resizing before this page
+        // ever reaches Storage or Claude vision — keeps OCR inputs
+        // optimal without a new npm dependency (see compressImage.ts).
+        validFiles.push(await compressImage(file))
       } else {
         setZoneError(outcome.error)
       }
@@ -329,7 +442,26 @@ export function NewLearningProjectWizard(): React.JSX.Element {
       setZoneError(outcome.error)
       return
     }
-    setSelectedImages((current) => current.map((existing, i) => (i === index ? file : existing)))
+    const compressed = await compressImage(file)
+    setSelectedImages((current) => current.map((existing, i) => (i === index ? compressed : existing)))
+  }
+
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — page order is real,
+  // student-defined chapter order (see runQuickIntelligence.ts's own
+  // sequential concatenation), not cosmetic. Swaps two adjacent pages;
+  // out-of-range moves (already at an end) are a real no-op, matching
+  // ImagePreviewGrid's own disabled boundary buttons.
+  function handleMoveImage(index: number, direction: 'left' | 'right'): void {
+    setSelectedImages((current) => {
+      const targetIndex = direction === 'left' ? index - 1 : index + 1
+      const moving = current[index]
+      const target = current[targetIndex]
+      if (moving === undefined || target === undefined) return current
+      const next = [...current]
+      next[index] = target
+      next[targetIndex] = moving
+      return next
+    })
   }
 
   // AI Learning Studio™ V1 Launch UX Transformation — the single real
@@ -365,7 +497,10 @@ export function NewLearningProjectWizard(): React.JSX.Element {
   }
 
   function handleRetry(): void {
-    if (lastSubmitInput.current) void submitDocument(lastSubmitInput.current.input, lastSubmitInput.current.goal)
+    const last = lastSubmitInput.current
+    if (!last) return
+    if (last.kind === 'single') void submitDocument(last.input, last.goal)
+    else void submitImageBatch(last.images, last.goal)
   }
 
   // AI Learning Studio™ Sprint ALS-2 — cancel now works during an active
@@ -398,11 +533,9 @@ export function NewLearningProjectWizard(): React.JSX.Element {
       void submitDocument({ file: selectedFile, documentTitle: stripExtension(selectedFile.name), mimeType: selectedFile.type as AcceptedMimeType, sizeBytes: selectedFile.size }, goal)
       return
     }
-    const firstImage = selectedImages[0]
-    if (!firstImage) return
-    const totalBytes = selectedImages.reduce((sum, file) => sum + file.size, 0)
-    const documentTitle = selectedImages.length === 1 ? stripExtension(firstImage.name) : `${selectedImages.length} images`
-    void submitDocument({ file: firstImage, documentTitle, mimeType: firstImage.type as AcceptedMimeType, sizeBytes: totalBytes }, goal)
+    if (selectedImages.length > 0) {
+      void submitImageBatch(selectedImages, goal)
+    }
   }
 
   return (
@@ -478,7 +611,17 @@ export function NewLearningProjectWizard(): React.JSX.Element {
                     <SingleFilePreview file={selectedFile} accept={UNIFIED_ACCEPT} onReplace={(file) => void handleReplaceSingleFile(file)} onRemove={handleRemoveSingleFile} />
                   )}
                   {!selectedFile && selectedImages.length > 0 && (
-                    <ImagePreviewGrid images={selectedImages} onRemove={handleRemoveImage} onReplace={(index, file) => void handleReplaceImage(index, file)} />
+                    <div className="space-y-2">
+                      <p className={cn(TYPOGRAPHY.small, 'text-muted-foreground')}>
+                        {selectedImages.length} {selectedImages.length === 1 ? 'page' : 'pages'} selected
+                      </p>
+                      <ImagePreviewGrid
+                        images={selectedImages}
+                        onRemove={handleRemoveImage}
+                        onReplace={(index, file) => void handleReplaceImage(index, file)}
+                        onMove={handleMoveImage}
+                      />
+                    </div>
                   )}
                 </AIDetectionStep>
               </div>
@@ -490,7 +633,15 @@ export function NewLearningProjectWizard(): React.JSX.Element {
               <h1 className={TYPOGRAPHY.h1}>How would you like to learn this?</h1>
               <p className={cn(TYPOGRAPHY.bodyLarge, 'mt-2 text-muted-foreground')}>We&rsquo;ve pre-selected what looks like the best fit — change it if you&rsquo;d like.</p>
 
-              <div className="mt-8">
+              <div className="mt-8 space-y-6">
+                {imageUploadStatuses && selectedImages.length > 0 && (
+                  <div className="space-y-2">
+                    <p className={cn(TYPOGRAPHY.small, 'text-muted-foreground')}>
+                      Uploading {imageUploadStatuses.filter((status) => status === 'done').length} of {selectedImages.length} pages…
+                    </p>
+                    <ImagePreviewGrid images={selectedImages} onRemove={() => {}} onReplace={() => {}} onMove={() => {}} uploadStatuses={imageUploadStatuses} />
+                  </div>
+                )}
                 <LearningGoalStep recommendedGoalId={recommendedGoalId} submitting={upload !== null} onContinue={handleContinueFromGoal} onBack={() => setStep('detecting')} />
               </div>
             </div>

@@ -12,7 +12,7 @@ import { logger } from '@/lib/logger'
 import { toSupabaseOperationError } from '@/lib/processing/diagnoseSupabaseError'
 import type { Document } from '@/types/documents'
 
-const DOCUMENT_COLUMNS = 'id, user_id, learning_project_id, title, storage_path, mime_type, size_bytes, status, created_at, updated_at' as const
+const DOCUMENT_COLUMNS = 'id, user_id, learning_project_id, title, storage_path, storage_paths, mime_type, size_bytes, status, created_at, updated_at' as const
 
 type DocumentRow = {
   id: string
@@ -20,6 +20,7 @@ type DocumentRow = {
   learning_project_id: string | null
   title: string
   storage_path: string | null
+  storage_paths: readonly string[] | null
   mime_type: string | null
   size_bytes: number | null
   status: string
@@ -34,6 +35,7 @@ function toDocument(row: DocumentRow): Document {
     learningProjectId: row.learning_project_id,
     title: row.title,
     storagePath: row.storage_path,
+    storagePaths: row.storage_paths,
     mimeType: row.mime_type,
     sizeBytes: row.size_bytes,
     status: row.status as Document['status'],
@@ -80,6 +82,10 @@ export type CreateDocumentInput = {
   // (none exist anymore, but the type stays honest) still works with no
   // storage path at all.
   storagePath?: string | null
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — ordered Storage paths
+  // for a genuine multi-page photo batch. Optional and nullable, exactly
+  // like storagePath: absent for every non-batch caller.
+  storagePaths?: readonly string[] | null
 }
 
 export async function createDocument(input: CreateDocumentInput): Promise<Document> {
@@ -93,6 +99,7 @@ export async function createDocument(input: CreateDocumentInput): Promise<Docume
       mime_type: input.mimeType,
       size_bytes: input.sizeBytes,
       storage_path: input.storagePath ?? null,
+      storage_paths: input.storagePaths ? [...input.storagePaths] : null,
       status: 'processing',
     })
     .select(DOCUMENT_COLUMNS)
@@ -199,10 +206,18 @@ export async function deleteDocument(userId: string, id: string): Promise<{ succ
 
   const serviceClient = createServiceClient()
 
-  if (document.storagePath !== null) {
-    const { error: storageError } = await serviceClient.storage.from('learning-documents').remove([document.storagePath])
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — a batch document has
+  // `storagePaths` (every page) in addition to `storagePath` (just the
+  // first, for pre-existing single-path readers — see
+  // createLearningProjectWithDocument's own comment). Deleting only
+  // `storagePath` here would silently orphan every other page's real
+  // Storage object. `storagePaths` already includes the first page, so
+  // it's used alone when present rather than unioning both lists.
+  const pathsToDelete = document.storagePaths ?? (document.storagePath !== null ? [document.storagePath] : [])
+  if (pathsToDelete.length > 0) {
+    const { error: storageError } = await serviceClient.storage.from('learning-documents').remove([...pathsToDelete])
     if (storageError) {
-      logger.error('failed to delete stored document file during document deletion', { error: storageError.message, documentId: id })
+      logger.error('failed to delete stored document file(s) during document deletion', { error: storageError.message, documentId: id, pageCount: pathsToDelete.length })
     }
   }
 

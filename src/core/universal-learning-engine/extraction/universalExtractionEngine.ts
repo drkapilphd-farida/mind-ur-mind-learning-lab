@@ -1,7 +1,7 @@
 import type { UniversalSource } from '@/core/universal-learning-engine/upload'
 import type { ExtractionResult } from './errors/ExtractionError'
 import { extractDOCX } from './extractors/extractDOCX'
-import { extractImage } from './extractors/extractImage'
+import { extractImage, extractImages } from './extractors/extractImage'
 import { extractPDF } from './extractors/extractPDF'
 import { extractPlaceholder } from './extractors/extractPlaceholder'
 import { extractTXT } from './extractors/extractTXT'
@@ -34,5 +34,21 @@ export async function extractUniversalLearningDocument(file: File, source: Unive
     }
   } catch {
     return { success: false, error: { code: 'extraction-failed', message: 'Something went wrong while extracting this document. Please try again.' } }
+  }
+}
+
+// Multi-Image / Batch Photo Upload™ (Phase 3) — additive sibling entry
+// point to extractUniversalLearningDocument above, never a replacement
+// for it: an ordered set of photos (student-defined page order,
+// preserved exactly) becomes ONE combined document. Only ever called for
+// a genuine multi-page batch (runQuickIntelligence.ts's own
+// `document.storagePaths` check) — a single image keeps going through
+// the unmodified single-file dispatcher above, exactly as before this
+// sprint.
+export async function extractUniversalLearningDocumentFromImages(files: readonly File[], source: UniversalSource): Promise<ExtractionResult> {
+  try {
+    return await extractImages(files, source)
+  } catch {
+    return { success: false, error: { code: 'extraction-failed', message: 'Something went wrong while extracting these pages. Please try again.' } }
   }
 }

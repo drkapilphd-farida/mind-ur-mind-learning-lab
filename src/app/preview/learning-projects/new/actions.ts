@@ -26,6 +26,13 @@ const CreateLearningProjectWithDocumentSchema = z.object({
   // (metadata-only, exactly like every sprint before this one), rather
   // than losing the whole submission over a storage-specific failure.
   storagePath: z.string().trim().min(1).max(500).optional(),
+  // Multi-Image / Batch Photo Upload™ (Phase 3) — the ordered Storage
+  // paths for a genuine multi-page photo batch (student-defined page
+  // order, preserved exactly as the array arrives — never re-sorted
+  // here). Optional, same "upload failure still creates a metadata-only
+  // row" reasoning as storagePath above; a caller that only ever sends
+  // a single image keeps using storagePath alone, this stays absent.
+  storagePaths: z.array(z.string().trim().min(1).max(500)).min(2).max(50).optional(),
 })
 
 export type CreateLearningProjectWithDocumentInput = z.infer<typeof CreateLearningProjectWithDocumentSchema>
@@ -60,7 +67,7 @@ export async function createLearningProjectWithDocument(
       return { success: false, error: 'You must be signed in to start a Learning Project.' }
     }
 
-    const { projectTitle, documentTitle, mimeType, sizeBytes, storagePath } = parsed.data
+    const { projectTitle, documentTitle, mimeType, sizeBytes, storagePath, storagePaths } = parsed.data
 
     // Never trust a client-supplied path outright — the Storage bucket's own
     // RLS already scopes reads/writes to `{user_id}/...`, but rejecting a
@@ -70,6 +77,16 @@ export async function createLearningProjectWithDocument(
     // what the client already checked.
     if (storagePath !== undefined && !storagePath.startsWith(`${user.id}/`)) {
       logger.error('[UploadPipeline] Document Record Created — FAIL', { reason: 'storagePath does not belong to the authenticated user', storagePath })
+      return { success: false, error: 'This upload could not be verified. Please try again.' }
+    }
+
+    // Same defense-in-depth check, applied to every page in the batch —
+    // one page failing this check is treated the same as the single-path
+    // case: reject the whole submission rather than silently dropping
+    // just that page (a chapter missing one page in the middle would be
+    // a much worse, quieter failure than an honest upfront error).
+    if (storagePaths !== undefined && storagePaths.some((path) => !path.startsWith(`${user.id}/`))) {
+      logger.error('[UploadPipeline] Document Record Created — FAIL', { reason: 'a storagePaths entry does not belong to the authenticated user' })
       return { success: false, error: 'This upload could not be verified. Please try again.' }
     }
 
@@ -85,16 +102,30 @@ export async function createLearningProjectWithDocument(
     })
     logger.info('[UploadPipeline] Learning Project Created — SUCCESS', { projectId: project.id })
 
-    logger.info('[UploadPipeline] Document Record Created — START', { projectId: project.id, hasStoragePath: storagePath !== undefined })
+    // Multi-Image / Batch Photo Upload™ (Phase 3) — `storagePath`
+    // (singular) still gets a real value for a multi-image batch too:
+    // the first page's path. Every pre-existing reader of `storagePath`
+    // alone (deleteDocument's own Storage cleanup, any display code that
+    // only knows the singular field) still gets something real and
+    // honest — "the first page" — rather than null, while the full
+    // ordered set lives in `storagePaths` for anything that needs every
+    // page.
+    const resolvedStoragePath = storagePath ?? storagePaths?.[0] ?? null
+    logger.info('[UploadPipeline] Document Record Created — START', {
+      projectId: project.id,
+      hasStoragePath: resolvedStoragePath !== null,
+      pageCount: storagePaths?.length ?? (storagePath !== undefined ? 1 : 0),
+    })
     const document = await createDocument({
       userId: user.id,
       learningProjectId: project.id,
       title: documentTitle,
       mimeType,
       sizeBytes,
-      storagePath: storagePath ?? null,
+      storagePath: resolvedStoragePath,
+      storagePaths: storagePaths ?? null,
     })
-    logger.info('[UploadPipeline] Document Record Created — SUCCESS', { documentId: document.id, storagePath: document.storagePath })
+    logger.info('[UploadPipeline] Document Record Created — SUCCESS', { documentId: document.id, storagePath: document.storagePath, pageCount: document.storagePaths?.length ?? null })
 
     return { success: true, projectId: project.id, documentId: document.id }
   } catch (error) {

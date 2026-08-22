@@ -134,6 +134,23 @@ async function defaultCallClaudeVision(base64Data: string, mediaType: ClaudeImag
   }
 }
 
+// One page's real transcribed+normalized paragraphs, or null if that
+// page genuinely has no readable text (Claude's own NO_TEXT_SENTINEL, or
+// text that normalizes down to nothing) — shared by both extractImage
+// (single) and extractImages (Multi-Image / Batch Photo Upload™, Phase
+// 3), so the exact same per-image transcription logic never exists
+// twice. Throws only for a real hard failure (network error, no API
+// key, malformed response) — both callers decide for themselves what a
+// thrown error means for their own single-vs-batch context.
+async function transcribePageParagraphs(file: File, mediaType: ClaudeImageMediaType, callClaudeVision: CallClaudeVisionFn): Promise<readonly string[] | null> {
+  const base64Data = await fileToBase64(file)
+  const result = await callClaudeVision(base64Data, mediaType)
+  if (result.text === NO_TEXT_SENTINEL) return null
+
+  const normalized = normalizeContent(result.text)
+  return normalized.paragraphs.length > 0 ? normalized.paragraphs : null
+}
+
 // Universal Learning Intelligence Engine™ (ULIE™) — real image/handwritten-
 // note extraction. The whole image becomes one heading-less section,
 // mirroring extractTXT.ts's own "plain text has no structure to preserve"
@@ -147,30 +164,68 @@ export async function extractImage(file: File, source: UniversalSource, callClau
     return { success: false, error: { code: 'unsupported-encoding', message: 'This image format is not supported yet — please upload a PNG or JPEG.' } }
   }
 
-  let transcribedText: string
+  let paragraphs: readonly string[] | null
   try {
-    const base64Data = await fileToBase64(file)
-    const result = await callClaudeVision(base64Data, mediaType)
-    transcribedText = result.text
+    paragraphs = await transcribePageParagraphs(file, mediaType, callClaudeVision)
   } catch {
     return { success: false, error: { code: 'extraction-failed', message: 'We could not read the text in this image. Please try again.' } }
   }
 
-  if (transcribedText === NO_TEXT_SENTINEL) {
-    return { success: false, error: { code: 'empty-extraction', message: 'No readable text was found in this image.' } }
-  }
-
-  const normalized = normalizeContent(transcribedText)
-  if (normalized.paragraphs.length === 0) {
+  if (paragraphs === null) {
     return { success: false, error: { code: 'empty-extraction', message: 'No readable text was found in this image.' } }
   }
 
   const sections: readonly LearningSection[] = [
-    { id: 'section-0', heading: null, blocks: normalized.paragraphs.map((text) => ({ type: 'paragraph' as const, text })) },
+    { id: 'section-0', heading: null, blocks: paragraphs.map((text) => ({ type: 'paragraph' as const, text })) },
   ]
 
-  const document = buildUniversalLearningDocument(source, source.name, sections, normalized.paragraphs, normalized.content, null, {
+  const document = buildUniversalLearningDocument(source, source.name, sections, paragraphs, paragraphs.join('\n\n'), null, {
     extraMetadata: { extractionMethod: 'claude-vision' },
+  })
+  return { success: true, document }
+}
+
+// Multi-Image / Batch Photo Upload™ (Phase 3) — an ordered set of photos
+// (student-defined page order, preserved exactly) becomes ONE combined
+// document: each page transcribed sequentially (never in parallel — a
+// deliberately gentle pace against Claude's own rate limits for what can
+// be a large batch, not a performance shortcut) via the exact same
+// per-page transcription `extractImage` itself uses, then concatenated
+// in order.
+//
+// A single page that fails to transcribe (unsupported format that
+// somehow reached this far, a transient Claude error, or a genuinely
+// blank/textless page — a real, unremarkable divider page in a photographed
+// chapter) is skipped, not a batch-wide failure — losing one page's worth
+// of content is a far smaller, more honest outcome than discarding an
+// entire chapter's worth of real, successfully-transcribed pages over one
+// bad photo. Only fails outright when EVERY page has no real content.
+export async function extractImages(files: readonly File[], source: UniversalSource, callClaudeVision: CallClaudeVisionFn = defaultCallClaudeVision): Promise<ExtractionResult> {
+  const sections: LearningSection[] = []
+  const allParagraphs: string[] = []
+
+  for (const [index, file] of files.entries()) {
+    const mediaType = toClaudeMediaType(file.type)
+    if (!mediaType) continue
+
+    let pageParagraphs: readonly string[] | null
+    try {
+      pageParagraphs = await transcribePageParagraphs(file, mediaType, callClaudeVision)
+    } catch {
+      pageParagraphs = null
+    }
+    if (pageParagraphs === null) continue
+
+    sections.push({ id: `section-${index}`, heading: `Page ${index + 1}`, blocks: pageParagraphs.map((text) => ({ type: 'paragraph' as const, text })) })
+    allParagraphs.push(...pageParagraphs)
+  }
+
+  if (allParagraphs.length === 0) {
+    return { success: false, error: { code: 'empty-extraction', message: 'No readable text was found in any of these pages.' } }
+  }
+
+  const document = buildUniversalLearningDocument(source, source.name, sections, allParagraphs, allParagraphs.join('\n\n'), files.length, {
+    extraMetadata: { extractionMethod: 'claude-vision', pageCount: files.length, pagesWithText: sections.length },
   })
   return { success: true, document }
 }
