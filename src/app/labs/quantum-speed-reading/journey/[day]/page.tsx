@@ -13,12 +13,12 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
 
-// 21-Day Journey Paywall™ — Day 1, 2, and 3 are free for every user (the
-// real "try it for real, not a demo" window); Day 4 onward requires an
-// active Pro subscription. A fixed threshold, not tied to `currentDay`/
-// progress — a free user's own "next" day past Day 3 is still locked,
-// not just days they haven't reached yet.
-const FREE_JOURNEY_DAYS = 3
+// 21-Day Journey Paywall™ — Days 1 through 7 (the full first week) are
+// free for every user (the real "try it for real, not a demo" window);
+// Day 8 onward requires an active Pro subscription. A fixed threshold,
+// not tied to `currentDay`/progress — a free user's own "next" day past
+// Day 7 is still locked, not just days they haven't reached yet.
+const FREE_JOURNEY_DAYS = 7
 
 export const metadata: Metadata = {
   title: '21-Day Quantum Reading & Mind Expansion™',

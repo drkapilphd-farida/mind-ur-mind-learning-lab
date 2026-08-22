@@ -18,13 +18,13 @@ type TwentyOneDayJourneyCardProps = {
 const TOTAL_DAYS = 21
 
 // 21-Day Journey Paywall™ — a fixed free window, not tied to progress:
-// Day 1-3 are free for every user; Day 4 onward requires Pro, even if
-// it's the learner's own "next" day. Mirrors the exact same
-// FREE_JOURNEY_DAYS threshold enforced server-side in
+// Days 1-7 (the full first week) are free for every user; Day 8 onward
+// requires Pro, even if it's the learner's own "next" day. Mirrors the
+// exact same FREE_JOURNEY_DAYS threshold enforced server-side in
 // journey/[day]/page.tsx — this component's own lock styling is a UI
 // convenience matching that real boundary, not a separate rule of its
 // own that could drift out of sync.
-const FREE_JOURNEY_DAYS = 3
+const FREE_JOURNEY_DAYS = 7
 
 function journeyDayHref(day: number): string {
   return `/labs/quantum-speed-reading/journey/${day}`
