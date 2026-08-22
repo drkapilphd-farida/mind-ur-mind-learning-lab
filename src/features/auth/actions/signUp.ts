@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
+import { getRequestOrigin } from '@/lib/domains/appDomain'
 import { SignUpSchema } from '../types'
 
 const ONBOARDING_ENTRY_PATH = '/welcome/choose-method'
@@ -26,7 +27,11 @@ export async function signUp(
     return { success: false, error: 'Too many sign-up attempts. Please wait a moment and try again.' }
   }
 
-  const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
+  // Domain Split™ — the confirmation link must return the user to
+  // whichever domain (habit.mindurmind.org.in vs. app.mindurmind.org.in)
+  // they actually signed up from, never a single hardcoded env var (see
+  // getRequestOrigin's own doc comment).
+  const origin = await getRequestOrigin()
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -38,7 +43,7 @@ export async function signUp(
       // & Learn destination), and an un-encoded `#` would be parsed as this
       // URL's OWN fragment rather than part of the `next` query value,
       // silently truncating it before /auth/callback ever sees it.
-      emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   })
 

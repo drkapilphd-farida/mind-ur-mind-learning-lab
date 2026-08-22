@@ -41,3 +41,20 @@ export async function getAppDomain(): Promise<AppDomain> {
   const value = (await headers()).get(APP_DOMAIN_HEADER)
   return value === 'habit' ? 'habit' : 'app'
 }
+
+// Server-only — the real absolute origin the current request actually
+// arrived on (e.g. `https://habit.mindurmind.org.in`), for building the
+// absolute redirect URLs Supabase auth requires (resetPasswordForEmail's
+// `redirectTo`, signUp's `emailRedirectTo`) — never a static env var like
+// NEXT_PUBLIC_APP_URL, which points at one fixed domain and would bounce
+// every such link to that domain regardless of which one the user
+// actually started on. Mirrors what src/app/auth/callback/route.ts
+// already does correctly via `new URL(request.url).origin`; Server
+// Actions don't receive a Request object, so this reads the same
+// information from headers() instead.
+export async function getRequestOrigin(): Promise<string> {
+  const allHeaders = await headers()
+  const host = allHeaders.get('x-forwarded-host') ?? allHeaders.get('host') ?? 'localhost:3000'
+  const protocol = allHeaders.get('x-forwarded-proto') ?? (host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https')
+  return `${protocol}://${host}`
+}
