@@ -3,48 +3,36 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { cn } from '@/lib/utils'
 import { AIPresenceLogo } from './AIPresenceLogo'
-import { HeroPromise } from './HeroPromise'
 import { GatewayAuthModal } from './GatewayAuthModal'
 
-// Immersive Onboarding Polish™ (Sprint LW-1C.3) — visually secondary
-// "Coming Soon" previews of future learning sources, per the brief's
-// Future Features section.
-const FUTURE_LEARNING_SOURCES = [
-  { emoji: '📺', label: 'YouTube & Learn' },
-  { emoji: '🌐', label: 'Website & Learn' },
-] as const
-
-// One-Click Entry™ — this is now the app's real front door: `/welcome`
-// redirects straight here (see welcome/page.tsx) and signUp.ts sends
-// brand-new users here directly too. Arrival Experience™, Learning Goal™,
-// and Discover Your Learning Potential™ are all deliberately no longer in
-// the path — each remains fully intact at its own route (/welcome,
-// /welcome/learning-goal, /discover-learning-potential) but unlinked from
-// here, per the "hide from V1 UI, do not delete" precedent already used
-// for Record & Learn™ (/welcome/record). Exactly two direct-action paths
-// remain — Reading Training and Upload & Learn — each one click from a
-// fresh signup to real content.
+// Quantum Mindset & Habit Builder™ Rebrand — this screen used to offer
+// two direct-action paths (Reading Training, Upload & Learn) plus two
+// "Coming Soon" placeholders (YouTube & Learn, Website & Learn). Now
+// scoped to exactly one: the 21-Day Quantum Habit Journey. The other
+// paths remain fully intact at their own real routes/actions (Upload &
+// Learn is still reachable from the dashboard's own AI Document
+// Transformer widget) — only this screen's own front door was narrowed,
+// per the "hide from V1 UI, do not delete" precedent this file already
+// followed for Arrival Experience™/Learning Goal™/Record & Learn™.
 //
-// Glass Premium™ — this screen now shares the exact glass/gradient/glow
-// system built for /dashboard (globals.css's `.glass-premium*` classes,
-// renamed from "Dashboard Glass" once this became its second screen — see
-// that rename's own comment). Two things were deliberately NOT touched to
-// keep the exception scoped exactly where asked:
-//  - ArrivalBackground.tsx (still used by /welcome/learning-goal) is no
-//    longer imported here — its own monochrome-only background is
-//    replaced below by this screen's own ambient blob layer instead of
-//    being recolored, since recoloring it would leak color into that
-//    other screen too.
-//  - PrimaryLearningMethodCard.tsx is a shared component (also used by
-//    LearningGoalSelector.tsx) — rather than adding a glass variant to a
-//    component with other consumers, the two cards below are bespoke
-//    markup, matching the same glass-premium-card/-lift classes the
-//    dashboard widgets use.
+// This screen deliberately does NOT reuse the shared HeroPromise
+// component (its own doc comment locks its 3 lines verbatim and it has
+// two other real consumers — ArrivalExperience.tsx, ProcessingExperience.tsx
+// — that must keep their original copy) — the new subheading below is
+// bespoke to this screen only, matching HeroPromise's type scale for
+// visual consistency without touching that shared, locked component.
+//
+// Glass Premium™ — this screen shares the exact glass/gradient/glow
+// system built for /dashboard (globals.css's `.glass-premium*` classes).
+// ArrivalBackground.tsx (still used by /welcome/learning-goal) is no
+// longer imported here — its own monochrome-only background is replaced
+// below by this screen's own ambient blob layer instead of being
+// recolored, since recoloring it would leak color into that other screen
+// too.
 type ChooseLearningMethodExperienceProps = {
   isAuthenticated: boolean
 }
@@ -56,29 +44,21 @@ type PathCardProps = {
   points: readonly string[]
   ctaLabel: string
   onSelect: () => void
-  // Visually distinguishes the Upload & Learn card as the hero of the two
-  // — tokens only (border/shadow/type-scale), no new colors and no
-  // permanent transform/scale (which would overlap its grid neighbor;
-  // glass-premium-lift's own hover lift already covers motion).
-  emphasized?: boolean
 }
 
-function PathCard({ emoji, title, description, points, ctaLabel, onSelect, emphasized = false }: PathCardProps): React.JSX.Element {
+function PathCard({ emoji, title, description, points, ctaLabel, onSelect }: PathCardProps): React.JSX.Element {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={cn(
-        'glass-premium-card glass-premium-lift group flex h-full flex-col items-center gap-5 px-10 py-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        emphasized && 'glass-premium-card--emphasized',
-      )}
+      className="glass-premium-card glass-premium-lift group flex h-full w-full flex-col items-center gap-5 px-10 py-12 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <span className={cn(emphasized ? 'text-7xl' : 'text-6xl')} aria-hidden="true">
+      <span className="text-6xl" aria-hidden="true">
         {emoji}
       </span>
 
       <div>
-        <p className={cn(emphasized ? 'text-xl font-bold tracking-tight sm:text-2xl' : TYPOGRAPHY.h2)}>{title}</p>
+        <p className={TYPOGRAPHY.h2}>{title}</p>
         <p className={cn(TYPOGRAPHY.bodyLarge, 'mt-3 text-muted-foreground')}>{description}</p>
       </div>
 
@@ -138,43 +118,25 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
         </div>
 
         <div>
-          <h1 className={TYPOGRAPHY.display}>Smart Reading &amp; Memory Trainer</h1>
-          <HeroPromise className="mt-6" startDelayMs={200} />
+          <h1 className={TYPOGRAPHY.display}>Quantum Mindset &amp; Habit Builder</h1>
+          <p className="mt-6 flex flex-col gap-1 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-3xl md:text-4xl">
+            <span>Rewire your brain.</span>
+            <span>Build unbreakable habits.</span>
+            <span>Unlock your true potential in just 10 minutes a day.</span>
+          </p>
         </div>
 
-        <p className={TYPOGRAPHY.label}>Choose how you&rsquo;d like to start</p>
-
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
-          <PathCard
-            emoji="🎯"
-            title="Reading Training"
-            description="Improve speed, focus and comprehension with 10-15 minutes of daily visual and reading exercises."
-            points={['Schulte Grid, Word Flash, Chunk Reading', 'Guided Reading + Comprehension Test', '21-Day Progressive Program']}
-            ctaLabel="Start Training →"
-            onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
-          />
-          <PathCard
-            emoji="📄"
-            title="Upload & Learn"
-            description="Upload any PDF, notes or book. AI converts it into a clear summary, keywords, spider notes and practice questions."
-            points={['Summary + Keywords', 'Spider Notes (Mind Map)', 'Recall Questions']}
-            ctaLabel="Upload Document →"
-            onSelect={() => handleSelect('/dashboard#upload-document')}
-            emphasized
-          />
-        </div>
-
-        <div className="flex w-full flex-wrap items-center justify-center gap-3 pt-2">
-          {FUTURE_LEARNING_SOURCES.map((source) => (
-            <div
-              key={source.label}
-              className="flex items-center gap-2 rounded-full border border-border/50 bg-background/40 px-4 py-2 opacity-70 backdrop-blur-sm"
-            >
-              <span aria-hidden="true">{source.emoji}</span>
-              <span className={TYPOGRAPHY.caption}>{source.label}</span>
-              <Badge variant="secondary">Coming Soon</Badge>
-            </div>
-          ))}
+        <div className="flex w-full justify-center">
+          <div className="w-full max-w-sm">
+            <PathCard
+              emoji="🎯"
+              title="21-Day Quantum Habit Journey"
+              description="Transform your mindset with daily cognitive drills, visualization, and habit-building exercises."
+              points={['Daily Mindset & Focus Drills', 'Guided Breathing & Visualization', '21-Day Progressive Habit Loop']}
+              ctaLabel="Start Training →"
+              onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
+            />
+          </div>
         </div>
       </div>
 
