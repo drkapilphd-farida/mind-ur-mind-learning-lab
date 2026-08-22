@@ -29,6 +29,7 @@ import { getFixationStats } from '@/features/visual-intelligence/fixation/querie
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { getDailyQuantumSessionHistory } from '@/app/unified-quantum-session-preview/actions/getDailyQuantumSessionHistory'
+import { computeDailyQuantumStreak } from '@/app/unified-quantum-session-preview/components/dailyQuantumSessionTracking'
 import { getNextJourneyDay } from '@/features/quantum-journey/streakMotivation'
 import { ParentFeedbackPrompt } from '@/features/school-dashboard/components/ParentFeedbackPrompt'
 
@@ -91,6 +92,10 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
   // many real sessions already exist, clamped to the journey's real
   // length (see getNextJourneyDay's own doc comment).
   const nextJourneyDay = getNextJourneyDay(dailyQuantumSessionHistory.length)
+  // Streak Counter Mechanism™ — the exact same real computation
+  // QuantumJourneySession's own briefing/completion screens already use,
+  // reused here rather than a second, parallel streak that could drift.
+  const journeyStreak = computeDailyQuantumStreak(dailyQuantumSessionHistory)
 
   // ── Derived data from Learning Journey Engine ────────────────────────────
   const labSummary = getContinueLearningSummary(labProgress, EYE_FOUNDATION_MODULE)
@@ -218,7 +223,12 @@ export default async function TransformationDashboard(): Promise<React.JSX.Eleme
           title="Masterclass & Programs"
           description="Sequential, multi-day programs for building a real daily reading habit — from a self-paced foundation to flagship mastery with live mentorship."
         />
-        <TwentyOneDayJourneyCard isPaidUser={isPaidUser} isDevUnlocked={isDevUnlockEnabled()} currentDay={nextJourneyDay} />
+        <TwentyOneDayJourneyCard
+          isPaidUser={isPaidUser}
+          isDevUnlocked={isDevUnlockEnabled()}
+          currentDay={nextJourneyDay}
+          currentStreak={journeyStreak}
+        />
         <ThirtyDayMasterclassHeroCard />
       </section>
 

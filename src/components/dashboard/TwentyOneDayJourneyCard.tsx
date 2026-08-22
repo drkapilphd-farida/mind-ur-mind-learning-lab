@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Check, FlaskConical, Lock } from 'lucide-react'
+import { Check, Flame, FlaskConical, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK } from '@/config/quantumMindsetHabitBuilderPaymentLink'
 
@@ -13,6 +13,14 @@ type TwentyOneDayJourneyCardProps = {
   // from streakMotivation.ts, the same value StreakReminderBanner's own
   // "Day N is waiting for you" CTA already used.
   currentDay: number
+  // Streak Counter Mechanism™ — the same real, Supabase-backed
+  // computeDailyQuantumStreak(dailyQuantumSessionHistory) already used
+  // inside QuantumJourneySession's own pre-session briefing and
+  // completion screens (real completed-session dates vs. today, never a
+  // separate/local streak that could drift from that one). This is just
+  // the first *persistent* surface for it — visible any time the
+  // dashboard is open, not only mid-session.
+  currentStreak: number
 }
 
 const TOTAL_DAYS = 21
@@ -40,7 +48,7 @@ function journeyDayHref(day: number): string {
 // link, not dead ends — tapping one is exactly how a free user is meant
 // to discover the upgrade. Opened in a new tab (external checkout,
 // target="_blank") so the dashboard itself is never navigated away from.
-export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay }: TwentyOneDayJourneyCardProps): React.JSX.Element {
+export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay, currentStreak }: TwentyOneDayJourneyCardProps): React.JSX.Element {
   const otherDays = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).filter((day) => day !== currentDay)
   const hasProAccess = isPaidUser || isDevUnlocked
   const isDayUnlocked = (day: number): boolean => day <= FREE_JOURNEY_DAYS || hasProAccess
@@ -59,6 +67,12 @@ export function TwentyOneDayJourneyCard({ isPaidUser, isDevUnlocked, currentDay 
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {currentStreak > 0 && (
+            <Badge variant="secondary" className="gap-1 border-orange-500/20 bg-orange-500/10 text-orange-700 dark:text-orange-400">
+              <Flame className="size-2.5" aria-hidden="true" />
+              Current Streak: {currentStreak} {currentStreak === 1 ? 'Day' : 'Days'}
+            </Badge>
+          )}
           {!hasProAccess && (
             <Badge variant="secondary" className="gap-1">
               <Lock className="size-2.5" aria-hidden="true" />

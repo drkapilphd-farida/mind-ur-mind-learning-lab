@@ -144,15 +144,17 @@ export function canInjectWeaknessDrill(domain: Exclude<JourneyDomain, 'reading'>
 // Chunking as a 6th bonus mode) rotates deterministically across all 21
 // days, cycling every 6 days so the sequence never feels random or
 // repeats the same mode two days running near a cycle boundary.
-// Retention Check (Step 4) pairs with every one of these EXCEPT Dynamic
-// Chunking — the Rich Indian-Centric Content Database™ (../readingContent)
-// gives Phrase/Vertical-Word/Sentence/Paragraph modes genuine
-// comprehension+retention MCQs on the same real passage, the same real
-// pairing the classic Sprint already had. Dynamic Chunking
+// RetentionCheckPhase (Step 4) pairs with every one of these EXCEPT
+// Dynamic Chunking — the Rich Indian-Centric Content Database™
+// (../readingContent) gives Phrase/Vertical-Word/Sentence/Paragraph modes
+// genuine comprehension+retention MCQs on the same real passage, the same
+// real pairing the classic Sprint already had. Dynamic Chunking
 // (ProgressiveChunkReadingExperience) draws from its own separate
 // content-engine, structurally incompatible with ReadingSet-shaped
-// retention questions — a real, disclosed gap, not an oversight (see
-// QuantumJourneySession.tsx's own handling of 'dynamic-chunking' days).
+// retention questions — so it gets a different, lightweight Step 4
+// instead (DynamicChunkingRecallCheck, Dynamic Chunking Feedback Loop
+// Fix™), never a dropped step (see QuantumJourneySession.tsx's own
+// handling of 'dynamic-chunking' days).
 const READING_MODE_ROTATION: readonly ReadingMode[] = [
   'quantum-reading-sprint',
   'phrase',

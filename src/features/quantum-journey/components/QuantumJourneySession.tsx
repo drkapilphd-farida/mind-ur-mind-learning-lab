@@ -30,6 +30,7 @@ import { JourneyReadingModePlayer, type JourneyReadingModeResult } from './Journ
 import { PreSessionBriefingScreen } from './PreSessionBriefingScreen'
 import { GrandCelebrationScreen } from './GrandCelebrationScreen'
 import { AppTwoMilestoneBanner } from './AppTwoMilestoneBanner'
+import { DynamicChunkingRecallCheck } from './DynamicChunkingRecallCheck'
 import { ReadingModeSelector } from '../readingModes/components/ReadingModeSelector'
 import { GuidingLinePacerPlayer, type GuidingLinePacerResult } from '../readingModes/components/GuidingLinePacerPlayer'
 import { RsvpModePlayer, type RsvpModeResult } from '../readingModes/components/RsvpModePlayer'
@@ -80,6 +81,17 @@ type QuantumJourneySessionProps = {
 
 type LevelState = 'briefing' | 1 | 2 | 3 | 4 | 'complete'
 type DayReadingSummary = { wpm: number; accuracyPercent: number }
+type ChunkingSessionSummary = { trueWpm: number; accuracyPercent: number; readingScore: number; correctCount: number; totalCount: number }
+
+// Dynamic Chunking Feedback Loop Fix™ — a flat completion bonus for
+// DynamicChunkingRecallCheck, roughly the same order of magnitude as
+// computeRetentionXp awards for one correct retention answer (25 XP) —
+// there's no "correct" option to grade here (it's a self-report), so a
+// flat bonus for genuinely engaging with the check is the honest
+// equivalent, keeping Days 6/12/18's total XP economy comparable to
+// every other day's Step 3 + Step 4 total instead of structurally
+// falling short by a whole retention bonus.
+const DYNAMIC_CHUNKING_RECALL_XP_BONUS = 20
 
 // Full Reading Sprint Variety™ — a display label for each of the 6
 // rotating reading modes (see getReadingMode in quantumJourneyLevels.ts).
@@ -132,10 +144,12 @@ function WarmupPrepScreen({ exerciseTitle, onStart, onSkip }: { exerciseTitle: s
 // week's own theme (canInjectWeaknessDrill). Step 3 rotates through all
 // 6 reading modes (Full Reading Sprint Variety™) and grows in length
 // week over week (Progressive Reading™ — see getReadingLengthTier);
-// Step 4 (Retention Check) pairs with every mode except Dynamic
-// Chunking, whose separate content-engine can't produce
-// ReadingSet-shaped retention questions (see getReadingMode's own
-// comment). Metric separation is structural throughout: only the
+// Step 4 is RetentionCheckPhase for every mode except standard Dynamic
+// Chunking, whose separate content-engine can't produce ReadingSet-shaped
+// retention questions (see getReadingMode's own comment) — Dynamic
+// Chunking days get DynamicChunkingRecallCheck instead (Dynamic Chunking
+// Feedback Loop Fix™), never a dropped step. Metric separation is
+// structural throughout: only the
 // reading step's result ever produces a WPM figure or feeds
 // `daily_quantum_sessions`; Steps 1-2's accuracy feeds only
 // `domain_performance_sessions`, and only for the 3 tracked, non-reading
@@ -186,14 +200,18 @@ export function QuantumJourneySession({
   const [readingPresentationChoice, setReadingPresentationChoice] = useState<ReadingPresentationChoice | null>(null)
   const [targetWpm, setTargetWpm] = useState(defaultTargetWpm)
 
-  // Retention Check pairs with every reading mode except Dynamic Chunking
-  // (see getReadingMode's own comment on why that mode's content-engine
-  // can't produce ReadingSet-shaped retention questions) — but Guiding
-  // Line Pacer and RSVP Mode always draw from the same real, retention-
-  // compatible content database regardless of which day's rotation they
-  // override, so choosing either always restores the 4th step.
+  // Dynamic Chunking Feedback Loop Fix™ — every day now has a real Step
+  // 4, no exceptions. RetentionCheckPhase pairs with every reading mode
+  // except standard Dynamic Chunking (see getReadingMode's own comment on
+  // why that mode's content-engine can't produce ReadingSet-shaped
+  // retention questions) — Guiding Line Pacer and RSVP Mode always draw
+  // from the same real, retention-compatible content database regardless
+  // of which day's rotation they override, so choosing either restores
+  // the normal RetentionCheckPhase. Standard Dynamic Chunking days get
+  // DynamicChunkingRecallCheck instead (see handleChunkingComplete) —
+  // never a dropped step.
   const isStandardDynamicChunkingDay = (readingPresentationChoice === null || readingPresentationChoice === 'standard') && readingMode === 'dynamic-chunking'
-  const totalSteps = isStandardDynamicChunkingDay ? 3 : 4
+  const totalSteps = 4
 
   const { step1: weekStep1, step2 } = useMemo(() => getStep1AndStep2(day), [day])
   // Clean 3-Week Phased Curriculum — Smart Weakness Targeting™ can never
@@ -255,6 +273,13 @@ export function QuantumJourneySession({
   const [readingResult, setReadingResult] = useState<
     QuantumReadingSprintResult | JourneyReadingModeResult | GuidingLinePacerResult | RsvpModeResult | null
   >(null)
+  // Dynamic Chunking Feedback Loop Fix™ — the real numbers
+  // ProgressiveChunkReadingExperience's own onComplete already hands
+  // back, held here (never saved yet) while Step 4 shows
+  // DynamicChunkingRecallCheck — the same "compute now, save once the
+  // real Step 4 moment resolves" shape finalizeDay already uses for
+  // readingResult, just for the mode that can't use RetentionCheckPhase.
+  const [chunkingSummary, setChunkingSummary] = useState<ChunkingSessionSummary | null>(null)
   const [dayReadingSummary, setDayReadingSummary] = useState<DayReadingSummary | null>(null)
   const [isSavingDay, setIsSavingDay] = useState(false)
   const [coachMessage, setCoachMessage] = useState<string | null>(null)
@@ -410,7 +435,11 @@ export function QuantumJourneySession({
   // data, both worse than just not offering the shortcut.
   function handleSkipClick(): void {
     if (level === 4) {
-      handleSkipRetention()
+      if (chunkingSummary !== null) {
+        handleSkipChunkingRecall()
+      } else {
+        handleSkipRetention()
+      }
       return
     }
     if (level === 1 || level === 2) {
@@ -419,27 +448,60 @@ export function QuantumJourneySession({
   }
 
   const canSkipCurrentStep =
-    (level === 1 && !isFoundationBreathingDay && hasStartedWarmup) || level === 2 || (level === 4 && readingResult !== null)
+    (level === 1 && !isFoundationBreathingDay && hasStartedWarmup) ||
+    level === 2 ||
+    (level === 4 && (readingResult !== null || chunkingSummary !== null))
 
-  // Dynamic Chunking™ days have no Retention Check to pair with (see
-  // getReadingMode's own comment) — this exercise's own real result IS
-  // the day's reading proof, so it saves and completes directly.
-  async function handleChunkingComplete(result: RuntimeResult, estimatedWpm: number): Promise<void> {
+  // Dynamic Chunking Feedback Loop Fix™ — Dynamic Chunking's own result
+  // IS the day's real reading proof (unchanged), but this no longer
+  // saves and completes directly: it computes the real numbers, holds
+  // them, and moves to Step 4 (DynamicChunkingRecallCheck) exactly like
+  // handleReadingComplete does for readingResult — see finalizeChunkingDay
+  // for where the save actually happens.
+  function handleChunkingComplete(result: RuntimeResult, estimatedWpm: number): void {
     playClickChime()
-    setIsSavingDay(true)
+    triggerStepHaptic()
     const accuracyPercent = result.metrics.accuracyPercent
     const trueWpm = computeTrueWpm(estimatedWpm, accuracyPercent)
     const readingScore = computeReadingPowerScore(trueWpm, accuracyPercent)
-    const readingXp = computeReadingXp(readingScore)
+    setChunkingSummary({ trueWpm, accuracyPercent, readingScore, correctCount: result.metrics.correctCount, totalCount: result.metrics.totalCount })
+    setLevel(4)
+  }
+
+  // Shared by a real recall-check completion AND a skipped one — mirrors
+  // finalizeDay's own shape exactly, just saving chunkingSummary's
+  // already-real numbers instead of readingResult's.
+  async function finalizeChunkingDay(recallXp: number): Promise<void> {
+    if (chunkingSummary === null) return
+    setIsSavingDay(true)
+    const readingXp = computeReadingXp(chunkingSummary.readingScore)
     const [, coach] = await Promise.all([
-      saveDailyQuantumSession({ readingWpm: trueWpm, accuracyPercent, readingScore, xpEarned: readingXp }),
-      requestCoachFeedback(trueWpm, accuracyPercent),
+      saveDailyQuantumSession({
+        readingWpm: chunkingSummary.trueWpm,
+        accuracyPercent: chunkingSummary.accuracyPercent,
+        readingScore: chunkingSummary.readingScore,
+        xpEarned: readingXp + recallXp,
+      }),
+      requestCoachFeedback(chunkingSummary.trueWpm, chunkingSummary.accuracyPercent),
     ])
     setIsSavingDay(false)
-    setDayReadingSummary({ wpm: trueWpm, accuracyPercent })
+    setDayReadingSummary({ wpm: chunkingSummary.trueWpm, accuracyPercent: chunkingSummary.accuracyPercent })
     setCoachMessage(coach)
     triggerStepHaptic()
     setLevel('complete')
+  }
+
+  function handleChunkingRecallComplete(): void {
+    playClickChime()
+    void finalizeChunkingDay(DYNAMIC_CHUNKING_RECALL_XP_BONUS)
+  }
+
+  // Honest Skip™ — same reasoning as handleSkipRetention: the real
+  // chunking result still saves exactly as measured, only the optional
+  // recall-check XP bonus is skipped.
+  function handleSkipChunkingRecall(): void {
+    playClickChime()
+    void finalizeChunkingDay(0)
   }
 
   function renderAuxiliaryExercise(exercise: JourneyStepExercise): React.JSX.Element {
@@ -538,6 +600,15 @@ export function QuantumJourneySession({
         />
       )
     }
+    if (level === 4 && chunkingSummary !== null) {
+      return (
+        <DynamicChunkingRecallCheck
+          correctCount={chunkingSummary.correctCount}
+          totalCount={chunkingSummary.totalCount}
+          onComplete={handleChunkingRecallComplete}
+        />
+      )
+    }
     if (level === 4 && readingResult !== null) {
       return <RetentionCheckPhase readingSet={readingResult.selectedSet} onComplete={(correct, total) => void handleRetentionComplete(correct, total)} />
     }
@@ -560,7 +631,9 @@ export function QuantumJourneySession({
     level === 3
       ? readingStepLabel
       : level === 4
-        ? 'Retention Check'
+        ? chunkingSummary !== null
+          ? 'Quick Recall Check'
+          : 'Retention Check'
         : level === 1 && isWeaknessInjected && !isFoundationBreathingDay
           ? 'Targeted Practice'
           : getWeekTheme(day)
@@ -595,7 +668,9 @@ export function QuantumJourneySession({
                   className="flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-muted-foreground transition-[color,transform] active:scale-95 hover:text-foreground sm:px-3"
                   data-skip-step="true"
                 >
-                  <span className="hidden sm:inline">{level === 4 ? 'Skip Retention Check' : 'Skip Exercise'}</span>
+                  <span className="hidden sm:inline">
+                    {level === 4 ? (chunkingSummary !== null ? 'Skip Recall Check' : 'Skip Retention Check') : 'Skip Exercise'}
+                  </span>
                   <span className="sm:hidden">Skip</span>
                   <SkipForward className="size-3.5" aria-hidden="true" />
                 </button>
@@ -675,7 +750,7 @@ export function QuantumJourneySession({
 
             <p className="max-w-sm text-sm text-muted-foreground">
               {isFoundationBreathingDay ? 'Mind Awakening™' : resolvedStep1Title} → {resolvedStep2Title} →{' '}
-              {isStandardDynamicChunkingDay ? readingStepLabel : `${readingStepLabel} → Retention Check`}{' '}
+              {isStandardDynamicChunkingDay ? `${readingStepLabel} → Recall Check` : `${readingStepLabel} → Retention Check`}{' '}
               — real progress recorded across every step.
             </p>
 
