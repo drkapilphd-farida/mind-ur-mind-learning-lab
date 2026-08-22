@@ -44,9 +44,12 @@ import {
   getReadingMode,
   getReadingLengthTier,
   isMandatoryBreathingDay,
+  resolveExerciseDisplayTitle,
+  type ExerciseLabelVariant,
   type JourneyStepExercise,
   type ReadingMode,
 } from '../quantumJourneyLevels'
+import { captureExerciseLabelVariant, getPersistedExerciseLabelVariant } from '../exerciseLabelVariantStorage'
 import { computeAutoPacedSpeedMultiplier } from '../adaptivePacing'
 import { computeTrueWpm } from '../trueWpm'
 import { recordDomainPerformance, type RecordableJourneyDomain } from '../actions/recordDomainPerformance'
@@ -116,11 +119,12 @@ function WarmupPrepScreen({ exerciseTitle, onStart, onSkip }: { exerciseTitle: s
 }
 
 // 21-Day Transformation Journey™ — a world-class adaptive daily session.
-// Targeted Breathing Schedule™: Step 1 is a mandatory 2-minute
+// Flexible Mandatory Breathing Rule™: Step 1 is a mandatory 2-minute
 // breath-awareness warm-up (MindAwakeningPhase, Skip disabled) only on
-// Days 1, 3, 5, 7, 10, 14, 18, 20 (see isMandatoryBreathingDay) — every
-// other day, Step 1 is skippable via a prep screen, Skip button front
-// and center for anyone who just wants to get to the real exercises.
+// Days 1 through 7 — the initial-habit-formation window (see
+// isMandatoryBreathingDay) — every other day (Day 8 onward), Step 1 is
+// freely skippable via a prep screen, Skip button front and center,
+// respecting a returning user's autonomy.
 // Steps 1-2 draw from that week's real curriculum pool (see
 // quantumJourneyLevels.ts), with Step 1 dynamically replaced by a
 // targeted drill from the user's weakest domain when Smart Weakness
@@ -210,6 +214,25 @@ export function QuantumJourneySession({
   )
   const [chunkingSeed] = useState(() => Date.now())
 
+  // Dynamic Zener Card Naming Variant™ — starts at the same 'spiritual'
+  // default the server itself renders (reading localStorage inside the
+  // useState initializer would desync from the server-rendered HTML on
+  // first client render, the same SSR-hydration-mismatch this project's
+  // other localStorage-backed state already avoids by only ever reading
+  // real client-only state inside an effect, never during render). The
+  // mount-time effect below both captures this exact page load's own
+  // search params (in case a productivity/QSR ad linked straight into
+  // this specific day) and applies whatever variant this browser already
+  // has persisted from an earlier visit.
+  const [labelVariant, setLabelVariant] = useState<ExerciseLabelVariant>('spiritual')
+  useEffect(() => {
+    captureExerciseLabelVariant(searchParams)
+    setLabelVariant(getPersistedExerciseLabelVariant())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const resolvedStep1Title = useMemo(() => resolveExerciseDisplayTitle(step1, labelVariant), [step1, labelVariant])
+  const resolvedStep2Title = useMemo(() => resolveExerciseDisplayTitle(step2, labelVariant), [step2, labelVariant])
+
   // Dev/Test Mode™ — a `?level=` override so QA can preview Steps 1-3
   // directly (also skipping the Pre-Session Briefing™). Step 4 depends on
   // Step 3's real result (the passage it quizzes on), so it's
@@ -295,7 +318,7 @@ export function QuantumJourneySession({
     setLevel(4)
   }
 
-  const step1DisplayTitle = isFoundationBreathingDay ? 'Mind Awakening™ (Breathing)' : step1.title
+  const step1DisplayTitle = isFoundationBreathingDay ? 'Mind Awakening™ (Breathing)' : resolvedStep1Title
   const weaknessDomainLabel = isWeaknessInjected && weakestDomain !== null ? JOURNEY_DOMAIN_LABELS[weakestDomain.domain] : null
 
   // Daily Streak Reminders & Motivation System™ — milestoneReachedToday
@@ -320,7 +343,7 @@ export function QuantumJourneySession({
       comprehensionAccuracyPercent,
       streak: resultingStreak,
       step1Title: step1DisplayTitle,
-      step2Title: step2.title,
+      step2Title: resolvedStep2Title,
       isBaselineDay,
       weakestDomainLabel: weaknessDomainLabel,
       milestoneReachedToday,
@@ -466,7 +489,7 @@ export function QuantumJourneySession({
         return <MindAwakeningPhase onComplete={advance} allowSkip={false} />
       }
       if (!hasStartedWarmup) {
-        return <WarmupPrepScreen exerciseTitle={step1.title} onStart={() => setHasStartedWarmup(true)} onSkip={advance} />
+        return <WarmupPrepScreen exerciseTitle={resolvedStep1Title} onStart={() => setHasStartedWarmup(true)} onSkip={advance} />
       }
       return renderAuxiliaryExercise(step1)
     }
@@ -532,7 +555,7 @@ export function QuantumJourneySession({
         : READING_MODE_STEP_LABELS[readingMode]
 
   const currentExerciseTitle =
-    level === 1 ? (isFoundationBreathingDay ? 'Mind Awakening™ (Breathing)' : step1.title) : level === 2 ? step2.title : null
+    level === 1 ? step1DisplayTitle : level === 2 ? resolvedStep2Title : null
   const stepLabel =
     level === 3
       ? readingStepLabel
@@ -651,7 +674,7 @@ export function QuantumJourneySession({
             </div>
 
             <p className="max-w-sm text-sm text-muted-foreground">
-              {isFoundationBreathingDay ? 'Mind Awakening™' : step1.title} → {step2.title} →{' '}
+              {isFoundationBreathingDay ? 'Mind Awakening™' : resolvedStep1Title} → {resolvedStep2Title} →{' '}
               {isStandardDynamicChunkingDay ? readingStepLabel : `${readingStepLabel} → Retention Check`}{' '}
               — real progress recorded across every step.
             </p>

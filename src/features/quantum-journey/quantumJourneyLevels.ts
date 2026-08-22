@@ -72,14 +72,16 @@ const DOMAIN_EXERCISE_POOL: Record<Exclude<JourneyDomain, 'reading'>, readonly J
   visualisation: [WEEK_2_POOL[1]!, WEEK_2_POOL[2]!],
 }
 
-// Targeted Breathing Schedule™ — breath-awareness prep is compulsory
-// (no Skip) only on these 8 days, spaced across the journey rather than
-// front-loaded into "just the first few days." Every other day shows the
-// normal skippable warm-up prep gate.
-const MANDATORY_BREATHING_DAYS: ReadonlySet<number> = new Set([1, 3, 5, 7, 10, 14, 18, 20])
+// Flexible Mandatory Breathing Rule™ — breath-awareness prep is
+// compulsory (no Skip) for the first full week only, Days 1 through 7,
+// to build the initial habit. From Day 8 onward a returning user has
+// already built that habit, so every day's warm-up is freely skippable
+// — respecting their autonomy rather than nagging a user who's already
+// shown up 7+ times.
+const MANDATORY_BREATHING_DAYS_THRESHOLD = 7
 
 export function isMandatoryBreathingDay(day: number): boolean {
-  return MANDATORY_BREATHING_DAYS.has(day)
+  return day <= MANDATORY_BREATHING_DAYS_THRESHOLD
 }
 
 export function getWeekNumber(day: number): 1 | 2 | 3 {
@@ -172,4 +174,26 @@ export function getReadingLengthTier(day: number): JourneyLengthTier {
   if (week === 1) return 'short'
   if (week === 2) return 'medium'
   return 'long'
+}
+
+// Dynamic Zener Card Naming Variant™ — the same real exercise
+// (esp-zener-telepathy: same drill, same accuracy tracking, same
+// 'intuition' domain) shown under two different display names depending
+// on which audience is looking at it. Productivity/QSR-ad traffic sees
+// "Pattern Intuition Sprint™" — a pattern-recognition framing that fits
+// a speed-reading/productivity pitch; organic/spiritual-angle traffic
+// sees the original "ESP Zener Card Telepathy™". This only ever changes
+// the label a learner reads on screen (and what's fed to the AI Coach
+// prompt, so its generated message stays consistent with what the
+// learner just saw) — never the exercise itself, its scoring, or its
+// domain classification.
+export type ExerciseLabelVariant = 'productivity' | 'spiritual'
+
+const ZENER_LABEL_BY_VARIANT: Record<ExerciseLabelVariant, string> = {
+  productivity: 'Pattern Intuition Sprint™',
+  spiritual: 'ESP Zener Card Telepathy™',
+}
+
+export function resolveExerciseDisplayTitle(exercise: JourneyStepExercise, variant: ExerciseLabelVariant): string {
+  return exercise.exerciseId === 'esp-zener-telepathy' ? ZENER_LABEL_BY_VARIANT[variant] : exercise.title
 }

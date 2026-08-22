@@ -14,10 +14,11 @@ type MindAwakeningPhaseProps = {
   onComplete: () => void
   // 21-Day Transformation Journey™ — additive, optional, defaults to true
   // (today's exact standalone behavior in UnifiedQuantumSession). The
-  // Journey's own first 3 days pass `false` here — building the calming
-  // habit deliberately means no early-out during that mandatory window;
-  // every later day still gets Skip, just one step earlier (a prep
-  // screen before this component ever mounts — see QuantumJourneySession).
+  // Journey's own first 7 days (Days 1-7, see isMandatoryBreathingDay)
+  // pass `false` here — building the calming habit deliberately means no
+  // early-out during that mandatory window; every later day (Day 8+)
+  // still gets Skip, just one step earlier (a prep screen before this
+  // component ever mounts — see QuantumJourneySession).
   allowSkip?: boolean
 }
 
