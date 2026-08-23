@@ -6,23 +6,29 @@ import { Check } from 'lucide-react'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { TYPOGRAPHY } from '@/lib/designSystem/typography'
 import { cn } from '@/lib/utils'
+import type { AppDomain } from '@/lib/domains/appDomain'
 import { AIPresenceLogo } from './AIPresenceLogo'
 import { GatewayAuthModal } from './GatewayAuthModal'
 
-// Quantum Mindset & Habit Builder™ Rebrand — this screen used to offer
-// two direct-action paths (Reading Training, Upload & Learn) plus two
-// "Coming Soon" placeholders (YouTube & Learn, Website & Learn). Now
-// scoped to exactly one: the 21-Day Quantum Habit Journey. The other
-// paths remain fully intact at their own real routes/actions (Upload &
-// Learn is still reachable from the dashboard's own AI Document
-// Transformer widget) — only this screen's own front door was narrowed,
-// per the "hide from V1 UI, do not delete" precedent this file already
-// followed for Arrival Experience™/Learning Goal™/Record & Learn™.
+// Domain Split™ — this is the universal front door for BOTH
+// habit.mindurmind.org.in and app.mindurmind.org.in (never gated by
+// src/middleware.ts's DOMAIN_ROUTES), so it picks exactly one card per
+// domain rather than a fixed set. Habit domain keeps the single "21-Day
+// Quantum Habit Journey" card (unchanged since the Quantum Mindset &
+// Habit Builder™ Rebrand). App domain gets its own "Quantum Speed
+// Reading" card, pointing at the 30-Day Masterclass rather than the
+// habit-only journey route (/labs/quantum-speed-reading/journey/* is
+// habit-only per middleware's DOMAIN_ROUTES — an app-domain visitor
+// clicking through to it would just get bounced straight back). A
+// separate "Upload & Learn" card is deliberately NOT restored here: per
+// this session's Upload & Learn Masterclass Integration™, it's now woven
+// into the 30-Day Masterclass itself (see ThirtyDayCurriculumDayDetail.tsx)
+// rather than offered as a second, competing top-level choice.
 //
 // This screen deliberately does NOT reuse the shared HeroPromise
 // component (its own doc comment locks its 3 lines verbatim and it has
 // two other real consumers — ArrivalExperience.tsx, ProcessingExperience.tsx
-// — that must keep their original copy) — the new subheading below is
+// — that must keep their original copy) — the subheadings below are
 // bespoke to this screen only, matching HeroPromise's type scale for
 // visual consistency without touching that shared, locked component.
 //
@@ -35,6 +41,7 @@ import { GatewayAuthModal } from './GatewayAuthModal'
 // too.
 type ChooseLearningMethodExperienceProps = {
   isAuthenticated: boolean
+  appDomain: AppDomain
 }
 
 type PathCardProps = {
@@ -76,7 +83,7 @@ function PathCard({ emoji, title, description, points, ctaLabel, onSelect }: Pat
   )
 }
 
-export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearningMethodExperienceProps): React.JSX.Element {
+export function ChooseLearningMethodExperience({ isAuthenticated, appDomain }: ChooseLearningMethodExperienceProps): React.JSX.Element {
   const router = useRouter()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [isExiting, setIsExiting] = useState(false)
@@ -117,25 +124,47 @@ export function ChooseLearningMethodExperience({ isAuthenticated }: ChooseLearni
           <p className="brand-gradient-text text-xl font-bold tracking-tight">Quantum Mind</p>
         </div>
 
-        <div>
-          <h1 className={TYPOGRAPHY.display}>Quantum Mindset &amp; Habit Builder</h1>
-          <p className="mt-6 flex flex-col gap-1 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            <span>Rewire your brain.</span>
-            <span>Build unbreakable habits.</span>
-            <span>Unlock your true potential in just 10 minutes a day.</span>
-          </p>
-        </div>
+        {appDomain === 'habit' ? (
+          <div>
+            <h1 className={TYPOGRAPHY.display}>Quantum Mindset &amp; Habit Builder</h1>
+            <p className="mt-6 flex flex-col gap-1 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-3xl md:text-4xl">
+              <span>Rewire your brain.</span>
+              <span>Build unbreakable habits.</span>
+              <span>Unlock your true potential in just 10 minutes a day.</span>
+            </p>
+          </div>
+        ) : (
+          <div>
+            <h1 className={TYPOGRAPHY.display}>Quantum Speed Reading</h1>
+            <p className="mt-6 flex flex-col gap-1 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-3xl md:text-4xl">
+              <span>Read faster. Remember more.</span>
+              <span>Master any document in minutes.</span>
+              <span>Powered by real AI, not gimmicks.</span>
+            </p>
+          </div>
+        )}
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-sm">
-            <PathCard
-              emoji="🎯"
-              title="21-Day Quantum Habit Journey"
-              description="Transform your mindset with daily cognitive drills, visualization, and habit-building exercises."
-              points={['Daily Mindset & Focus Drills', 'Guided Breathing & Visualization', '21-Day Progressive Habit Loop']}
-              ctaLabel="Start Training →"
-              onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
-            />
+            {appDomain === 'habit' ? (
+              <PathCard
+                emoji="🎯"
+                title="21-Day Quantum Habit Journey"
+                description="Transform your mindset with daily cognitive drills, visualization, and habit-building exercises."
+                points={['Daily Mindset & Focus Drills', 'Guided Breathing & Visualization', '21-Day Progressive Habit Loop']}
+                ctaLabel="Start Training →"
+                onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
+              />
+            ) : (
+              <PathCard
+                emoji="⚡"
+                title="Quantum Speed Reading"
+                description="Double your reading speed and comprehension with a real, structured 30-day mastery program."
+                points={['Schulte Grid, Word Flash, Chunk Reading', 'Upload Your Own Chapters to Practice On', '30-Day Structured Masterclass']}
+                ctaLabel="Start Training →"
+                onSelect={() => handleSelect('/labs/quantum-speed-reading/thirty-day-curriculum')}
+              />
+            )}
           </div>
         </div>
       </div>

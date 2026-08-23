@@ -42,9 +42,18 @@ export type CurriculumProgress = {
   // already-completed days, which is honest — there's no way to know
   // retroactively when they really happened.
   completedDayTimestamps: Readonly<Record<number, string>>
+  // Upload & Learn Masterclass Integration™ — which days the learner has
+  // clicked through to Upload & Learn for (see
+  // ThirtyDayCurriculumDayDetail.tsx's own "Upload Today's Chapter"
+  // card). Honestly named "started," not "uploaded" or "complete" — this
+  // engine has no real link to the Upload & Learn/quantum_documents data
+  // (a deliberate scope decision, see that component's own doc comment),
+  // so it can only ever record real intent (the click), never confirm a
+  // real file actually finished uploading.
+  uploadStartedDays: readonly number[]
 }
 
-const EMPTY_PROGRESS: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }
+const EMPTY_PROGRESS: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }
 
 function isValidCheckpointResult(value: unknown): value is CurriculumCheckpointResult {
   if (typeof value !== 'object' || value === null) return false
@@ -65,10 +74,16 @@ export function loadCurriculumProgress(): CurriculumProgress {
     if (!raw) return EMPTY_PROGRESS
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return EMPTY_PROGRESS
-    const record = parsed as { completedDays?: unknown; checkpoints?: unknown; completedDayTimestamps?: unknown }
+    const record = parsed as { completedDays?: unknown; checkpoints?: unknown; completedDayTimestamps?: unknown; uploadStartedDays?: unknown }
 
     const completedDays = Array.isArray(record.completedDays)
       ? record.completedDays.filter((day): day is number => typeof day === 'number' && day >= 1 && day <= TOTAL_CURRICULUM_DAYS)
+      : []
+
+    // Additive, same as completedDayTimestamps above — progress saved
+    // before this field existed just has no upload-started days recorded.
+    const uploadStartedDays = Array.isArray(record.uploadStartedDays)
+      ? record.uploadStartedDays.filter((day): day is number => typeof day === 'number' && day >= 1 && day <= TOTAL_CURRICULUM_DAYS)
       : []
 
     const checkpoints: Record<number, CurriculumCheckpointResult> = {}
@@ -91,7 +106,7 @@ export function loadCurriculumProgress(): CurriculumProgress {
       }
     }
 
-    return { completedDays, checkpoints, completedDayTimestamps }
+    return { completedDays, checkpoints, completedDayTimestamps, uploadStartedDays }
   } catch {
     return EMPTY_PROGRESS
   }
@@ -146,7 +161,19 @@ export function markCurriculumDayComplete(day: number): CurriculumProgress {
   const completedDayTimestamps = alreadyCompleted
     ? previous.completedDayTimestamps
     : { ...previous.completedDayTimestamps, [day]: new Date().toISOString() }
-  const next: CurriculumProgress = { completedDays, checkpoints: previous.checkpoints, completedDayTimestamps }
+  const next: CurriculumProgress = { ...previous, completedDays, completedDayTimestamps }
+  saveCurriculumProgress(next)
+  return next
+}
+
+// Upload & Learn Masterclass Integration™ — see uploadStartedDays' own
+// doc comment on the type. Idempotent like markCurriculumDayComplete:
+// clicking through more than once for the same day is a real no-op, not
+// a growing list of duplicate entries.
+export function markCurriculumDayUploadStarted(day: number): CurriculumProgress {
+  const previous = loadCurriculumProgress()
+  if (previous.uploadStartedDays.includes(day)) return previous
+  const next: CurriculumProgress = { ...previous, uploadStartedDays: [...previous.uploadStartedDays, day].sort((a, b) => a - b) }
   saveCurriculumProgress(next)
   return next
 }
@@ -162,7 +189,7 @@ export function recordCurriculumCheckpoint(result: CurriculumCheckpointResult): 
   const completedDayTimestamps = alreadyCompleted
     ? previous.completedDayTimestamps
     : { ...previous.completedDayTimestamps, [result.day]: result.completedAt }
-  const next: CurriculumProgress = { completedDays, checkpoints, completedDayTimestamps }
+  const next: CurriculumProgress = { ...previous, completedDays, checkpoints, completedDayTimestamps }
   saveCurriculumProgress(next)
   return next
 }

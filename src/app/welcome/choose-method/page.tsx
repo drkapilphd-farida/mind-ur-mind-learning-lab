@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAppDomain } from '@/lib/domains/appDomain'
 import { ChooseLearningMethodExperience } from '@/components/welcome/ChooseLearningMethodExperience'
 
 export const metadata: Metadata = {
@@ -20,11 +21,18 @@ export const metadata: Metadata = {
 // this route (outside `PROTECTED_PATHS`, no shared `/welcome/*`
 // layout.tsx), just no longer load-bearing for *access* — only for which
 // UI state renders.
+//
+// Domain Split™ — this is the universal front door for BOTH domains
+// (never gated by src/middleware.ts's DOMAIN_ROUTES), so it has to pick
+// its own single card per domain rather than showing one fixed set —
+// see ChooseLearningMethodExperience.tsx for what each domain actually
+// shows.
 export default async function ChooseLearningMethodPage(): Promise<React.JSX.Element> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const appDomain = await getAppDomain()
 
-  return <ChooseLearningMethodExperience isAuthenticated={user !== null} />
+  return <ChooseLearningMethodExperience isAuthenticated={user !== null} appDomain={appDomain} />
 }

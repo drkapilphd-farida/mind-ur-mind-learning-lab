@@ -1,10 +1,11 @@
 'use client'
 
-import { ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, CheckCircle2, FileText, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { buildCurriculumDayPlan, getCurriculumPhase, getPhaseJustCompleted, isCheckpointDay } from '../curriculumDatabase'
-import { computeCheckpointDelta, type CurriculumProgress } from '../curriculumProgress'
+import { computeCheckpointDelta, markCurriculumDayUploadStarted, type CurriculumProgress } from '../curriculumProgress'
 import { DayMasterPlayer } from './DayMasterPlayer'
 import { PhaseCompleteCelebration } from './PhaseCompleteCelebration'
 
@@ -150,6 +151,49 @@ export function ThirtyDayCurriculumDayDetail({
           </div>
         ) : (
           <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
+        )}
+      </div>
+
+      {/* Upload & Learn Masterclass Integration™ — weaves the AI Document
+          Supercharger into the daily practice workflow itself rather than
+          leaving it as a separate, disconnected dashboard utility. Shown
+          only once a day's real exercise queue is done — a calmer, review-
+          style moment to bring in real reading material, not competing
+          with DayMasterPlayer's own focused full-screen flow. Reuses the
+          exact same widget already embedded on QsrDashboard.tsx
+          (#upload-document) rather than inventing a second upload
+          pipeline — see curriculumProgress.ts's own doc comment on why
+          this can only ever record real click-through intent, not a
+          confirmed completed upload (the two engines have no real data
+          link to each other by design, per this integration's own scope). */}
+      <div className={`${CARD_CLASS_NAME} p-6`}>
+        {progress.uploadStartedDays.includes(day) ? (
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Chapter upload started for Day {day}</p>
+              <p className="text-xs text-muted-foreground">Head back to Upload &amp; Learn any time to pick up where you left off.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <div className="flex items-center gap-3">
+              <FileText className="size-8 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Upload Today&rsquo;s Chapter</p>
+                <p className="text-xs text-muted-foreground">
+                  Bring real reading material for &ldquo;{plan.theme.title}&rdquo; and practice Quantum Speed Reading on the real thing.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard#upload-document"
+              onClick={() => markCurriculumDayUploadStarted(day)}
+              className="brand-gradient-text shrink-0 text-sm font-semibold whitespace-nowrap"
+            >
+              Upload &amp; Learn →
+            </Link>
+          </div>
         )}
       </div>
     </div>

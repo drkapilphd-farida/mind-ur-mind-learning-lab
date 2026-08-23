@@ -40,12 +40,12 @@ afterEach(() => {
 
 describe('loadCurriculumProgress', () => {
   it('returns empty progress when nothing is stored', () => {
-    expect(loadCurriculumProgress()).toEqual({ completedDays: [], checkpoints: {}, completedDayTimestamps: {} })
+    expect(loadCurriculumProgress()).toEqual({ completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })
   })
 
   it('ignores corrupted JSON rather than throwing', () => {
     localStorage.setItem(CURRICULUM_PROGRESS_STORAGE_KEY, '{not valid json')
-    expect(loadCurriculumProgress()).toEqual({ completedDays: [], checkpoints: {}, completedDayTimestamps: {} })
+    expect(loadCurriculumProgress()).toEqual({ completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })
   })
 })
 
@@ -85,25 +85,25 @@ describe('markCurriculumDayComplete', () => {
 
 describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
   it('30-Day Masterclass Paywall: every day, including day 1, is locked for a non-Pro user', () => {
-    const progress: CurriculumProgress = { completedDays: [1, 2], checkpoints: {}, completedDayTimestamps: {} }
-    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }, false)).toBe(false)
+    const progress: CurriculumProgress = { completedDays: [1, 2], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }
+    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }, false)).toBe(false)
     expect(isCurriculumDayUnlocked(2, progress, false)).toBe(false)
   })
 
   it('day 1 is unlocked for a Pro user', () => {
-    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }, true)).toBe(true)
+    expect(isCurriculumDayUnlocked(1, { completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }, true)).toBe(true)
   })
 
   it('for a Pro user, day N unlocks only once day N-1 is complete', () => {
-    const progress: CurriculumProgress = { completedDays: [1], checkpoints: {}, completedDayTimestamps: {} }
+    const progress: CurriculumProgress = { completedDays: [1], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }
     expect(isCurriculumDayUnlocked(2, progress, true)).toBe(true)
     expect(isCurriculumDayUnlocked(3, progress, true)).toBe(false)
   })
 
   it('getHighestUnlockedDay walks the unbroken completion streak from day 1', () => {
-    expect(getHighestUnlockedDay({ completedDays: [1, 2, 3], checkpoints: {}, completedDayTimestamps: {} })).toBe(4)
-    expect(getHighestUnlockedDay({ completedDays: [1, 3], checkpoints: {}, completedDayTimestamps: {} })).toBe(2)
-    expect(getHighestUnlockedDay({ completedDays: [], checkpoints: {}, completedDayTimestamps: {} })).toBe(1)
+    expect(getHighestUnlockedDay({ completedDays: [1, 2, 3], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })).toBe(4)
+    expect(getHighestUnlockedDay({ completedDays: [1, 3], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })).toBe(2)
+    expect(getHighestUnlockedDay({ completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })).toBe(1)
   })
 
   describe('dev/test unlock override (NEXT_PUBLIC_DEV_UNLOCK)', () => {
@@ -113,7 +113,7 @@ describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
 
     it('unlocks every day, regardless of Pro status or completion, when the platform-wide dev/test bypass is on', () => {
       vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'true')
-      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }
+      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }
       expect(isCurriculumDayUnlocked(1, emptyProgress, false)).toBe(true)
       expect(isCurriculumDayUnlocked(15, emptyProgress, false)).toBe(true)
       expect(isCurriculumDayUnlocked(30, emptyProgress, false)).toBe(true)
@@ -125,7 +125,7 @@ describe('isCurriculumDayUnlocked / getHighestUnlockedDay', () => {
 
     it('leaves the real Pro + sequential gate untouched when the bypass is off', () => {
       vi.stubEnv('NEXT_PUBLIC_DEV_UNLOCK', 'false')
-      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {} }
+      const emptyProgress: CurriculumProgress = { completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }
       expect(isCurriculumDayUnlocked(15, emptyProgress, true)).toBe(false)
       expect(isCurriculumDayUnlocked(1, emptyProgress, false)).toBe(false)
       expect(getHighestUnlockedDay(emptyProgress)).toBe(1)
@@ -148,7 +148,7 @@ describe('recordCurriculumCheckpoint', () => {
 
 describe('computeComprehensionAveragePercent', () => {
   it('returns null with no checkpoints recorded', () => {
-    expect(computeComprehensionAveragePercent({ completedDays: [], checkpoints: {}, completedDayTimestamps: {} })).toBeNull()
+    expect(computeComprehensionAveragePercent({ completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })).toBeNull()
   })
 
   it('averages every recorded checkpoint', () => {
@@ -158,7 +158,7 @@ describe('computeComprehensionAveragePercent', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' },
         7: { day: 7, rawWpm: 240, trueWpm: 216, comprehensionAccuracyPercent: 50, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeComprehensionAveragePercent(progress)).toBe(75)
   })
@@ -169,7 +169,7 @@ describe('computeReadingGrowthPercent', () => {
     const progress: CurriculumProgress = {
       completedDays: [1],
       checkpoints: { 1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' } },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeReadingGrowthPercent(progress)).toBeNull()
   })
@@ -181,7 +181,7 @@ describe('computeReadingGrowthPercent', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' },
         7: { day: 7, rawWpm: 260, trueWpm: 260, comprehensionAccuracyPercent: 100, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeReadingGrowthPercent(progress)).toBe(30)
   })
@@ -193,7 +193,7 @@ describe('computeReadingGrowthPercent', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' },
         7: { day: 7, rawWpm: 150, trueWpm: 150, comprehensionAccuracyPercent: 100, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeReadingGrowthPercent(progress)).toBe(0)
   })
@@ -201,9 +201,9 @@ describe('computeReadingGrowthPercent', () => {
 
 describe('computeConsistencyPercent', () => {
   it('is a real fraction of 30 days, never fabricated', () => {
-    expect(computeConsistencyPercent({ completedDays: [], checkpoints: {}, completedDayTimestamps: {} })).toBe(0)
+    expect(computeConsistencyPercent({ completedDays: [], checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] })).toBe(0)
     expect(
-      computeConsistencyPercent({ completedDays: Array.from({ length: 15 }, (_, i) => i + 1), checkpoints: {}, completedDayTimestamps: {} }),
+      computeConsistencyPercent({ completedDays: Array.from({ length: 15 }, (_, i) => i + 1), checkpoints: {}, completedDayTimestamps: {}, uploadStartedDays: [] }),
     ).toBe(50)
   })
 })
@@ -213,7 +213,7 @@ describe('computeBrainDevelopmentScore', () => {
     const progress: CurriculumProgress = {
       completedDays: [1],
       checkpoints: { 1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' } },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeBrainDevelopmentScore(progress)).toBeNull()
   })
@@ -225,7 +225,7 @@ describe('computeBrainDevelopmentScore', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 100, completedAt: 'x' },
         7: { day: 7, rawWpm: 260, trueWpm: 260, comprehensionAccuracyPercent: 100, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     // growth = 30, comprehensionAvg = 100, consistency = round(7/30*100) = 23
     // score = round(30*0.4 + 100*0.3 + 23*0.3) = round(12 + 30 + 6.9) = round(48.9) = 49
@@ -242,7 +242,7 @@ describe('computeCheckpointDelta', () => {
     const progress: CurriculumProgress = {
       completedDays: [1],
       checkpoints: { 1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 80, completedAt: 'x' } },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeCheckpointDelta(progress, 1)).toBeNull()
   })
@@ -251,7 +251,7 @@ describe('computeCheckpointDelta', () => {
     const progress: CurriculumProgress = {
       completedDays: [7],
       checkpoints: { 7: { day: 7, rawWpm: 260, trueWpm: 260, comprehensionAccuracyPercent: 90, completedAt: 'x' } },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     expect(computeCheckpointDelta(progress, 7)).toBeNull()
   })
@@ -263,7 +263,7 @@ describe('computeCheckpointDelta', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 80, completedAt: 'x' },
         7: { day: 7, rawWpm: 260, trueWpm: 260, comprehensionAccuracyPercent: 90, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     const delta = computeCheckpointDelta(progress, 7)
     expect(delta?.wpmGrowthPercent).toBe(30)
@@ -277,7 +277,7 @@ describe('computeCheckpointDelta', () => {
         1: { day: 1, rawWpm: 200, trueWpm: 200, comprehensionAccuracyPercent: 90, completedAt: 'x' },
         14: { day: 14, rawWpm: 150, trueWpm: 150, comprehensionAccuracyPercent: 70, completedAt: 'x' },
       },
-      completedDayTimestamps: {},
+      completedDayTimestamps: {}, uploadStartedDays: [],
     }
     const delta = computeCheckpointDelta(progress, 14)
     expect(delta?.wpmGrowthPercent).toBe(-25)
@@ -289,7 +289,7 @@ describe('computeDailyCurriculumStreak', () => {
   const REFERENCE = '2026-08-22'
 
   function progressWithTimestamps(timestamps: Record<number, string>): CurriculumProgress {
-    return { completedDays: Object.keys(timestamps).map(Number), checkpoints: {}, completedDayTimestamps: timestamps }
+    return { completedDays: Object.keys(timestamps).map(Number), checkpoints: {}, completedDayTimestamps: timestamps, uploadStartedDays: [] }
   }
 
   it('is 0 with no completions recorded', () => {
