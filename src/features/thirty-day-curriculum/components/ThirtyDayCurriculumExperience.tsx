@@ -8,6 +8,7 @@ import { ThirtyDayCurriculumDayDetail } from './ThirtyDayCurriculumDayDetail'
 import { ThirtyDayCurriculumOverview } from './ThirtyDayCurriculumOverview'
 import { TOTAL_CURRICULUM_DAYS } from '../curriculumDatabase'
 import { isCurriculumDayUnlocked, loadCurriculumProgress, recordCurriculumCheckpoint, type CurriculumCheckpointResult } from '../curriculumProgress'
+import { syncCurriculumDayCompletion } from '../actions/syncCurriculumDayCompletion'
 
 type CurriculumView = 'overview' | 'day-detail' | 'assessment'
 
@@ -111,6 +112,12 @@ export function ThirtyDayCurriculumExperience({ isPro }: ThirtyDayCurriculumExpe
 
   function handleAssessmentComplete(result: CurriculumCheckpointResult): void {
     recordCurriculumCheckpoint(result)
+    void syncCurriculumDayCompletion({
+      day: result.day,
+      rawWpm: result.rawWpm,
+      trueWpm: result.trueWpm,
+      comprehensionAccuracyPercent: result.comprehensionAccuracyPercent,
+    })
     refreshProgress()
     setView('day-detail')
   }

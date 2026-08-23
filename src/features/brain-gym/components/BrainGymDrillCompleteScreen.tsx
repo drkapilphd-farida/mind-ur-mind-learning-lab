@@ -56,7 +56,7 @@ export function BrainGymDrillCompleteScreen({
           Play Again
         </button>
         <Link
-          href="/labs/quantum-speed-reading"
+          href="/dashboard"
           className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
         >
           Back to Lab

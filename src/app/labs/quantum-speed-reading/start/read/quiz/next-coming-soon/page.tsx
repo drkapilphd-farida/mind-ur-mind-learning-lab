@@ -47,7 +47,7 @@ export default async function AiReadingCoachPage(): Promise<React.JSX.Element> {
           </p>
         </div>
         <Button asChild variant="outline" className="rounded-full transition-transform active:scale-[0.98]">
-          <Link href="/labs/quantum-speed-reading">Back to Lab</Link>
+          <Link href="/dashboard">Back to Lab</Link>
         </Button>
       </div>
     )
@@ -84,10 +84,7 @@ export default async function AiReadingCoachPage(): Promise<React.JSX.Element> {
 
         <div className="flex flex-col gap-2">
           <Button asChild size="lg" className="rounded-full">
-            <Link href="/labs/quantum-speed-reading/coach">View Full Dashboard</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="rounded-full">
-            <Link href="/labs/quantum-speed-reading">Back to Lab</Link>
+            <Link href="/dashboard">Back to Dashboard</Link>
           </Button>
         </div>
       </div>

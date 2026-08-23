@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePrefersReducedMotion } from '@/hooks/exercises/usePrefersReducedMotion'
 import { cn } from '@/lib/utils'
@@ -87,12 +86,6 @@ export function ComprehensionResultsScreen({
       <div className={cn('flex w-full flex-col gap-2', fadeClass)} style={fadeStyle(380)}>
         <Button asChild size="lg" className="w-full gap-2 rounded-full">
           <Link href="/dashboard">Back to Dashboard</Link>
-        </Button>
-        <Button asChild variant="ghost" size="sm" className="gap-1.5 rounded-full">
-          <Link href="/labs/quantum-speed-reading/reports/session">
-            View Details
-            <ArrowRight className="size-3.5" />
-          </Link>
         </Button>
       </div>
     </div>

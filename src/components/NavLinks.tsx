@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, BookOpen, LayoutDashboard, Radio, Zap, type LucideIcon } from 'lucide-react'
+import { BarChart3, BookOpen, LayoutDashboard, Radio, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AppDomain } from '@/lib/domains/appDomain'
 
@@ -24,29 +24,15 @@ const SHARED_LEADING_NAV_ITEMS = [{ href: '/dashboard', label: 'Dashboard', icon
 // habit domain's real "streak tracker" surface.
 const HABIT_NAV_ITEMS = [{ href: '/labs/quantum-speed-reading/journey/analytics', label: 'Streak & Progress', icon: BarChart3 }] as const
 
-// 3-Pillar Command Center™ (Phase 4 of the 10/10 UI/UX Restructuring
-// Plan) — the app domain's 5 flat, scattered items (30-Day Masterclass,
-// My Library, Study Projects, Mind Score™, Parents Dashboard) collapse
-// into 3 pillar hub pages, each a tabbed destination rather than a
-// single-purpose link:
-//   Pillar 1 (/masterclasses)     — live masterclass waitlist, 30-day
-//                                    enrollment, and Parents Dashboard as
-//                                    tabs.
-//   Pillar 2 (/labs/quantum-speed-reading/coach) — the existing, already-
-//                                    working practice engine hub; its own
-//                                    LabNavHeader sub-nav houses Reading
-//                                    DNA/History/Achievements/Mind Score™,
-//                                    so no new tab machinery needed here.
-//   Pillar 3 (/document-studio)   — Upload & Master (My Library lives
-//                                    inside this tab, via the same
-//                                    `?library=open` drawer signal) and
-//                                    Study Projects as tabs.
-// Settings/Profile/Subscription/Support all move into the account
-// dropdown at the sidebar bottom (see AppSidebar.tsx/UserMenu.tsx) —
-// removed from here entirely, not just relabeled.
+// Two-Pillar Simplification™ — the app domain now stands on exactly two
+// pillars, not three. "Advanced Drills" (the standalone drill catalog:
+// Coach dashboard, Reading DNA hub, Reports, Right Brain/Reading/
+// Visualization/Intuition hubs) is retired — its training content lives
+// only inside the 30-Day Masterclass's own daily missions now, never as
+// a separate browsable catalog. Parents Dashboard stays reachable as a
+// tab inside Pillar 1 (/masterclasses), not a separate top-level item.
 const QSR_NAV_ITEMS = [
-  { href: '/masterclasses', label: 'Live Masterclasses', icon: Radio },
-  { href: '/labs/quantum-speed-reading/coach', label: 'Advanced Drills', icon: Zap },
+  { href: '/masterclasses', label: '30-Day Masterclass', icon: Radio },
   { href: '/document-studio', label: 'Document Studio', icon: BookOpen },
 ] as const
 

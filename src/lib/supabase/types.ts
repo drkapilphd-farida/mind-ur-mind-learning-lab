@@ -391,6 +391,36 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_day_completions: {
+        Row: {
+          comprehension_accuracy_percent: number | null
+          completed_at: string
+          day: number
+          id: string
+          raw_wpm: number | null
+          true_wpm: number | null
+          user_id: string
+        }
+        Insert: {
+          comprehension_accuracy_percent?: number | null
+          completed_at?: string
+          day: number
+          id?: string
+          raw_wpm?: number | null
+          true_wpm?: number | null
+          user_id: string
+        }
+        Update: {
+          comprehension_accuracy_percent?: number | null
+          completed_at?: string
+          day?: number
+          id?: string
+          raw_wpm?: number | null
+          true_wpm?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_quantum_sessions: {
         Row: {
           accuracy_percent: number

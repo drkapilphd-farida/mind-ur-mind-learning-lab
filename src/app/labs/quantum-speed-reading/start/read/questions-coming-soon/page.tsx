@@ -33,7 +33,7 @@ export default async function QuestionsComingSoonPage({ searchParams }: Question
         </p>
       </div>
       <Button asChild variant="outline" className="rounded-full transition-transform active:scale-[0.98]">
-        <Link href="/labs/quantum-speed-reading">Back to Lab</Link>
+        <Link href="/dashboard">Back to Lab</Link>
       </Button>
     </div>
   )

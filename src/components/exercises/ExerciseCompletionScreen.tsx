@@ -38,7 +38,7 @@ export function ExerciseCompletionScreen({
 
       {secondaryActionHref !== undefined && (
         <Link href={secondaryActionHref} className={cn('mt-6 hover:text-foreground', EXERCISE_CAPTION_CLASSNAME)}>
-          {secondaryActionLabel ?? 'Back to Lab'}
+          {secondaryActionLabel ?? 'Back to Dashboard'}
         </Link>
       )}
     </div>

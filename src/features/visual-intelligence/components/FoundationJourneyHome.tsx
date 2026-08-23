@@ -21,7 +21,7 @@ export function FoundationJourneyHome(): React.JSX.Element {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <Link
-        href="/labs/quantum-speed-reading"
+        href="/dashboard"
         className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />

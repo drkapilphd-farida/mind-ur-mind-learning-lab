@@ -231,7 +231,7 @@ export function RuntimeResultScreen({
           </Button>
         )}
         <Button asChild variant="ghost" size="sm">
-          <Link href={labHref}>Back to Lab</Link>
+          <Link href={labHref}>Back to Dashboard</Link>
         </Button>
       </div>
     </div>

@@ -19,17 +19,18 @@ const FIXATION_REDUCTION_DEFINITION: ExerciseDefinition = {
   },
 }
 
-// Sprint-12: Fixation Reduction is Core Reading Journey™'s (Stage 4) last
-// exercise — its completion screen now continues into Reading Intelligence™
-// (Stage 5), not back to the lab hub.
-const NEXT_STAGE_LINK = { title: 'Reading Intelligence™', href: '/labs/quantum-speed-reading/intelligence' }
+// Two-Pillar Simplification™ — Fixation Reduction is Core Reading
+// Journey's last exercise; its completion screen now continues into the
+// 30-Day Masterclass (the app's one structured training path) instead of
+// the retired Reading Intelligence hub.
+const NEXT_STAGE_LINK = { title: '30-Day Masterclass', href: '/labs/quantum-speed-reading/thirty-day-curriculum' }
 
 export function FixationReductionExperience(): React.JSX.Element {
   return (
     <ExerciseRunner
       definition={FIXATION_REDUCTION_DEFINITION}
       Canvas={FixationReductionCanvas}
-      labHref="/labs/quantum-speed-reading"
+      labHref="/dashboard"
       nextExercise={NEXT_STAGE_LINK}
     />
   )

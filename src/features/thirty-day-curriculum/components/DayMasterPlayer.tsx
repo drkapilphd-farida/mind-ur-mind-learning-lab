@@ -11,6 +11,7 @@ import { setActiveWizardDay } from '../curriculumReturnRouting'
 import { isCurriculumExerciseGated } from '../curriculumGatedExercises'
 import { getEmbeddableComponent } from '../curriculumExerciseComponentRegistry'
 import { markCurriculumDayComplete } from '../curriculumProgress'
+import { syncCurriculumDayCompletion } from '../actions/syncCurriculumDayCompletion'
 import { EmbeddedExerciseProvider } from '../embeddedExerciseContext'
 import { useImmersiveExerciseLock } from '@/hooks/exercises/useImmersiveExerciseLock'
 
@@ -99,6 +100,7 @@ export function DayMasterPlayer({ day, onExitToRoadmap, onDayComplete, onReadyFo
       return
     }
     markCurriculumDayComplete(day)
+    void syncCurriculumDayCompletion({ day })
     setMode('celebrating')
   }
 

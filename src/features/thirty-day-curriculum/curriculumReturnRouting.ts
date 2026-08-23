@@ -25,6 +25,7 @@
 import { advanceCurriculumSession, clearActiveCurriculumSession, isSessionOnFinalExercise, loadActiveCurriculumSession } from './curriculumSessionRunner'
 import { markCurriculumDayComplete } from './curriculumProgress'
 import { isCheckpointDay } from './curriculumDatabase'
+import { syncCurriculumDayCompletion } from './actions/syncCurriculumDayCompletion'
 
 const CURRICULUM_ROUTE = '/labs/quantum-speed-reading/thirty-day-curriculum'
 
@@ -145,5 +146,6 @@ export function getCurriculumSmartCompleteHref(exerciseId: string, fallbackHref:
     return buildDayReturnUrl(day, false)
   }
   markCurriculumDayComplete(day)
+  void syncCurriculumDayCompletion({ day })
   return buildDayReturnUrl(day, true)
 }
