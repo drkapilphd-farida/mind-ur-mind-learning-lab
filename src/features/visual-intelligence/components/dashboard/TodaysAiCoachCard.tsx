@@ -11,7 +11,7 @@ export function TodaysAiCoachCard({ message }: TodaysAiCoachCardProps): React.JS
     <div className="rounded-3xl border bg-card p-7 text-left shadow-sm">
       <div className="flex items-center gap-2 text-xs font-medium tracking-widest text-muted-foreground uppercase">
         <Sparkles className="size-3.5" aria-hidden="true" />
-        Today&apos;s AI Coach™
+        Today&apos;s Note from Dr. Kapil™
       </div>
       <p className="mt-3 text-sm leading-relaxed text-foreground">{message}</p>
     </div>

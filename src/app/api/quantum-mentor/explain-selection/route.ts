@@ -34,13 +34,13 @@ async function handleExplainSelection(request: Request): Promise<Response> {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ success: false, error: 'You must be signed in to use the AI Mentor.' }, { status: 401 })
+    return NextResponse.json({ success: false, error: 'You must be signed in to ask Dr. Kapil.' }, { status: 401 })
   }
 
   const rateLimitDecision = checkSelectionExplanationRateLimit(user.id)
   if (!rateLimitDecision.allowed) {
     return NextResponse.json(
-      { success: false, error: "You're asking the AI Mentor for a lot right now — take a short breather and try again in a moment." },
+      { success: false, error: "You're asking Dr. Kapil a lot right now — take a short breather and try again in a moment." },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(rateLimitDecision.retryAfterMs / 1000)) } },
     )
   }

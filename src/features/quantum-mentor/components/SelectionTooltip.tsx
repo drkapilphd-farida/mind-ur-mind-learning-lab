@@ -169,7 +169,7 @@ export function SelectionTooltip({ children, documentContext, documentLanguage }
       {selectedText && position && (
         <div
           role="toolbar"
-          aria-label="AI Mentor quick actions"
+          aria-label="Dr. Kapil's quick actions"
           // Prevents the browser from collapsing the text selection on
           // mousedown before the button's click handler runs — without
           // this, clicking a quick action would clear `selectedText` a

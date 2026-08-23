@@ -17,7 +17,7 @@ export function AiMentorCard({ observation }: AiMentorCardProps): React.JSX.Elem
         <div className="flex size-10 items-center justify-center rounded-full bg-primary/[0.08]" aria-hidden="true">
           <div className="size-5 rounded-full bg-primary/[0.2]" />
         </div>
-        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Mentor™</p>
+        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
       </div>
       <p className={cn('mt-3', LAB_STAT_LABEL_CLASS)}>Today&apos;s Observation</p>
       <p className="mt-1.5 text-base leading-relaxed text-foreground italic">&ldquo;{observation}&rdquo;</p>

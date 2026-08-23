@@ -9,7 +9,7 @@ type PersonalizedRoadmapScreenProps = { onContinue: () => void }
 
 // UDCE-1.5 Step-5 "Humanize the Roadmap™" — real capability names, never
 // generic "Week N" labels.
-const ROADMAP_STEPS = ['Reading Intelligence', 'Memory Intelligence', 'Focus Intelligence', 'AI Mentor™'] as const
+const ROADMAP_STEPS = ['Reading Intelligence', 'Memory Intelligence', 'Focus Intelligence', "Dr. Kapil's Mentorship™"] as const
 
 const STEP_S = 0.12
 

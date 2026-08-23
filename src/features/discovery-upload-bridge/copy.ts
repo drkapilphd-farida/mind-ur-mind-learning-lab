@@ -20,7 +20,7 @@ export const WHAT_HAPPENS_NEXT_CARDS = [
   { emoji: '⚡', label: 'Smart Reading' },
   { emoji: '🧠', label: 'Memory Boost' },
   { emoji: '🎯', label: 'Focus Sessions' },
-  { emoji: '🤖', label: 'AI Mentor' },
+  { emoji: '💬', label: 'Ask Dr. Kapil' },
 ] as const
 
 // One unified line, never three separate product badges — "Present them

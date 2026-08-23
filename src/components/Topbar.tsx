@@ -57,7 +57,7 @@ export function Topbar({
   const glowB = interpolateHexColor(BRAND_B, WARNING_RED, warmthIntensity)
 
   return (
-    <header className="bg-background flex h-14 shrink-0 items-center gap-4 border-b px-4 lg:px-6">
+    <header className="bg-background flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:gap-4 sm:px-4 lg:px-6">
       {/* Mobile hamburger */}
       <Sheet open={open} onOpenChange={setOpen}>
         <Button
@@ -120,7 +120,11 @@ export function Topbar({
             <span className="brand-logo-warmth" aria-hidden="true" />
           </span>
         )}
-        <span className="brand-gradient-text text-base font-bold tracking-tight">{brandName ?? 'Quantum Mind'}</span>
+        {/* Mobile Viewport Fix™ — the wordmark text is the single widest
+            item in this header; below 360px (older/smaller phones like an
+            iPhone SE 1st-gen at 320px) it's the difference between fitting
+            and overflowing, so it drops first, leaving just the logo. */}
+        <span className="brand-gradient-text hidden min-[360px]:inline text-base font-bold tracking-tight">{brandName ?? 'Quantum Mind'}</span>
       </Link>
 
       <div className="flex-1" />

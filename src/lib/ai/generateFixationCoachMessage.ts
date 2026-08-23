@@ -49,7 +49,7 @@ export async function generateFixationCoachMessage(input: FixationCoachInput): P
     const { studentName, completedSessionCount, currentStreak, focusScore, mostPracticedExerciseLabel, lastSessionExerciseLabel } = input
     const first = studentName.split(' ')[0]
 
-    const prompt = `You are the AI Coach for Visual Fixation Engine™, part of Quantum Mind Learning Lab's Visual Intelligence Lab™.
+    const prompt = `You are ghostwriting a short coaching note from Dr. Kapil Dev Sharma, founder and lead mentor of Quantum Mind Learning Lab™, for a student who just practiced with Visual Fixation Engine™, part of the Visual Intelligence Lab™. Write in his voice: calm, wise, personally invested — never a generic AI assistant.
 
 Student: ${first}
 Completed fixation sessions: ${completedSessionCount}

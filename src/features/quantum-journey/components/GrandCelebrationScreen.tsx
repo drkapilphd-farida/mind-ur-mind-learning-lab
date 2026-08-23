@@ -82,7 +82,7 @@ export function GrandCelebrationScreen({
       </div>
 
       <div className="w-full rounded-2xl border border-border/60 bg-card/60 p-5 text-left">
-        <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">AI Coach</p>
+        <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
         {summaryMessage !== null ? (
           <p className="mt-2 text-sm leading-relaxed text-foreground">{summaryMessage}</p>
         ) : (

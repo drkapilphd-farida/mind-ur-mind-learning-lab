@@ -11,7 +11,7 @@ export function FixationCoachMessage({ message }: FixationCoachMessageProps): Re
     <div className="rounded-2xl border border-border/60 bg-card p-6 text-left shadow-sm">
       <div className="flex items-center gap-2 text-xs font-medium tracking-widest text-muted-foreground uppercase">
         <Sparkles className="size-3.5" aria-hidden="true" />
-        AI Coach™
+        Dr. Kapil&apos;s Note™
       </div>
       {message === null ? (
         <div className="mt-3 space-y-2">

@@ -35,7 +35,7 @@ function PanelRow({ label, children }: { label: string; children: React.ReactNod
 export function AiCoachPanel({ todaysInsight, coachRecommendation, todaysFocus, dnaUpdate, goalProgress }: AiCoachPanelProps): React.JSX.Element {
   return (
     <div className="rounded-2xl border bg-card p-6 shadow-sm">
-      <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Coach™</p>
+      <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
       <div className="mt-3">
         <PanelRow label="Today's Insight">{todaysInsight}</PanelRow>
         <PanelRow label="Coach Recommendation">{coachRecommendation}</PanelRow>

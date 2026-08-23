@@ -58,7 +58,7 @@ export function PreSessionBriefingScreen(props: PreSessionBriefingScreenProps): 
       <div className="w-full rounded-2xl border border-border/60 bg-card/60 p-5 text-left">
         <div className="flex items-center gap-1.5">
           <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
-          <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">AI Coach</p>
+          <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
         </div>
         {message !== null ? (
           <p className="mt-2 text-sm leading-relaxed text-foreground">{message}</p>

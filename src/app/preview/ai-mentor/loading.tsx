@@ -13,8 +13,8 @@ import { AIPresenceLoadingState } from '@/components/learning/AIPresenceLoadingS
 // added above the existing skeleton.
 export default function Loading(): React.JSX.Element {
   return (
-    <section aria-busy="true" aria-label="Loading AI Mentor" className="mx-auto max-w-lg space-y-6 px-4 py-8 sm:px-6 sm:py-10">
-      <AIPresenceLoadingState message="Connecting you with your AI Mentor…" />
+    <section aria-busy="true" aria-label="Loading Dr. Kapil" className="mx-auto max-w-lg space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+      <AIPresenceLoadingState message="Connecting you with Dr. Kapil…" />
       <LoadingCard className="h-40 rounded-xl" />
       <LoadingCard className="h-24 rounded-xl" />
       <LoadingCard className="h-56 rounded-xl" />

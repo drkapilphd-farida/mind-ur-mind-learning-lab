@@ -28,7 +28,7 @@ export function AiCoachScreen({ message, onContinue }: AiCoachScreenProps): Reac
       </div>
 
       <div>
-        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">AI Coach™</p>
+        <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
         <h1 className="mt-2 font-heading text-xl font-bold tracking-tight text-foreground">Your Feedback</h1>
       </div>
 

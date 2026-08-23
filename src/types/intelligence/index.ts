@@ -24,7 +24,7 @@ export const DIMENSION_LABELS: Record<IntelligenceDimensionType, string> = {
   'meditation': 'Meditation Intelligence™',
   'emotional': 'Emotional Intelligence™',
   'fitness': 'Mind Fitness™',
-  'ai-mentor': 'AI Mentor™',
+  'ai-mentor': "Dr. Kapil's Mentorship™",
 }
 
 export const DIMENSION_SHORT_LABELS: Record<IntelligenceDimensionType, string> = {
@@ -34,7 +34,7 @@ export const DIMENSION_SHORT_LABELS: Record<IntelligenceDimensionType, string> =
   'meditation': 'Meditation',
   'emotional': 'Emotional',
   'fitness': 'Mind Fitness',
-  'ai-mentor': 'AI Mentor',
+  'ai-mentor': 'Mentorship',
 }
 
 // ── Activation status ─────────────────────────────────────────────────────

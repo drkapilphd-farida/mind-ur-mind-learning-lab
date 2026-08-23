@@ -77,7 +77,7 @@ export default async function ReadingIntelligencePage(): Promise<React.JSX.Eleme
 
   const todaysInsight = latest
     ? generateTodaysInsight(latest, previous)
-    : 'Complete your first reading session to unlock your AI Coach™ insights.'
+    : "Complete your first reading session to unlock Dr. Kapil's Note™ insights."
   const speedCaution = latest ? generateSpeedCaution(latest) : null
   const difficultySuggestion = latest ? suggestNextDifficulty(latest, previous) : null
   const categoryRotation = generateCategoryRotationMessage(categoryIntelligence)

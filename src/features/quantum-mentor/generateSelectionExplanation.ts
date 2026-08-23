@@ -70,7 +70,7 @@ export async function generateSelectionExplanation(
 ): Promise<GenerateSelectionExplanationResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey || apiKey.includes('stub') || apiKey.includes('placeholder')) {
-    return { success: false, error: 'The AI Mentor is not configured yet. Please try again later.' }
+    return { success: false, error: "Dr. Kapil's mentorship tools aren't configured yet. Please try again later." }
   }
 
   const requestId = crypto.randomUUID()

@@ -92,9 +92,14 @@ export function InstallButton(): React.JSX.Element | null {
 
   return (
     <>
-      <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => void handleClick()}>
+      {/* Mobile Viewport Fix™ — the label collapses to an icon-only button
+          below `sm` (640px, the same breakpoint Topbar's own mobile/desktop
+          split already uses elsewhere) so it can never push the header's
+          theme-toggle/account cluster past the screen edge on a phone.
+          aria-label keeps the accessible name intact either way. */}
+      <Button variant="ghost" size="sm" className="gap-1.5" aria-label="Install app" onClick={() => void handleClick()}>
         <Download className="size-4" aria-hidden="true" />
-        Install App
+        <span className="hidden sm:inline">Install App</span>
       </Button>
 
       <Dialog open={showGuide} onOpenChange={setShowGuide}>

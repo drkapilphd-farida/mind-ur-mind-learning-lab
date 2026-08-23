@@ -47,7 +47,7 @@ export const LEARNING_MODES: readonly LearningModeDefinition[] = [
   // description — see src/features/research-mode-runtime/components/ResearchCard.tsx.
   { id: 'research-mode', emoji: '🔬', title: 'Research Mode™', description: 'Deep concept exploration, powered by real AI-extracted concepts.' },
   { id: 'exam-prep', emoji: '🎯', title: 'Exam Preparation™', description: 'Structured practice for an upcoming exam.' },
-  { id: 'ai-mentor', emoji: '🤖', title: 'AI Mentor™', description: 'Ask questions and receive personalized guidance.' },
+  { id: 'ai-mentor', emoji: '💬', title: 'Ask Dr. Kapil™', description: 'Ask questions and receive personalized guidance.' },
 ] as const
 
 // AI Learning Studio™ Sprint ALS-5 → Sprint ALS-8 → Sprint ALS-13 →

@@ -37,13 +37,13 @@ export function AiMentorSelectionDrawer({ state, onOpenChange }: AiMentorSelecti
             <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
             <SheetTitle>
               {state.status === 'idle'
-                ? 'AI Mentor'
+                ? 'Dr. Kapil'
                 : state.targetLanguage
                   ? `${SELECTION_ACTION_LABELS[state.actionType]} — ${getLanguageName(state.targetLanguage)}`
                   : SELECTION_ACTION_LABELS[state.actionType]}
             </SheetTitle>
           </div>
-          <SheetDescription>Your AI Mentor&rsquo;s take on the text you highlighted.</SheetDescription>
+          <SheetDescription>Dr. Kapil&rsquo;s take on the text you highlighted.</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-4">

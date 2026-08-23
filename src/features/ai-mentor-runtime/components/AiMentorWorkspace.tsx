@@ -189,8 +189,8 @@ export function AiMentorWorkspace({ initialSession, initialSessionHistory }: AiM
           <div className="animate-in fade-in space-y-6 duration-(--duration-slow)">
             <EmptyStateCard
               icon={Sparkles}
-              title="AI Mentor"
-              description="Start a session with your AI Mentor."
+              title="Dr. Kapil"
+              description="Start a session with Dr. Kapil."
               action={
                 <Button disabled={pending} onClick={handleStart}>
                   {pending ? 'Starting…' : 'Start Mentor Session'}
@@ -223,7 +223,7 @@ export function AiMentorWorkspace({ initialSession, initialSessionHistory }: AiM
             <div className="animate-in fade-in slide-in-from-top-1 flex items-center gap-2 duration-(--duration-base)">
               <Sparkles className={`${ICON_SIZE.lg} text-primary`} aria-hidden="true" />
               <div>
-                <h1 className="text-lg font-semibold text-foreground">AI Mentor</h1>
+                <h1 className="text-lg font-semibold text-foreground">Dr. Kapil</h1>
                 <p className={TYPOGRAPHY.caption}>Session active since {new Date(state.session.startedAt).toLocaleString()}</p>
               </div>
             </div>
@@ -315,7 +315,7 @@ export function AiMentorWorkspace({ initialSession, initialSessionHistory }: AiM
                     onChange={(event) => setDraft(event.target.value)}
                     rows={2}
                     placeholder="Message your mentor…"
-                    aria-label="Message your AI Mentor"
+                    aria-label="Message Dr. Kapil"
                     className="w-full resize-none rounded-md border bg-background p-2 text-sm text-foreground transition-shadow focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   />
                   <Button size="sm" disabled={pending || draft.trim().length === 0} onClick={() => handleSend(state.session.id)}>

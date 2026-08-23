@@ -6,7 +6,7 @@ import { findActiveMentorSession } from '@/features/ai-mentor-runtime/persistenc
 import { buildMentorSessionHistory } from '@/features/ai-mentor-runtime/context/buildMentorSessionHistory'
 
 export const metadata: Metadata = {
-  title: 'AI Mentor',
+  title: 'Dr. Kapil',
 }
 
 // AI Mentor™ Sprint-1 — Foundation. Routing. A flat, learner-scoped

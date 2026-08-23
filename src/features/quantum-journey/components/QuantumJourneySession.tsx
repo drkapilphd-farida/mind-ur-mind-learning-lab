@@ -759,7 +759,7 @@ export function QuantumJourneySession({
                 generateCoachFeedback.ts's own prompt-building comment). */}
             {coachMessage !== null && (
               <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card/60 p-4 text-left">
-                <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">AI Coach</p>
+                <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Dr. Kapil&apos;s Note™</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-foreground">{coachMessage}</p>
               </div>
             )}

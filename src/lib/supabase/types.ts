@@ -1251,6 +1251,42 @@ export type Database = {
         }
         Relationships: []
       }
+      masterclasses: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          mentor_name: string
+          recording_url: string | null
+          scheduled_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          mentor_name?: string
+          recording_url?: string | null
+          scheduled_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          mentor_name?: string
+          recording_url?: string | null
+          scheduled_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       memory_discovery_sessions: {
         Row: {
           completed: boolean
