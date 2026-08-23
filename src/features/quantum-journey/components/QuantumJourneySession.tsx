@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Flame, SkipForward, Target, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
-import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { playClickChime, startAmbientDrone, stopAmbientDrone } from '@/app/unified-quantum-session-preview/components/soundEngine'
 import { MindAwakeningPhase } from '@/app/unified-quantum-session-preview/components/MindAwakeningPhase'
@@ -645,15 +644,6 @@ export function QuantumJourneySession({
 
   return (
     <div>
-      {/* Persistent Nav™ — this route had NO chrome at all before (not
-          even a back link): unlike DayMasterPlayer's 30-Day wizard, this
-          session is a normal in-flow scrolling page, never viewport-
-          locked (no useImmersiveExerciseLock here), so there's no
-          full-bleed immersive mode this could conflict with. Rendered at
-          every level, including the briefing/completion screens, so
-          Sign Out and the rest of the app stay one tap away throughout. */}
-      <LabNavHeader currentSection="Quantum Mindset & Habit Builder" />
-
       {level !== 'complete' && level !== 'briefing' && (
         <div className="mx-auto max-w-2xl px-6 pt-8">
           <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">

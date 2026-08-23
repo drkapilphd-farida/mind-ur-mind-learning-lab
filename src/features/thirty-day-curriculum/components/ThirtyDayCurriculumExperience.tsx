@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { LabNavHeader } from '@/features/quantum-speed-reading/components/shell/LabNavHeader'
 import { CurriculumAssessmentCanvas } from './CurriculumAssessmentCanvas'
 import { MasterclassPaywallModal } from './MasterclassPaywallModal'
 import { ThirtyDayCurriculumDayDetail } from './ThirtyDayCurriculumDayDetail'
@@ -136,17 +135,17 @@ export function ThirtyDayCurriculumExperience({ isPro }: ThirtyDayCurriculumExpe
     )
   }
 
-  // Persistent Nav™ — LabNavHeader only on the Overview (day-list)
-  // screen: this route had NO header at all before, a real dead end for
-  // mobile nav (no way back to the dashboard, no Sign Out). Day Detail
-  // and Assessment stay header-free on purpose — both are fully
+  // 3-Pillar Command Center™ (Phase 6) — this route now lives under the
+  // (dashboard) route group, so the Overview (day-list) screen gets the
+  // global AppSidebar/Topbar automatically instead of its own LabNavHeader.
+  // Day Detail and Assessment stay chrome-free on purpose — both are fully
   // immersive (DayMasterPlayer renders `fixed inset-0`, own back arrow
   // built in; see ThirtyDayCurriculumDayDetail.tsx), the same
   // no-persistent-chrome-during-play convention every other exercise in
-  // this app already follows.
+  // this app already follows; the fixed overlay covers the sidebar
+  // regardless, so there's no conflict during play either.
   return (
     <>
-      <LabNavHeader currentSection="30-Day Masterclass" />
       <ThirtyDayCurriculumOverview onSelectDay={handleSelectDay} onLockedDayClick={openPaywall} isPro={isPro} refreshKey={refreshKey} />
       <MasterclassPaywallModal open={paywallDay !== null} onOpenChange={(open) => { if (!open) setPaywallDay(null) }} day={paywallDay} />
     </>
