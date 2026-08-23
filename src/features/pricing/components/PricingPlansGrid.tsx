@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { FREE_TIER_DOCUMENT_LIMIT } from '@/features/quantum-document-transformer/freeTierLimit'
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from '@/config/masterclassPaymentLink'
+import { RAZORPAY_UPLOAD_AND_LEARN_PAYMENT_LINK } from '@/config/uploadAndLearnPaymentLink'
 import { RAZORPAY_SUBSCRIPTION_LINKS, type BillingPeriod } from '../razorpaySubscriptionLinks'
 
 // Real, confirmed prices for both billing periods — Razorpay's own
@@ -222,6 +223,30 @@ export function PricingPlansGrid(): React.JSX.Element {
         <Button asChild size="lg" className="w-full shrink-0 rounded-full sm:w-auto">
           <a href={RAZORPAY_MASTERCLASS_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
             Enroll Now for ₹4,999
+            <ExternalLink className="size-4" aria-hidden="true" />
+          </a>
+        </Button>
+      </div>
+
+      {/* AI Document Supercharger™ (Upload & Learn) — Finalized Pricing™:
+          a real, standalone document-processing subscription, distinct
+          from the Individual Growth/Genius Family Lab platform plans
+          above (those cover general AI transformation quota; this one is
+          specifically the document-upload pipeline). Same "own banner,
+          not a fifth grid card" reasoning as the Masterclass banner —
+          it's a single flat monthly price, not something the
+          Monthly/Yearly toggle above should apply to. */}
+      <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-3xl border border-border/60 bg-card p-8 sm:flex-row">
+        <div>
+          <p className="text-lg font-semibold text-foreground">📄 AI Document Supercharger™ (Upload & Learn)</p>
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+            Standalone document processing — drop in any PDF, textbook, or research paper and get Quantum Speed Reading drills, Mind Maps, and Spider
+            Notes back. ₹499/month.
+          </p>
+        </div>
+        <Button asChild size="lg" variant="outline" className="w-full shrink-0 rounded-full sm:w-auto">
+          <a href={RAZORPAY_UPLOAD_AND_LEARN_PAYMENT_LINK} target="_blank" rel="noopener noreferrer">
+            Subscribe for ₹499/month
             <ExternalLink className="size-4" aria-hidden="true" />
           </a>
         </Button>

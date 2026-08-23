@@ -15,7 +15,7 @@ import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
 import { DashboardSectionHeader } from '@/components/dashboard/DashboardSectionHeader'
 import { ThirtyDayMasterclassHeroCard } from '@/components/dashboard/ThirtyDayMasterclassHeroCard'
-import { FAMILY_PRO_MONTHLY_699, STARTER_MONTHLY_399 } from '@/config/pricingLinks'
+import { RAZORPAY_UPLOAD_AND_LEARN_PAYMENT_LINK } from '@/config/uploadAndLearnPaymentLink'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
 import { getQuantumDocumentHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentHistory'
 import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-transformer/actions/getQuantumDocumentSessionHistory'
@@ -120,11 +120,13 @@ export async function QsrDashboard(): Promise<React.JSX.Element> {
           Transformer™ is the anchor target for Choose Your Path™'s
           "Upload & Learn™" card (/dashboard#upload-document), the direct,
           one-click destination for uploading a document from onboarding.
-          The pricing chips below are honest, display-only marketing copy
-          (Standard/Pro aren't wired to a live checkout yet — see
-          PricingPlansGrid's own "price pending" placeholder) — the real
-          CTA is the "/pricing" link, never a fabricated purchase flow
-          here. */}
+          Finalized Pricing™ — one real, unambiguous price for this tier
+          (₹499/month), replacing the old Standard/Pro dual-chip pair that
+          actually linked out to the unrelated Individual Growth/Genius
+          Family Lab platform plans — never document-specific pricing.
+          The chip below is honest, display-only marketing copy pointing
+          at the real Razorpay checkout (uploadAndLearnPaymentLink.ts);
+          "/pricing" stays the canonical place to compare every plan. */}
       <section aria-labelledby="document-tools-heading">
         <DashboardSectionHeader
           id="document-tools-heading"
@@ -134,22 +136,13 @@ export async function QsrDashboard(): Promise<React.JSX.Element> {
         >
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
             <a
-              href={STARTER_MONTHLY_399}
+              href={RAZORPAY_UPLOAD_AND_LEARN_PAYMENT_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-              data-starter-pricing-link="true"
+              data-upload-and-learn-pricing-link="true"
             >
-              Standard · ₹399
-            </a>
-            <a
-              href={FAMILY_PRO_MONTHLY_699}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-              data-family-pro-pricing-link="true"
-            >
-              Pro · ₹699
+              Upload &amp; Learn · ₹499/mo
             </a>
             <Link href="/pricing" className="font-medium text-primary hover:underline">
               View plans →
