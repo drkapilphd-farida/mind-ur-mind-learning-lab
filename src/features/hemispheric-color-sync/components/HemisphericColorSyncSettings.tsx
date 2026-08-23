@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { ROUNDS_PER_SESSION, RECALL_TIME_LIMIT_MS } from '../hemisphericColorSyncDataset'
 
 type HemisphericColorSyncSettingsProps = {
@@ -32,13 +33,16 @@ export function HemisphericColorSyncSettings({ onStart }: HemisphericColorSyncSe
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Hemispheric Color-Word Sync Grid™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A color name flashes on screen — always painted in a mismatched ink color, never its own. Each round tells you which
-          hemisphere to trust: sometimes tap the swatch matching what the WORD says, sometimes the swatch matching the actual INK.
-          You get just {recallSeconds}s per round, a streak multiplier, and a fast-reflex bonus on every correct hit.
+          A color name flashes in a mismatched ink. Tap the swatch matching either the WORD or the INK, whichever the
+          round asks for.
         </p>
       </div>
 
-      <p className="text-xs text-muted-foreground">{ROUNDS_PER_SESSION} rounds per sprint — word and ink prompts split exactly evenly.</p>
+      <WhyThisDrillWorks>
+        This resolves the classic Stroop conflict — training your brain to override automatic word-reading and follow
+        instructions instead. You get just {recallSeconds}s per round, a streak multiplier, and a fast-reflex bonus on
+        every correct hit. {ROUNDS_PER_SESSION} rounds per sprint — word and ink prompts split exactly evenly.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

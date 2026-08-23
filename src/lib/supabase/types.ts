@@ -1287,6 +1287,7 @@ export type Database = {
           description: string
           id: string
           is_active: boolean
+          join_url: string | null
           mentor_name: string
           recording_url: string | null
           scheduled_at: string | null
@@ -1298,6 +1299,7 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean
+          join_url?: string | null
           mentor_name?: string
           recording_url?: string | null
           scheduled_at?: string | null
@@ -1309,6 +1311,7 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean
+          join_url?: string | null
           mentor_name?: string
           recording_url?: string | null
           scheduled_at?: string | null

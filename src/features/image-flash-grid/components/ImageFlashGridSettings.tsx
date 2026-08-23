@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { Button } from '@/components/ui/button'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { IMAGE_FLASH_GRID_ROUNDS_PER_SESSION, IMAGE_FLASH_GRID_SIZES, type ImageFlashGridSize } from '../imageFlashGridEngine'
 
 type ImageFlashGridSettingsProps = {
@@ -29,9 +30,8 @@ export function ImageFlashGridSettings({ gridSize, onSelectGridSize, onStart }: 
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Image Flash Grid™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A handful of vibrant icons flash briefly across the grid — pure photographic recall, no words, no numbers.
-          Memorize both where they were and what they were, then tap each cell and pick the icon you saw.{' '}
-          {IMAGE_FLASH_GRID_ROUNDS_PER_SESSION} rounds, each tighter and busier than the last.
+          Vibrant icons flash briefly across the grid. Memorize where they were and what they were, then tap each
+          cell to recall them.
         </p>
       </div>
 
@@ -45,6 +45,11 @@ export function ImageFlashGridSettings({ gridSize, onSelectGridSize, onStart }: 
           ))}
         </div>
       </div>
+
+      <WhyThisDrillWorks>
+        Pure photographic recall — no words, no numbers. {IMAGE_FLASH_GRID_ROUNDS_PER_SESSION} rounds, each tighter
+        and busier than the last.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

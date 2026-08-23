@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: 'Transformation Dashboard',
 }
 
+type TransformationDashboardProps = {
+  searchParams: Promise<{ view?: string | undefined }>
+}
+
 // Paste URL / YouTube™ — a Server Action invoked from this page
 // (importQuantumDocumentFromUrl, called by AIDocumentTransformerWidget,
 // QsrDashboard-only) inherits ITS route's own maxDuration, not one it
@@ -23,7 +27,10 @@ export const maxDuration = 60
 // served the request and forwards it via a request header, read here via
 // getAppDomain() to pick which dashboard actually renders. See
 // src/lib/domains/appDomain.ts and HabitDashboard.tsx/QsrDashboard.tsx.
-export default async function TransformationDashboard(): Promise<React.JSX.Element> {
+export default async function TransformationDashboard({ searchParams }: TransformationDashboardProps): Promise<React.JSX.Element> {
   const appDomain = await getAppDomain()
-  return appDomain === 'habit' ? <HabitDashboard /> : <QsrDashboard />
+  if (appDomain === 'habit') return <HabitDashboard />
+
+  const params = await searchParams
+  return <QsrDashboard view={params.view === 'parent' ? 'parent' : 'student'} />
 }

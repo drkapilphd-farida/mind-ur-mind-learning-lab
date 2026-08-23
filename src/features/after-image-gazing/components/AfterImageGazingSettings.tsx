@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import {
   ROUNDS_PER_SESSION,
   AFTERIMAGE_DURATION_MS,
@@ -55,9 +56,8 @@ export function AfterImageGazingSettings({ onStart }: AfterImageGazingSettingsPr
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">After-Image / Complementary Color Gazing™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A vibrant glowing shape holds steady in the center of the screen — fix your gaze on it, without blinking, for the full
-          countdown. The screen then shifts to a neutral surface for {afterimageSeconds}s: keep looking at the same spot and notice
-          whatever soft afterimage color lingers. There&apos;s no right answer — just report what you honestly saw.
+          Fix your gaze on the glowing shape without blinking, then notice the afterimage that lingers when it
+          disappears.
         </p>
       </div>
 
@@ -84,10 +84,13 @@ export function AfterImageGazingSettings({ onStart }: AfterImageGazingSettingsPr
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {ROUNDS_PER_SESSION} rounds per session, drawn from {countForSelection(categorySelection)} unique assets — never repeated
-        within a session.
-      </p>
+      <WhyThisDrillWorks>
+        The screen shifts to a neutral surface for {afterimageSeconds}s — keep looking at the same spot and notice
+        whatever soft afterimage color lingers. There&apos;s no right answer, since what you notice varies naturally
+        from person to person and round to round — just report what you honestly saw.{' '}
+        {ROUNDS_PER_SESSION} rounds per session, drawn from {countForSelection(categorySelection)} unique assets —
+        never repeated within a session.
+      </WhyThisDrillWorks>
 
       <button
         onClick={() => onStart(categorySelection)}

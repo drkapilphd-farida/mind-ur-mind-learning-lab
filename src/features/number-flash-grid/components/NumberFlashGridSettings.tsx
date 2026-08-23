@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { Button } from '@/components/ui/button'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { NUMBER_FLASH_GRID_ROUNDS_PER_SESSION, NUMBER_FLASH_GRID_SIZES, type NumberFlashGridSize } from '../numberFlashGridEngine'
 
 type NumberFlashGridSettingsProps = {
@@ -29,9 +30,8 @@ export function NumberFlashGridSettings({ gridSize, onSelectGridSize, onStart }:
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Number Flash Grid™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A handful of digits flash briefly across the grid — memorize both where they were and what they were, then
-          tap each cell and type back what you saw. {NUMBER_FLASH_GRID_ROUNDS_PER_SESSION} rounds, each tighter and
-          busier than the last.
+          Digits flash briefly across the grid. Memorize where they were and what they were, then type back what you
+          saw.
         </p>
       </div>
 
@@ -45,6 +45,8 @@ export function NumberFlashGridSettings({ gridSize, onSelectGridSize, onStart }:
           ))}
         </div>
       </div>
+
+      <WhyThisDrillWorks>{NUMBER_FLASH_GRID_ROUNDS_PER_SESSION} rounds, each tighter and busier than the last.</WhyThisDrillWorks>
 
       <button
         onClick={onStart}

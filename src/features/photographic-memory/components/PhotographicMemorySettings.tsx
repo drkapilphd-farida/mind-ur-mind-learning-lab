@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { Button } from '@/components/ui/button'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { ROUNDS_PER_SESSION, CATEGORY_LABELS, type PhotographicMemoryCategoryFilter } from '../photographicMemoryDataset'
 
 const FILTER_OPTIONS: readonly { id: PhotographicMemoryCategoryFilter; label: string }[] = [
@@ -44,10 +45,8 @@ export function PhotographicMemorySettings({
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Deep Visualisation Recall™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Something flashes for under a second — a geometric mandala, a cosmic icon cluster, a word or number code, or
-          a grid of colored shapes. Then pick the exact match from 4 nearly-identical options; the decoys are the
-          same content with only a subtle tweak, so only true deep visual recall catches the difference.
-          You&apos;ve got a few seconds to answer before the window closes.
+          Something flashes for under a second. Pick the exact match from 4 nearly-identical options before time runs
+          out.
         </p>
       </div>
 
@@ -67,10 +66,11 @@ export function PhotographicMemorySettings({
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {ROUNDS_PER_SESSION} rounds per sprint. Consecutive correct recalls build a streak multiplier for bonus
-        points, and a flawless dash earns a bonus.
-      </p>
+      <WhyThisDrillWorks>
+        The decoys are the same content with only a subtle tweak — mandala, icon cluster, code, or color grid — so
+        only true deep visual recall catches the difference. {ROUNDS_PER_SESSION} rounds per sprint; consecutive
+        correct recalls build a streak multiplier, and a flawless dash earns a bonus.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

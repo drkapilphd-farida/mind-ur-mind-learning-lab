@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
 import { Button } from '@/components/ui/button'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 
 // Deliberately its own 600-1200 band, not the standard 100-500 every other
 // Reading Mode offers — the whole premise of this exercise is forcing
@@ -46,8 +47,8 @@ export function SubvocalizationDestroyerSettings({
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Subvocalization Destroyer™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          An ultra-high-speed RSVP stream, 600 to 1200 words per minute — fast enough that your inner voice simply
-          cannot keep up, forcing the eyes to process meaning directly. 3 quick questions check what stuck.
+          An ultra-high-speed word stream, faster than your inner voice can keep up with. 3 quick questions check
+          what stuck.
         </p>
         {/* Deliberately rendered as null on both the server and the
             client's first paint (only ever set from a useEffect in the
@@ -67,6 +68,11 @@ export function SubvocalizationDestroyerSettings({
           ))}
         </div>
       </div>
+
+      <WhyThisDrillWorks>
+        600 to 1200 words per minute — fast enough to force your eyes to process meaning directly, without
+        subvocalizing.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

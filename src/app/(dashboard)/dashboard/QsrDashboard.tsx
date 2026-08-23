@@ -14,6 +14,7 @@ import { AIMentorSection, AIMentorSkeleton } from '@/components/dashboard/AIMent
 import { MindScoreCard } from '@/components/dashboard/MindScoreCard'
 import { AIDocumentTransformerWidget } from '@/components/dashboard/AIDocumentTransformerWidget'
 import { DashboardSectionHeader } from '@/components/dashboard/DashboardSectionHeader'
+import { DashboardViewToggle } from '@/components/dashboard/DashboardViewToggle'
 import { ThirtyDayMasterclassHeroCard } from '@/components/dashboard/ThirtyDayMasterclassHeroCard'
 import { RAZORPAY_UPLOAD_AND_LEARN_PAYMENT_LINK } from '@/config/uploadAndLearnPaymentLink'
 import { getQuantumDocumentCount } from '@/features/quantum-document-transformer/getQuantumDocumentCount'
@@ -22,6 +23,7 @@ import { getQuantumDocumentSessionHistory } from '@/features/quantum-document-tr
 import { getFixationSessions } from '@/features/visual-intelligence/fixation/queries/getFixationSessions'
 import { getFixationStats } from '@/features/visual-intelligence/fixation/queries/getFixationStats'
 import { ParentFeedbackPrompt } from '@/features/school-dashboard/components/ParentFeedbackPrompt'
+import { ParentDashboard } from '@/features/parent-dashboard/components/ParentDashboard'
 
 const EXERCISE_IDS = EYE_FOUNDATION_MODULE.map((ex) => ex.exerciseId)
 
@@ -34,18 +36,37 @@ function computeMindScore(completionPercent: number, currentStreak: number): num
   return Math.min(100, practiceComponent + consistencyComponent)
 }
 
+type QsrDashboardProps = {
+  view: 'student' | 'parent'
+}
+
 // Domain Split™ — app.mindurmind.org.in's dashboard: the Eye Foundation
 // Module hero + Mind Score™, the AI Document Supercharger (Upload &
 // Learn), and the 30-Day QSR Masterclass. The 21-Day Habit Builder card
 // lives only on HabitDashboard.tsx now — habit-only routes are actively
 // unreachable from this domain (see src/middleware.ts's DOMAIN_ROUTES).
-export async function QsrDashboard(): Promise<React.JSX.Element> {
+//
+// Elevated Parents Dashboard™ — `view` (from ?view=parent, resolved in
+// page.tsx) swaps the whole body for the same real ParentDashboard
+// already embedded as a tab on /masterclasses; branching before the
+// student-only Promise.all below skips those queries entirely on the
+// parent view instead of fetching and discarding them.
+export async function QsrDashboard({ view }: QsrDashboardProps): Promise<React.JSX.Element> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) return <div />
+
+  if (view === 'parent') {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <DashboardViewToggle activeView="parent" />
+        <ParentDashboard userId={user.id} />
+      </div>
+    )
+  }
 
   const [labProgress, labSessions, profile, isPaidUser, quantumDocumentCount, recentQuantumDocuments, quantumDocumentSessionHistory, fixationSessions] = await Promise.all([
     getModuleProgress('quantum-speed-reading', EXERCISE_IDS),
@@ -93,6 +114,8 @@ export async function QsrDashboard(): Promise<React.JSX.Element> {
         <div className="glass-ambient-blob" style={{ width: 460, height: 460, top: 220, right: -140, background: 'var(--ambient-b)' }} />
         <div className="glass-ambient-blob" style={{ width: 380, height: 380, bottom: -160, left: '35%', background: 'var(--ambient-a)' }} />
       </div>
+
+      <DashboardViewToggle activeView="student" />
 
       {/* Hero */}
       <div className="glass-premium-card glass-premium-lift p-6 sm:p-8">

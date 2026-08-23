@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { GRID_SIZE, GRID_ROWS, GRID_COLUMNS } from '../quantumHiddenTargetGridDataset'
 
 type QuantumHiddenTargetGridSettingsProps = {
@@ -31,13 +32,15 @@ export function QuantumHiddenTargetGridSettings({ onStart }: QuantumHiddenTarget
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Quantum Hidden Target Grid™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A {GRID_ROWS}×{GRID_COLUMNS} grid of hidden boxes. One box secretly holds the target each round — don&apos;t
-          think it through, just tap the box your gut feels is right. Consecutive hits build a streak multiplier for
-          bonus energy.
+          A grid of hidden boxes holds one secret target each round. Don&apos;t think it through — tap the box your
+          gut feels is right.
         </p>
       </div>
 
-      <p className="text-xs text-muted-foreground">{GRID_SIZE} rounds per sprint — every box is the target exactly once.</p>
+      <WhyThisDrillWorks>
+        A {GRID_ROWS}×{GRID_COLUMNS} grid, {GRID_SIZE} rounds per sprint — every box is the target exactly once.
+        Consecutive hits build a streak multiplier for bonus energy.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

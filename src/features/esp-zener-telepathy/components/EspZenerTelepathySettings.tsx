@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { ZENER_SYMBOLS, ZENER_DECK_SIZE } from '../espZenerDataset'
 
 type EspZenerTelepathySettingsProps = {
@@ -31,9 +32,7 @@ export function EspZenerTelepathySettings({ onStart }: EspZenerTelepathySettings
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">ESP Zener Card Telepathy Sprint™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A hidden symbol is drawn from a shuffled {ZENER_DECK_SIZE}-card Zener deck each round. Don&apos;t think it
-          through — just tap the symbol your gut feels is right. Consecutive correct guesses build a streak
-          multiplier for bonus points.
+          A hidden symbol is drawn each round. Don&apos;t think it through — tap the symbol your gut feels is right.
         </p>
       </div>
 
@@ -44,6 +43,11 @@ export function EspZenerTelepathySettings({ onStart }: EspZenerTelepathySettings
           </span>
         ))}
       </div>
+
+      <WhyThisDrillWorks>
+        Drawn from a shuffled {ZENER_DECK_SIZE}-card Zener deck. Consecutive correct guesses build a streak
+        multiplier for bonus points.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}

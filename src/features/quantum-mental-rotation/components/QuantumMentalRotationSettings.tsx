@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { useIsEmbeddedExercise } from '@/features/thirty-day-curriculum/embeddedExerciseContext'
+import { WhyThisDrillWorks } from '@/components/exercises/WhyThisDrillWorks'
 import { ROUNDS_PER_SESSION, RECALL_TIME_LIMIT_MS } from '../quantumMentalRotationDataset'
 
 type QuantumMentalRotationSettingsProps = {
@@ -33,14 +34,16 @@ export function QuantumMentalRotationSettings({ onStart }: QuantumMentalRotation
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Quantum Mental Object Rotation™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          A colored 3D object appears with every face labeled — memorize it. The object then hides while you&apos;re told a
-          rotation to picture in your mind (a 90° turn, a 180° turn, or a flip upside down). Once it reappears as a
-          question, you get {recallSeconds}s to say which color is now facing the named direction — plus a streak
-          multiplier and a fast-reflex bonus on every correct hit.
+          Memorize a labeled 3D object, picture it rotating in your mind, then say which color faces the named
+          direction.
         </p>
       </div>
 
-      <p className="text-xs text-muted-foreground">{ROUNDS_PER_SESSION} rounds per sprint — every rotation type appears exactly 4 times.</p>
+      <WhyThisDrillWorks>
+        The object hides while you&apos;re told a rotation — a 90° turn, a 180° turn, or a flip upside down. You get{' '}
+        {recallSeconds}s to answer, plus a streak multiplier and a fast-reflex bonus on every correct hit.{' '}
+        {ROUNDS_PER_SESSION} rounds per sprint — every rotation type appears exactly 4 times.
+      </WhyThisDrillWorks>
 
       <button
         onClick={onStart}
