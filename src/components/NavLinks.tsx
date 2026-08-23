@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, GraduationCap, Layers, Library, LayoutDashboard, Settings, Users, type LucideIcon } from 'lucide-react'
+import { BarChart3, BookOpen, LayoutDashboard, Radio, Zap, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AppDomain } from '@/lib/domains/appDomain'
 
@@ -24,36 +24,34 @@ const SHARED_LEADING_NAV_ITEMS = [{ href: '/dashboard', label: 'Dashboard', icon
 // habit domain's real "streak tracker" surface.
 const HABIT_NAV_ITEMS = [{ href: '/labs/quantum-speed-reading/journey/analytics', label: 'Streak & Progress', icon: BarChart3 }] as const
 
-// "My Library" doesn't navigate to its own page — it opens the Document
-// History drawer on the dashboard (see AIDocumentTransformerWidget.tsx's
-// `library` search-param effect). The `?library=open` query string is the
-// real signal that survives a full navigation from any other dashboard
-// page (e.g. from /labs/quantum-speed-reading/thirty-day-curriculum), not
-// just a same-page state toggle.
-//
-// Real Navigation Integration™ (Phase 2) — "Study Projects" is this
-// dashboard's first real link into the Learning Projects engine
-// (src/app/preview/learning-projects/*): a fully built, previously
-// nav-less system (6-stage reading flow, MCQs, Research/Revision/Focus/
-// Memory/Smart Notes modes, the new Mode A/Mode B fork). Its own routes
-// still live under the `/preview` URL prefix — that engine's own
-// navConfig.ts already documents promoting them to root paths as a later,
-// separate, low-risk folder move, not a same-day change bundled with
-// finally making it discoverable. Points at its real project list
-// (/preview/dashboard), not straight to "new" — a returning user should
-// land on their own past projects, not be forced into another upload.
+// 3-Pillar Command Center™ (Phase 4 of the 10/10 UI/UX Restructuring
+// Plan) — the app domain's 5 flat, scattered items (30-Day Masterclass,
+// My Library, Study Projects, Mind Score™, Parents Dashboard) collapse
+// into 3 pillar hub pages, each a tabbed destination rather than a
+// single-purpose link:
+//   Pillar 1 (/masterclasses)     — live masterclass waitlist, 30-day
+//                                    enrollment, and Parents Dashboard as
+//                                    tabs.
+//   Pillar 2 (/labs/quantum-speed-reading/coach) — the existing, already-
+//                                    working practice engine hub; its own
+//                                    LabNavHeader sub-nav houses Reading
+//                                    DNA/History/Achievements/Mind Score™,
+//                                    so no new tab machinery needed here.
+//   Pillar 3 (/document-studio)   — Upload & Master (My Library lives
+//                                    inside this tab, via the same
+//                                    `?library=open` drawer signal) and
+//                                    Study Projects as tabs.
+// Settings/Profile/Subscription/Support all move into the account
+// dropdown at the sidebar bottom (see AppSidebar.tsx/UserMenu.tsx) —
+// removed from here entirely, not just relabeled.
 const QSR_NAV_ITEMS = [
-  { href: '/labs/quantum-speed-reading/thirty-day-curriculum', label: '30-Day Masterclass', icon: GraduationCap },
-  { href: '/dashboard?library=open', label: 'My Library', icon: Library },
-  { href: '/preview/dashboard', label: 'Study Projects', icon: Layers },
-  { href: '/progress', label: 'Mind Score™', icon: BarChart3 },
-  { href: '/parent-dashboard', label: 'Parents Dashboard', icon: Users },
+  { href: '/masterclasses', label: 'Live Masterclasses', icon: Radio },
+  { href: '/labs/quantum-speed-reading/coach', label: 'Advanced Drills', icon: Zap },
+  { href: '/document-studio', label: 'Document Studio', icon: BookOpen },
 ] as const
 
-const SHARED_TRAILING_NAV_ITEMS = [{ href: '/settings', label: 'Settings', icon: Settings }] as const
-
 function navItemsFor(appDomain: AppDomain): readonly NavItem[] {
-  return [...SHARED_LEADING_NAV_ITEMS, ...(appDomain === 'habit' ? HABIT_NAV_ITEMS : QSR_NAV_ITEMS), ...SHARED_TRAILING_NAV_ITEMS]
+  return [...SHARED_LEADING_NAV_ITEMS, ...(appDomain === 'habit' ? HABIT_NAV_ITEMS : QSR_NAV_ITEMS)]
 }
 
 type NavLinksProps = {

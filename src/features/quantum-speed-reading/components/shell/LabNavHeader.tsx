@@ -24,11 +24,19 @@ const HABIT_LAB_SUB_NAV = [
   { href: '/labs/quantum-speed-reading/journey/certificate', label: 'Certificate' },
 ] as const
 
+// 3-Pillar Command Center™ (Phase 4) — Pillar 2 (Advanced Software
+// Drills) points straight at this lab's own coach dashboard and reuses
+// this already-working sub-nav row instead of new tab machinery. 30-Day
+// Masterclass and Mind Score™ used to be separate top-level sidebar
+// items; they move in here as internal sub-nav entries now that the
+// sidebar only shows the 3 pillars.
 const QSR_LAB_SUB_NAV = [
   { href: '/labs/quantum-speed-reading/coach', label: 'Dashboard' },
+  { href: '/labs/quantum-speed-reading/thirty-day-curriculum', label: '30-Day Masterclass' },
   { href: '/labs/quantum-speed-reading/intelligence', label: 'Reading DNA' },
   { href: '/labs/quantum-speed-reading/intelligence/history', label: 'History' },
   { href: '/labs/quantum-speed-reading/intelligence/achievements', label: 'Achievements' },
+  { href: '/progress', label: 'Mind Score™' },
   { href: '/labs/quantum-speed-reading/reports', label: 'Reports' },
 ] as const
 

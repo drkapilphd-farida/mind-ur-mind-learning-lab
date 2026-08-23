@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { NavLinks } from '@/components/NavLinks'
+import { UserMenu } from '@/components/UserMenu'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { interpolateHexColor } from '@/lib/color/interpolateHex'
 import type { AppDomain } from '@/lib/domains/appDomain'
@@ -26,9 +27,15 @@ type AppSidebarProps = {
   // Domain Split™ — resolved once in (dashboard)/layout.tsx from the
   // request's own Host header, threaded straight through to NavLinks.
   appDomain: AppDomain
+  // Global Account Dropdown™ — already fetched in (dashboard)/layout.tsx
+  // for Topbar; reused here so the sidebar-bottom account row never needs
+  // its own extra query.
+  fullName: string | null
+  avatarUrl: string | null
+  email: string
 }
 
-export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = null, appDomain }: AppSidebarProps): React.JSX.Element {
+export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = null, appDomain, fullName, avatarUrl, email }: AppSidebarProps): React.JSX.Element {
   const glowA = interpolateHexColor(BRAND_A, WARNING_RED, warmthIntensity)
   const glowB = interpolateHexColor(BRAND_B, WARNING_RED, warmthIntensity)
 
@@ -68,6 +75,14 @@ export function AppSidebar({ warmthIntensity, brandName = null, brandLogoUrl = n
       <p className="border-b border-border/60 px-4 py-2 text-[11px] font-medium text-muted-foreground">{getDomainTagline(appDomain)}</p>
       <div className="flex-1 overflow-y-auto py-3">
         <NavLinks appDomain={appDomain} />
+      </div>
+      {/* Global Account Dropdown™ (Phase 4) — Profile/Settings/Subscription/
+          Support/Sign out, moved out of the top-level pillar list and into
+          this sidebar-bottom row so the 3 pillars stay visually dominant.
+          Desktop-only: Topbar keeps the compact trigger for mobile, which
+          has no persistent sidebar to anchor this row to. */}
+      <div className="shrink-0 border-t border-border/60 p-2">
+        <UserMenu fullName={fullName} avatarUrl={avatarUrl} email={email} variant="row" />
       </div>
     </aside>
   )

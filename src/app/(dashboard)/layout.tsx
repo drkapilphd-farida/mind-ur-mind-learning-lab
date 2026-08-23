@@ -53,7 +53,15 @@ export default async function DashboardLayout({
     <div className={`bg-muted/30 flex h-screen overflow-hidden ${plusJakartaSans.variable} ${inter.variable}`}>
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:flex">
-        <AppSidebar warmthIntensity={warmthIntensity} brandName={tenantBranding?.name ?? null} brandLogoUrl={tenantBranding?.logoUrl ?? null} appDomain={appDomain} />
+        <AppSidebar
+          warmthIntensity={warmthIntensity}
+          brandName={tenantBranding?.name ?? null}
+          brandLogoUrl={tenantBranding?.logoUrl ?? null}
+          appDomain={appDomain}
+          fullName={profile?.fullName ?? null}
+          avatarUrl={profile?.avatarUrl ?? null}
+          email={user.email ?? ''}
+        />
       </div>
 
       {/* Main column */}

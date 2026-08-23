@@ -127,7 +127,13 @@ export function Topbar({
 
       <ThemeToggle />
       <InstallButton />
-      <UserMenu fullName={fullName} avatarUrl={avatarUrl} email={email} />
+      {/* Global Account Dropdown™ (Phase 4) — desktop now shows the fuller
+          row-style trigger at the bottom of AppSidebar instead; this
+          compact trigger stays for mobile only, which has no persistent
+          sidebar to anchor that row to. */}
+      <div className="md:hidden">
+        <UserMenu fullName={fullName} avatarUrl={avatarUrl} email={email} />
+      </div>
     </header>
   )
 }
