@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Inter, Instrument_Serif, IBM_Plex_Mono, Noto_Sans_Devanagari } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { Toaster } from '@/components/ui/sonner'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
+import { LanguageProvider } from '@/context/LanguageContext'
 import './globals.css'
 
 const geistSans = Geist({
@@ -13,6 +14,43 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+})
+
+// Marketing Homepage™ — additive only: these 4 fonts and the variables
+// they define (--font-homepage-sans/-mono/-display/-devanagari) are
+// consumed exclusively by .homepage-void (globals.css) and the new
+// homepage's own components (src/app/(marketing)/page.tsx). Every other
+// route keeps using Geist exactly as before — nothing here touches
+// --font-sans/--font-mono globally. Deliberately namespaced (not
+// `--font-mono`/`--font-display`) so they can never collide with the
+// app-wide token names those existing utilities already resolve to.
+const homepageSans = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-homepage-sans',
+  display: 'swap',
+})
+
+const homepageDevanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-homepage-devanagari',
+  display: 'swap',
+})
+
+const homepageDisplay = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-homepage-display',
+  display: 'swap',
+})
+
+const homepageMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-homepage-mono',
+  display: 'swap',
 })
 
 const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
@@ -83,9 +121,15 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} scroll-smooth`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${homepageSans.variable} ${homepageDevanagari.variable} ${homepageDisplay.variable} ${homepageMono.variable} scroll-smooth`}
+    >
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <LanguageProvider>
+          <Providers>{children}</Providers>
+        </LanguageProvider>
         <Toaster />
         <ServiceWorkerRegistration />
       </body>

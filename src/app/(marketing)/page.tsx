@@ -1,14 +1,37 @@
-import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+import Navbar from '@/components/Navbar'
+import HeroSection from '@/components/HeroSection'
+import TierFlagship from '@/components/TierFlagship'
+import TierRetreats from '@/components/TierRetreats'
+import TierSpecialized from '@/components/TierSpecialized'
+import HabitAppStrip from '@/components/HabitAppStrip'
+import Testimonials from '@/components/Testimonials'
+import Footer from '@/components/Footer'
 
-// One-Click Entry™ — app.mindurmind.org.in's root now goes straight to
-// the real front door (see /welcome/page.tsx) instead of rendering the
-// full marketing homepage (hero/audiences/pricing/FAQ) that used to live
-// here. That content was built before the marketing site split into its
-// own separate static deployment (www.mindurmind.org.in, outside this
-// repo) — this app's own domain is meant to be the product itself, not a
-// second copy of the marketing surface. The original JSX is fully
-// preserved in git history (see this file's history before this commit)
-// if it's ever needed again, e.g. repurposed at a different route.
-export default function HomePage(): never {
-  redirect('/welcome/choose-method')
+export const metadata: Metadata = {
+  title: 'Mind Ur Mind — Dr. Kapil Dev Sharma | Quantum Speed Reading & Psychic-Spiritual Mastery',
+  description: 'Quantum Speed Reading, psychic & spiritual retreats, 1-on-1 mentoring, and a free Habit App — under Dr. Kapil Dev Sharma.',
+}
+
+// New Homepage™ — app.mindurmind.org.in's root now renders this directly
+// (the old redirect() to /welcome/choose-method is gone). Fully
+// self-contained chrome (its own Navbar/Footer, not the (legacy) route
+// group's simpler header/footer — see (legacy)/layout.tsx) wrapped in
+// .homepage-void (globals.css), the scoped dark/gold surface + font
+// override every other route is completely unaffected by.
+export default function HomePage(): React.JSX.Element {
+  return (
+    <div className="homepage-void min-h-screen font-sans antialiased">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <TierFlagship />
+        <TierRetreats />
+        <TierSpecialized />
+        <HabitAppStrip />
+        <Testimonials />
+      </main>
+      <Footer />
+    </div>
+  )
 }

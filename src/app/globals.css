@@ -79,6 +79,91 @@
 }
 
 /*
+ * Marketing Homepage™ — color/spacing tokens for the new
+ * app.mindurmind.org.in root homepage (src/app/(marketing)/page.tsx)
+ * only. These utility classes (bg-void, text-ink, border-gold, etc.) are
+ * technically available app-wide like any other Tailwind theme token,
+ * but nothing outside .homepage-void (below) uses them today — same
+ * additive, zero-risk-to-existing-pages posture as .school-corporate/
+ * .glass-premium further down this file. font-display is new too (no
+ * existing token by that name); its value comes from --font-homepage-display,
+ * loaded by the root layout only for this page (see layout.tsx) — falls
+ * back to the system serif stack anywhere that variable isn't set.
+ */
+@theme {
+  --color-void: #0b0f17;
+  --color-panel: #121826;
+  --color-panel-2: #171f33;
+  --color-ink: #edeef3;
+  --color-ink-dim: #9ca3b8;
+  --color-ink-faint: #616b82;
+  --color-gold: #d4af37;
+  --color-gold-dim: #8c7423;
+  --color-gold-soft: rgba(212, 175, 55, 0.1);
+  --color-teal: #178a7a;
+  --color-teal-light: #22a896;
+  --color-teal-soft: rgba(23, 138, 122, 0.12);
+  --color-rose: #a6616b;
+  --color-rose-soft: rgba(166, 97, 107, 0.12);
+  --color-line: rgba(237, 238, 243, 0.09);
+  --color-line-strong: rgba(237, 238, 243, 0.2);
+  --max-width-content: 1180px;
+  --font-display: var(--font-homepage-display, ui-serif);
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-slow-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 90s linear infinite;
+}
+
+.animate-spin-slow-rev {
+  animation: spin-slow-rev 130s linear infinite;
+}
+
+/*
+ * Marketing Homepage™ — scoped surface + font override, applied to a
+ * single wrapper div around the new homepage's content only (see
+ * (marketing)/page.tsx). Follows the exact same pattern as
+ * .school-corporate below: redefines --font-sans/--font-mono (which every
+ * existing font-sans/font-mono utility usage inside this scope picks up
+ * automatically via CSS custom-property inheritance) rather than touching
+ * the app-wide tokens those utilities resolve to everywhere else.
+ * --font-homepage-* variables are loaded by the root layout only (next/
+ * font, additive alongside the existing Geist fonts) — falls back to the
+ * app's normal fonts if ever rendered somewhere those aren't set.
+ */
+.homepage-void {
+  /* Inter covers Latin; Noto Sans Devanagari fills in for Hindi copy
+     since Inter has no Devanagari glyphs — the browser picks the right
+     one per-character automatically from this fallback stack. */
+  --font-sans: var(--font-homepage-sans), var(--font-homepage-devanagari), var(--font-sans);
+  --font-mono: var(--font-homepage-mono, var(--font-mono));
+  background-color: var(--color-void);
+  color: var(--color-ink);
+}
+
+.homepage-void ::selection {
+  background-color: rgba(212, 175, 55, 0.25);
+  color: var(--color-ink);
+}
+
+.homepage-void :focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/*
  * Motion Language™ easing (Sprint-12D) — no new tokens needed here.
  * Tailwind's built-in ease-out/ease-in/ease-in-out (theme.css --ease-*)
  * already are exactly "decelerate" (arrive softly), "accelerate" (leave

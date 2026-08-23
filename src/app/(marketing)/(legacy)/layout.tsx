@@ -4,22 +4,24 @@ import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { getAppDomain } from '@/lib/domains/appDomain'
 import { getDomainTagline } from '@/lib/domains/domainTagline'
 
-// One-Click Entry™ — '/' now redirects straight to /welcome/choose-method
-// (see page.tsx), so the anchor links this nav used to point at
-// (#who-its-for, #how-it-works, #faq — all on that now-removed homepage
-// content) no longer resolve to anything. /pricing and /reviews are the
-// pages that still actually use this layout.
+// New Homepage™ — the real homepage now renders directly at '/' (see
+// (marketing)/page.tsx), so this shell (with its own distinct header/
+// footer chrome) moved into its own (legacy) route group, applying only
+// to the secondary marketing pages below that still want this simpler,
+// app-consistent header — the new homepage brings its own full Navbar/
+// Footer instead (see Navbar.tsx/Footer.tsx), so it deliberately isn't
+// nested under this layout.
 const NAV_LINKS = [
   { href: '/pricing', label: 'Pricing' },
   { href: '/reviews', label: 'Success Stories' },
 ] as const
 
-// Consistent Branding™ — this legacy marketing shell (pricing/reviews;
-// the real homepage now lives at the separate www.mindurmind.org.in
-// deployment) isn't domain-gated by src/middleware.ts, so it's reachable
-// on both hosts — resolve appDomain the same way (auth)/layout.tsx does
-// so the tagline next to the wordmark stays correct regardless.
-export default async function MarketingLayout({
+// Consistent Branding™ — this legacy marketing shell (pricing/reviews/
+// courses/certificates) isn't domain-gated by src/middleware.ts, so it's
+// reachable on both hosts — resolve appDomain the same way
+// (auth)/layout.tsx does so the tagline next to the wordmark stays
+// correct regardless.
+export default async function LegacyMarketingLayout({
   children,
 }: {
   children: React.ReactNode
