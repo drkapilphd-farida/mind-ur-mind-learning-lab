@@ -18,7 +18,7 @@ export type RightBrainHubMode = {
 export const RIGHT_BRAIN_HUB_MODES: readonly RightBrainHubMode[] = [
   {
     id: 'photographic-memory',
-    title: 'Photographic Memory™',
+    title: 'Deep Visualisation Recall™',
     purpose: 'Flash-memorize a mandala, icon cluster, word/number code, or color-shape grid — then pick the exact match.',
     status: 'available',
     href: '/labs/quantum-speed-reading/photographic-memory',

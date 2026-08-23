@@ -42,11 +42,11 @@ export function PhotographicMemorySettings({
       )}
 
       <div>
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Photographic Memory™</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Deep Visualisation Recall™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Something flashes for under a second — a geometric mandala, a cosmic icon cluster, a word or number code, or
           a grid of colored shapes. Then pick the exact match from 4 nearly-identical options; the decoys are the
-          same content with only a subtle tweak, so only a true photographic memory catches the difference.
+          same content with only a subtle tweak, so only true deep visual recall catches the difference.
           You&apos;ve got a few seconds to answer before the window closes.
         </p>
       </div>

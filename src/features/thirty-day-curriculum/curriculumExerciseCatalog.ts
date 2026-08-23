@@ -56,7 +56,7 @@ const BRAIN_GYM_EXERCISES: readonly CurriculumCatalogExercise[] = [
   { id: 'aura-edge-color-pulsing', title: 'Aura Edge Color Pulsing', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
   { id: 'blink-trigger-micro-recall', title: 'Blink-Trigger Micro-Recall', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
   { id: 'tratak-afterimage-stretches', title: 'Tratak Afterimage Stretches', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
-  { id: 'schulte-grid-speed-drill', title: 'Schulte Grid Speed Drill', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
+  { id: 'schulte-grid-speed-drill', title: 'Peripheral Vision Activator', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
   { id: 'rapid-visual-span-expander', title: 'Rapid Visual Span Expander', href: '/labs/quantum-speed-reading/brain-gym', category: 'brain-gym' },
   { id: 'saccadic-eye-jump', title: 'Saccadic Eye Jump', href: '/labs/quantum-speed-reading/saccadic-eye-jump', category: 'brain-gym' },
   { id: 'cross-lateral-tap', title: 'Cross-Lateral Tap', href: '/labs/quantum-speed-reading/cross-lateral-tap', category: 'brain-gym' },
@@ -89,7 +89,7 @@ const EYE_FOUNDATION_EXERCISES: readonly CurriculumCatalogExercise[] = [
 
 // ---- Right-Brain / Intuition (Right Brain Hub + Intuition Hub) ----
 const RIGHT_BRAIN_INTUITION_EXERCISES: readonly CurriculumCatalogExercise[] = [
-  { id: 'photographic-memory', title: 'Photographic Memory™', href: '/labs/quantum-speed-reading/photographic-memory', category: 'right-brain-intuition' },
+  { id: 'photographic-memory', title: 'Deep Visualisation Recall™', href: '/labs/quantum-speed-reading/photographic-memory', category: 'right-brain-intuition' },
   {
     id: 'pictorial-essence-sprint',
     title: 'High-Speed Pictorial Essence Sprint™',
@@ -241,7 +241,7 @@ const READING_EXPANSION_EXERCISES: readonly CurriculumCatalogExercise[] = [
 // peripheral-flash (see flashIntelligenceModule.ts). Same ordering
 // discipline as above.
 const FLASH_INTELLIGENCE_EXERCISES: readonly CurriculumCatalogExercise[] = [
-  { id: 'word-flash', title: 'Word Flash', href: '/labs/quantum-speed-reading/word-flash', category: 'reading-intelligence' },
+  { id: 'word-flash', title: 'Rapid Recognition Drill', href: '/labs/quantum-speed-reading/word-flash', category: 'reading-intelligence' },
   { id: 'number-flash', title: 'Number Flash', href: '/labs/quantum-speed-reading/number-flash', category: 'reading-intelligence' },
   { id: 'symbol-flash', title: 'Symbol Flash', href: '/labs/quantum-speed-reading/symbol-flash', category: 'reading-intelligence' },
   { id: 'mixed-flash', title: 'Mixed Flash', href: '/labs/quantum-speed-reading/mixed-flash', category: 'reading-intelligence' },

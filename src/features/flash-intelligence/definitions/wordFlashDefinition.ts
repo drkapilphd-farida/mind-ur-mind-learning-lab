@@ -5,7 +5,7 @@ import { WORD_FLASH_DATASET } from '../wordFlashDataset'
 export const WORD_FLASH_DEFINITION: ExerciseDefinition = {
   id: 'word-flash',
   labId: 'quantum-speed-reading',
-  title: 'Word Flash™',
+  title: 'Rapid Recognition Drill™',
   description: 'A word flashes briefly — identify it before it disappears. Speed increases as your recognition sharpens.',
   trainsAbility: 'Instant word recognition',
   exerciseType: 'flash',

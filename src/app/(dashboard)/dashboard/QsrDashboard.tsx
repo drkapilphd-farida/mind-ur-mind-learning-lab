@@ -131,8 +131,8 @@ export async function QsrDashboard(): Promise<React.JSX.Element> {
         <DashboardSectionHeader
           id="document-tools-heading"
           eyebrow="Tier 1 · Utility Hub"
-          title="📄 AI Document Supercharger™ (Upload & Learn)"
-          description="Drop any PDF, textbook, or research paper. Our AI instantly converts it into Quantum Speed Reading drills, Mind Maps, and Spider Notes."
+          title="📄 Document Mastery Studio™"
+          description="Drop any PDF, textbook, or research paper. Our AI instantly converts it into Quantum Speed Reading drills, Mind Maps, and Neural Map Notes."
         >
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
             <a
@@ -142,7 +142,7 @@ export async function QsrDashboard(): Promise<React.JSX.Element> {
               className="rounded-full border border-border/60 bg-card/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
               data-upload-and-learn-pricing-link="true"
             >
-              Upload &amp; Learn · ₹499/mo
+              Document Mastery Studio · ₹499/mo
             </a>
             <Link href="/pricing" className="font-medium text-primary hover:underline">
               View plans →

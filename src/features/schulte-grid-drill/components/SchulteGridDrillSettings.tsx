@@ -29,7 +29,7 @@ export function SchulteGridDrillSettings({ onStart }: SchulteGridDrillSettingsPr
       )}
 
       <div>
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Schulte Grid Speed Drill™</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Peripheral Vision Activator™</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           A 5×5 grid of shuffled numbers. Find and tap 1 through 25 in order, as fast as you can — a quick warmup for
           visual focus and peripheral search before a reading session.

@@ -551,7 +551,7 @@ function SpiderNotesMobileTreeCanvas({ root }: { root: SpiderNote }): React.JSX.
       <div
         ref={viewportCallbackRef}
         role="group"
-        aria-label="Spider notes mind map. Drag to pan, pinch or use the zoom buttons to explore, tap a node to expand or collapse it."
+        aria-label="Neural map notes mind map. Drag to pan, pinch or use the zoom buttons to explore, tap a node to expand or collapse it."
         className="relative h-[420px] w-full touch-none overflow-hidden rounded-2xl"
         onPointerDown={handlers.onPointerDown}
         onPointerMove={handlers.onPointerMove}
@@ -643,7 +643,7 @@ export function SpiderNotesTreeView({ root }: SpiderNotesTreeViewProps): React.J
         <div className="quantum-icon-chip" aria-hidden="true">
           <GitBranch className="size-3.5 text-indigo-500" />
         </div>
-        <p className="text-sm font-semibold tracking-wide text-foreground">Spider Notes</p>
+        <p className="text-sm font-semibold tracking-wide text-foreground">Neural Map Notes</p>
       </div>
 
       <div className="mt-4 sm:hidden">

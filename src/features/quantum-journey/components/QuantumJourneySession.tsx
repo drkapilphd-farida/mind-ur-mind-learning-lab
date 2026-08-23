@@ -101,7 +101,7 @@ const READING_MODE_STEP_LABELS: Record<ReadingMode, string> = {
   'vertical-word': 'Vertical Word Reading™',
   sentence: 'Sentence Reading™',
   paragraph: 'Paragraph Reading™',
-  'dynamic-chunking': 'Dynamic Chunking™',
+  'dynamic-chunking': 'Quantum Chunk Reading™',
 }
 
 function WarmupPrepScreen({ exerciseTitle, onStart, onSkip }: { exerciseTitle: string; onStart: () => void; onSkip: () => void }): React.JSX.Element {

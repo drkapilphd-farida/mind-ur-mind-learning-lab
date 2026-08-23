@@ -42,7 +42,7 @@ export function QuantumJourneyWordFlashStage({ projectId, wordAssets, onComplete
     () => ({
       id: 'quantum-journey-word-flash',
       labId: 'quantum-speed-reading',
-      title: 'Word Flash',
+      title: 'Rapid Recognition Drill',
       description: 'Words from your document flash briefly — identify each one before it disappears.',
       trainsAbility: 'Instant word recognition',
       exerciseType: 'flash',
@@ -57,7 +57,7 @@ export function QuantumJourneyWordFlashStage({ projectId, wordAssets, onComplete
       labHref: `/preview/learning-projects/${projectId}`,
       locale: 'en',
       i18nKeys: {
-        title: 'Word Flash',
+        title: 'Rapid Recognition Drill',
         description: 'Words from your document flash briefly — identify each one before it disappears.',
         instruction: 'Select the word you saw.',
         startLabel: 'Start',
@@ -77,7 +77,7 @@ export function QuantumJourneyWordFlashStage({ projectId, wordAssets, onComplete
   )
 
   if (contentPool.length < MIN_POOL_SIZE) {
-    return <QuantumJourneyEmptyStage message="This document doesn't have enough distinct words yet for Word Flash." onSkip={onSkip} />
+    return <QuantumJourneyEmptyStage message="This document doesn't have enough distinct words yet for the Rapid Recognition Drill." onSkip={onSkip} />
   }
 
   return <WordFlashExperience definition={definition} contentPool={contentPool} onComplete={onComplete} />

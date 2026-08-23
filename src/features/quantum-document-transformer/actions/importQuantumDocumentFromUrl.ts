@@ -60,7 +60,7 @@ export async function importQuantumDocumentFromUrl(input: unknown): Promise<Impo
       return {
         success: false,
         code: 'free_limit_reached',
-        error: `You've reached your free limit of ${FREE_TIER_DOCUMENT_LIMIT} documents. Upgrade to Pro for unlimited AI document transformations, Spider Notes, and Quantum sessions.`,
+        error: `You've reached your free limit of ${FREE_TIER_DOCUMENT_LIMIT} documents. Upgrade to Pro for unlimited AI document transformations, Neural Map Notes, and Quantum sessions.`,
       }
     }
   }

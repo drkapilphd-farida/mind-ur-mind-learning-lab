@@ -22,9 +22,9 @@ const SCHULTE_GRID_FLAT_XP = 50
 
 const POOL_TITLES: Record<Phase2PoolExerciseId, string> = {
   'visual-activation': 'Visual Activation Complete',
-  'schulte-grid-drill': 'Schulte Grid Complete',
+  'schulte-grid-drill': 'Peripheral Vision Activator Complete',
   'esp-zener-telepathy': 'Telepathy Sprint Complete',
-  'photographic-memory': 'Photographic Memory Complete',
+  'photographic-memory': 'Deep Visualisation Recall Complete',
   'color-scene-transformation': 'Scene Transformation Complete',
   'hemispheric-color-sync': 'Hemispheric Sync Complete',
   'quantum-mental-rotation': 'Mental Rotation Complete',

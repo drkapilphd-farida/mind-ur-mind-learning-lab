@@ -73,7 +73,7 @@ export function SchulteGridDrillCanvas({ onComplete, onExitRequested }: SchulteG
     <ReadingLayout maxWidthClassName="max-w-lg" onExit={() => onExitRequested(elapsedMs)}>
       <div className="w-full max-w-md">
         <p className="mb-3 text-center text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-          Schulte Grid Speed Drill™
+          Peripheral Vision Activator™
         </p>
         <div className="grid grid-cols-3 gap-x-4 text-center">
           <ReadingStatTile label="Time" value={formatElapsedTime(elapsedMs)} />

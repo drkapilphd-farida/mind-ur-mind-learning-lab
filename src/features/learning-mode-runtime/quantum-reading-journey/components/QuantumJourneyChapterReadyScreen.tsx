@@ -17,7 +17,7 @@ export function QuantumJourneyChapterReadyScreen({ chapterTitle, wordCount, chun
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">Reading Journey</p>
       <h1 className="text-2xl font-bold tracking-tight text-foreground">{chapterTitle}</h1>
       <p className="max-w-xs text-sm text-muted-foreground">
-        Your chapter is ready. Move through Word Flash, Reading Chunks, and a quick comprehension check — one continuous journey.
+        Your chapter is ready. Move through the Rapid Recognition Drill, Reading Chunks, and a quick comprehension check — one continuous journey.
       </p>
       <dl className="grid w-full max-w-xs grid-cols-3 gap-3 text-center text-xs">
         <div>

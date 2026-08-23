@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { PhotographicMemoryExperience } from '@/features/photographic-memory/components/PhotographicMemoryExperience'
 
 export const metadata: Metadata = {
-  title: 'Photographic Memory — Quantum Speed Reading Lab™',
+  title: 'Deep Visualisation Recall — Quantum Speed Reading Lab™',
 }
 
 // Photographic Memory™ — the first Right Brain Activation exercise,

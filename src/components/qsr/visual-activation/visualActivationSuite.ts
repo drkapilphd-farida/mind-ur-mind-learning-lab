@@ -88,7 +88,7 @@ export const VISUAL_ACTIVATION_SUITE: readonly VisualActivationExerciseMeta[] = 
   {
     id: 'schulte-grid-speed-drill',
     order: 9,
-    title: 'Schulte Grid Speed Drill',
+    title: 'Peripheral Vision Activator',
     summary: 'Find 1 through 25, in order, anywhere on the grid — pure visual search and peripheral scanning speed.',
     trains: 'Visual search, peripheral scanning speed',
     icon: Grid3x3,

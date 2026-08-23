@@ -106,7 +106,7 @@ export function ModeChoiceExperience({ projectId, projectTitle, documentTitle, m
           eyebrow="Mode B"
           title="AI Supercharged Learning"
           description="Let AI transform this document into study material alongside your reading."
-          points={['Summaries & Spider Notes', 'Mind maps & memory pegs', 'The full AI Learning Mode toolkit']}
+          points={['Summaries & Neural Map Notes', 'Mind maps & memory pegs', 'The full AI Learning Mode toolkit']}
           ctaLabel="Open AI Study Tools →"
           onSelect={() => trackChoice('ai-supercharged')}
         />

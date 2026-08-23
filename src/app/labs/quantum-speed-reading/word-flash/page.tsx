@@ -7,7 +7,7 @@ import { FLASH_INTELLIGENCE_MODULE } from '@/features/flash-intelligence/flashIn
 import { EYE_FOUNDATION_MODULE } from '@/features/quantum-speed-reading/eyeFoundationModule'
 
 export const metadata: Metadata = {
-  title: 'Word Flash™ — Quantum Speed Reading Lab™',
+  title: 'Rapid Recognition Drill™ — Quantum Speed Reading Lab™',
   description: 'A word flashes briefly — identify it before it disappears. The entry game of the Flash Intelligence Pack™, training instant word recognition.',
 }
 
@@ -36,7 +36,7 @@ export default async function WordFlashPage(): Promise<React.JSX.Element> {
   if (!access.allowed) {
     return (
       <ExerciseLockedScreen
-        title="Word Flash"
+        title="Rapid Recognition Drill"
         unlockHref={access.nextExercise?.href ?? '/labs/quantum-speed-reading'}
         unlockLabel={access.nextExercise ? `Go to ${access.nextExercise.title}` : 'Back to Lab'}
       />

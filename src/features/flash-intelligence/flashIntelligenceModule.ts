@@ -9,7 +9,7 @@ import type { ExerciseSequenceItem } from '@/lib/exercises/sequence'
 export const FLASH_INTELLIGENCE_MODULE: readonly ExerciseSequenceItem[] = [
   {
     exerciseId: 'word-flash',
-    title: 'Word Flash',
+    title: 'Rapid Recognition Drill',
     summary: 'A word flashes briefly — identify it before it disappears.',
     href: '/labs/quantum-speed-reading/word-flash',
   },

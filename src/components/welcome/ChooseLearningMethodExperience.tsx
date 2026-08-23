@@ -135,11 +135,11 @@ export function ChooseLearningMethodExperience({ isAuthenticated, appDomain }: C
           </div>
         ) : (
           <div>
-            <h1 className={TYPOGRAPHY.display}>Quantum Speed Reading</h1>
+            <h1 className={TYPOGRAPHY.display}>Read 5x Faster. Retain 100%.</h1>
             <p className="mt-6 flex flex-col gap-1 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-3xl md:text-4xl">
-              <span>Read faster. Remember more.</span>
-              <span>Master any document in minutes.</span>
-              <span>Powered by real AI, not gimmicks.</span>
+              <span>Master Any Book — Guided Live by Dr. Kapil Dev Sharma.</span>
+              <span>7 Live Masterclasses. One Mentor.</span>
+              <span>Real Transformation.</span>
             </p>
           </div>
         )}
@@ -159,8 +159,12 @@ export function ChooseLearningMethodExperience({ isAuthenticated, appDomain }: C
               <PathCard
                 emoji="⚡"
                 title="Quantum Speed Reading"
-                description="Double your reading speed and comprehension with a real, structured 30-day mastery program."
-                points={['Schulte Grid, Word Flash, Chunk Reading', 'Upload Your Own Chapters to Practice On', '30-Day Structured Masterclass']}
+                description="A real, structured 30-day mastery program — guided live by Dr. Kapil Dev Sharma."
+                points={[
+                  'Peripheral Vision Activator, Rapid Recognition Drill, Quantum Chunk Reading',
+                  'Upload Your Own Chapters to Practice On',
+                  '7 Live Masterclasses with Dr. Kapil Dev Sharma',
+                ]}
                 ctaLabel="Start Training →"
                 onSelect={() => handleSelect('/labs/quantum-speed-reading/thirty-day-curriculum')}
               />

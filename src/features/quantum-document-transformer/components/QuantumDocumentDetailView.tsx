@@ -212,13 +212,13 @@ export function QuantumDocumentDetailView({ document, initialOutcomeProfile }: Q
             {document.isMetadataOnlySummary && <MetadataOnlySummaryBanner />}
 
             {/* Segmented into tabs rather than one long scroll — Summary,
-                Spider Notes, Keywords, Memory Techniques, and Practice
+                Neural Map Notes, Keywords, Memory Techniques, and Practice
                 each get their own space instead of competing for
                 attention in a single stacked column. */}
             <Tabs defaultValue="summary">
               <TabsList className="w-full">
                 <TabsTrigger value="summary">Summary</TabsTrigger>
-                <TabsTrigger value="spider-notes">Spider Notes</TabsTrigger>
+                <TabsTrigger value="spider-notes">Neural Map Notes</TabsTrigger>
                 <TabsTrigger value="keywords">Keywords</TabsTrigger>
                 <TabsTrigger value="memory-techniques">Memory Techniques</TabsTrigger>
                 <TabsTrigger value="practice">Practice</TabsTrigger>

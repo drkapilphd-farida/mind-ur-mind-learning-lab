@@ -13,7 +13,7 @@ type AppTwoMilestoneBannerProps = {
 // dismissible mention rather than a hard sell.
 const MILESTONE_COPY: Record<7 | 14, string> = {
   7: 'One real week down. Whenever you’re ready to point that speed at your own documents and books, App 2 — the 30-Day QSR Pro Suite — is here.',
-  14: 'Two real weeks in. When you’re ready for the heavy-duty suite (Upload Documents, Spider Notes, Memory Techniques), App 2 is ₹4,999.',
+  14: 'Two real weeks in. When you’re ready for the heavy-duty suite (Upload Documents, Neural Map Notes, Memory Techniques), App 2 is ₹4,999.',
 }
 
 // App 1 → App 2 Soft Upsell™ — shown only on the two real mid-journey

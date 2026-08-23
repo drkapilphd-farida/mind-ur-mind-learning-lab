@@ -363,7 +363,7 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
 
   return (
     <ReadingLayout maxWidthClassName="max-w-2xl" onExit={() => onExitRequested(elapsedMs)}>
-      <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Photographic Memory™</p>
+      <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">Deep Visualisation Recall™</p>
 
       <div className="mt-4 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
         <ReadingStatTile label="Round" value={`${roundIndex + 1} / ${ROUNDS_PER_SESSION}`} />
@@ -442,7 +442,7 @@ export function PhotographicMemoryCanvas({ categoryFilter, onComplete, onExitReq
                   type="button"
                   disabled={phase !== 'recall'}
                   onClick={() => handleGuess(option.optionId)}
-                  aria-label="Photographic memory option"
+                  aria-label="Deep visualisation recall option"
                   className={`flex aspect-square items-center justify-center rounded-2xl border p-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 active:scale-95 ${stateClassName}`}
                 >
                   {renderOptionContent(option)}

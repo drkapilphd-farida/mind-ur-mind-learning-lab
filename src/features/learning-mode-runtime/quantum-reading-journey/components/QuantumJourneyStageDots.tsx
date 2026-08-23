@@ -6,7 +6,7 @@ type QuantumJourneyStageDotsProps = {
   currentStepIndex: number
 }
 
-const STEP_LABELS = ['Word Flash', 'Reading Chunks', 'Phrase Reading', 'Sentence Reading', 'Paragraph Reading', 'Reading Sprint', 'Understanding Check'] as const
+const STEP_LABELS = ['Rapid Recognition Drill', 'Reading Chunks', 'Phrase Reading', 'Sentence Reading', 'Paragraph Reading', 'Reading Sprint', 'Understanding Check'] as const
 
 // Reading Intelligence Engine™ Upgrade — Sprint QSR-2.5: Reading Journey
 // UX & Navigation™. Objective 4/12 — a small, calm "where am I in this

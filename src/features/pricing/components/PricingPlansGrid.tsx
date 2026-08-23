@@ -142,7 +142,7 @@ export function PricingPlansGrid(): React.JSX.Element {
           priceUnit="forever"
           features={[
             `${FREE_TIER_DOCUMENT_LIMIT} free AI document transformations to try it out`,
-            'Spider Notes & AI summaries on those documents',
+            'Neural Map Notes & AI summaries on those documents',
             'Quantum Speed Reading & Active Recall sessions',
           ]}
           cta={
@@ -238,10 +238,10 @@ export function PricingPlansGrid(): React.JSX.Element {
           Monthly/Yearly toggle above should apply to. */}
       <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-3xl border border-border/60 bg-card p-8 sm:flex-row">
         <div>
-          <p className="text-lg font-semibold text-foreground">📄 AI Document Supercharger™ (Upload & Learn)</p>
+          <p className="text-lg font-semibold text-foreground">📄 Document Mastery Studio™</p>
           <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-            Standalone document processing — drop in any PDF, textbook, or research paper and get Quantum Speed Reading drills, Mind Maps, and Spider
-            Notes back. ₹499/month.
+            Standalone document processing — drop in any PDF, textbook, or research paper and get Quantum Speed Reading drills, Mind Maps, and Neural
+            Map Notes back. ₹499/month.
           </p>
         </div>
         <Button asChild size="lg" variant="outline" className="w-full shrink-0 rounded-full sm:w-auto">

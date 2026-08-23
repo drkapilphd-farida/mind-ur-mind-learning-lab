@@ -189,7 +189,7 @@ export function RecordAndLearnExperience(): React.JSX.Element {
             <div>
               <h1 className={TYPOGRAPHY.h1}>Recording isn&rsquo;t available in this browser</h1>
               <p className={cn(TYPOGRAPHY.bodyLarge, 'mx-auto mt-3 max-w-md text-muted-foreground')}>
-                Try a recent version of Chrome, Edge, or Safari, or bring your material with Upload & Learn™ instead.
+                Try a recent version of Chrome, Edge, or Safari, or bring your material with Document Mastery Studio™ instead.
               </p>
             </div>
             <Link href="/welcome/choose-method" className={cn(TYPOGRAPHY.caption, 'underline-offset-4 hover:underline')}>

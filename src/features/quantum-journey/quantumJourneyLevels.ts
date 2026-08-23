@@ -38,15 +38,15 @@ export type ReadingMode = 'quantum-reading-sprint' | 'phrase' | 'vertical-word' 
 // Targeting™ (see canInjectWeaknessDrill below).
 const WEEK_1_POOL: readonly JourneyStepExercise[] = [
   { exerciseId: 'eye-warm-up', title: 'Eye Warm-up', domain: null },
-  { exerciseId: 'schulte-grid-drill', title: 'Schulte Grid™', domain: null },
-  { exerciseId: 'word-flash', title: 'Word Flash™', domain: null },
+  { exerciseId: 'schulte-grid-drill', title: 'Peripheral Vision Activator™', domain: null },
+  { exerciseId: 'word-flash', title: 'Rapid Recognition Drill™', domain: null },
   { exerciseId: 'brain-gym-circuit', title: '2-Minute Brain Gym Circuit™', domain: null },
 ]
 
 // Week 2 (Expansion & Visualisation) — Right Brain + Visualisation only;
 // Intuition/Zener is deliberately absent here too, moved to Week 3.
 const WEEK_2_POOL: readonly JourneyStepExercise[] = [
-  { exerciseId: 'photographic-memory', title: 'Photographic Memory™', domain: 'right_brain' },
+  { exerciseId: 'photographic-memory', title: 'Deep Visualisation Recall™', domain: 'right_brain' },
   { exerciseId: 'color-scene-transformation', title: 'Color & Scene Transformation Journey™', domain: 'visualisation' },
   { exerciseId: 'quantum-mental-rotation', title: 'Quantum Mental Object Rotation™', domain: 'visualisation' },
 ]

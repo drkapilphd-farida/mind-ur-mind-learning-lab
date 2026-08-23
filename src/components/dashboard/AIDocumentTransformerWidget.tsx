@@ -53,19 +53,19 @@ const ACCEPT = [
 // just decide which real *stage name* is shown, not a fabricated byte count.
 const PROCESSING_STEPS = [
   { threshold: 0, message: 'Reading document content...' },
-  { threshold: 35, message: 'Building Spider Notes & AI Summary...' },
+  { threshold: 35, message: 'Building Neural Map Notes & AI Summary...' },
   { threshold: 75, message: 'Preparing Quantum Session...' },
 ] as const
 
 const URL_PROCESSING_STEPS_WEBSITE = [
   { threshold: 0, message: 'Fetching article content...' },
-  { threshold: 35, message: 'Building Spider Notes & AI Summary...' },
+  { threshold: 35, message: 'Building Neural Map Notes & AI Summary...' },
   { threshold: 75, message: 'Generating quantum mind maps...' },
 ] as const
 
 const URL_PROCESSING_STEPS_YOUTUBE = [
   { threshold: 0, message: 'Fetching transcript...' },
-  { threshold: 35, message: 'Building Spider Notes & AI Summary...' },
+  { threshold: 35, message: 'Building Neural Map Notes & AI Summary...' },
   { threshold: 75, message: 'Generating quantum mind maps...' },
 ] as const
 
@@ -657,7 +657,7 @@ export function AIDocumentTransformerWidget({ isPro, initialDocumentCount, recen
       <div className="flex items-center justify-between gap-3">
         <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-cyan-500/10 px-2.5 py-1 text-xs font-semibold tracking-wider text-cyan-700 uppercase dark:text-cyan-400">
           <Sparkles className="size-3.5" aria-hidden="true" />
-          Upload &amp; Learn
+          Document Mastery Studio
         </span>
         {!isPro && !isBlocked && (
           <p className="text-xs text-slate-700 dark:text-slate-300">

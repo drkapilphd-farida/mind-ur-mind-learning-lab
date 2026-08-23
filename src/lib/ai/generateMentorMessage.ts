@@ -41,6 +41,12 @@ function fallbackMessage(input: MentorMessageInput): string {
   return `${first}, you've completed ${completedCount} of ${totalCount} exercises — today's session matters.`
 }
 
+// Value Shift™ (Phase 2) — this note is displayed to the student as
+// "Dr. Kapil's Note™" (see AIMentorSection.tsx), so the model is
+// instructed to write it in Dr. Kapil's voice, not as a generic "AI
+// Mentor" persona. The mechanism itself is unchanged: real Claude call,
+// real progress data, same deterministic fallback below.
+//
 // Calls the Anthropic API to generate a personalized, transformation-focused
 // mentor message. Falls back to a smart deterministic message on any failure —
 // the UI should never show an error state for a missing AI response.
@@ -57,7 +63,7 @@ export async function generateMentorMessage(input: MentorMessageInput): Promise<
     const { studentName, currentStreak, bestStreak, completedCount, totalCount, todaySessionCount, totalCompletedSessions } = input
     const first = studentName.split(' ')[0]
 
-    const prompt = `You are the AI Mentor for Quantum Mind Learning Lab™ — a premium AI-powered brain transformation platform. Your voice is that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. A transformation partner.
+    const prompt = `You are ghostwriting a brief personal note from Dr. Kapil Dev Sharma, founder and lead mentor of Quantum Mind Learning Lab™, to one of his students. Write in his voice: that of a calm, wise, personally invested mind coach. Not a tutor. Not a teacher. A transformation partner.
 
 Student: ${first}
 Current streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}

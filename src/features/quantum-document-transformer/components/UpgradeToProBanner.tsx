@@ -26,7 +26,7 @@ export function UpgradeToProBanner({ documentLimit }: UpgradeToProBannerProps): 
       <div>
         <p className={TYPOGRAPHY.h3}>You&rsquo;ve reached your free limit</p>
         <p className={cn(TYPOGRAPHY.small, 'mx-auto mt-2 max-w-sm')}>
-          You&rsquo;ve reached your free limit of {documentLimit} documents. Upgrade to Pro for unlimited AI document transformations, Spider Notes, and Quantum sessions.
+          You&rsquo;ve reached your free limit of {documentLimit} documents. Upgrade to Pro for unlimited AI document transformations, Neural Map Notes, and Quantum sessions.
         </p>
       </div>
 

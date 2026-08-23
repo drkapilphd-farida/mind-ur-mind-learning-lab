@@ -365,7 +365,7 @@ export function SchulteGridSpeedDrill({ onComplete, onExit }: VisualActivationEx
         />
       </div>
 
-      <p className="text-xs font-semibold tracking-widest text-primary uppercase">Schulte Grid Speed Drill</p>
+      <p className="text-xs font-semibold tracking-widest text-primary uppercase">Peripheral Vision Activator</p>
 
       {phase === 'intro' && (
         <motion.div
