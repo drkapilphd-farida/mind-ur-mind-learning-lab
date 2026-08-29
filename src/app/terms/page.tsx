@@ -32,7 +32,7 @@ export default function TermsOfServicePage(): React.JSX.Element {
         </p>
       </section>
 
-      <section>
+      <section id="billing">
         <h2 className={legalStyles.h2}>2. Subscriptions and billing</h2>
         <p className={legalStyles.p}>
           Paid plans &mdash; whether an individual/family subscription or an institutional plan for a school or

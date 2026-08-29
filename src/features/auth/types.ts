@@ -24,3 +24,21 @@ export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>
 export type AuthActionResult =
   | { success: true }
   | { success: false; error: string }
+
+// Quantum Mind App™ login — email OTP (a 6-digit code emailed via
+// Supabase's built-in signInWithOtp), not phone/SMS. Deliberately
+// reverted from an earlier phone-OTP design: SMS delivery requires a
+// paid provider (Twilio/MSG91/etc.) per message, where email OTP uses
+// Supabase's own email sending at no per-login cost.
+export const AppLoginEmailSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+})
+
+export type AppLoginEmailInput = z.infer<typeof AppLoginEmailSchema>
+
+export const AppLoginVerifyOtpSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  token: z.string().length(6, 'Enter the 6-digit code'),
+})
+
+export type AppLoginVerifyOtpInput = z.infer<typeof AppLoginVerifyOtpSchema>

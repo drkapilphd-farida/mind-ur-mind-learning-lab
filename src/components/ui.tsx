@@ -38,7 +38,7 @@ export function CtaButton({
   const styles = {
     primary:
       accent === "gold"
-        ? "bg-gold text-[#1B1508] hover:bg-[#e4be5e]"
+        ? "bg-gold text-[#1B1508] hover:bg-[#cb9a44]"
         : "bg-teal text-white hover:bg-teal-light",
     ghost:
       accent === "gold"

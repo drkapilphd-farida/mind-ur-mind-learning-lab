@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Instrument_Serif, IBM_Plex_Mono, Noto_Sans_De
 import { Providers } from '@/components/Providers'
 import { Toaster } from '@/components/ui/sonner'
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import { LanguageProvider } from '@/context/LanguageContext'
 import './globals.css'
 
@@ -16,11 +17,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-// Marketing Homepage™ — additive only: these 4 fonts and the variables
-// they define (--font-homepage-sans/-mono/-display/-devanagari) are
-// consumed exclusively by .homepage-void (globals.css) and the new
-// homepage's own components (src/app/(marketing)/page.tsx). Every other
-// route keeps using Geist exactly as before — nothing here touches
+// Warm Luxury Mentorship™ — additive only: these 4 fonts and the
+// variables they define (--font-homepage-sans/-mono/-display/-devanagari)
+// are consumed exclusively by .warm-light (globals.css) and its two
+// pages' own components (src/app/(marketing)/page.tsx and
+// src/app/programs/quantum-speed-reading/page.tsx). Every other route
+// keeps using Geist exactly as before — nothing here touches
 // --font-sans/--font-mono globally. Deliberately namespaced (not
 // `--font-mono`/`--font-display`) so they can never collide with the
 // app-wide token names those existing utilities already resolve to.
@@ -132,6 +134,7 @@ export default function RootLayout({
         </LanguageProvider>
         <Toaster />
         <ServiceWorkerRegistration />
+        <GoogleAnalytics />
       </body>
     </html>
   )

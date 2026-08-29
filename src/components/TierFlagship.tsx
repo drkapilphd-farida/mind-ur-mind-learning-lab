@@ -1,7 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { Eyebrow, CtaButton } from "./ui";
+import { Eyebrow, CtaButton, Pill } from "./ui";
+import AccessModelStrip from "./AccessModelStrip";
 
 export default function TierFlagship(): React.JSX.Element {
   const { t } = useLanguage();
@@ -14,7 +15,10 @@ export default function TierFlagship(): React.JSX.Element {
     >
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
-          <Eyebrow color="text-gold">{streak.eyebrow}</Eyebrow>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Eyebrow color="text-gold">{streak.eyebrow}</Eyebrow>
+            <Pill>{streak.audienceTag}</Pill>
+          </div>
           <h2 className="mt-4 text-[30px] font-extrabold leading-tight sm:text-[38px]">
             {streak.title}{" "}
             <span className="font-display italic text-gold">{streak.titleEm}</span>
@@ -28,6 +32,8 @@ export default function TierFlagship(): React.JSX.Element {
 
           <div>
             <p className="text-[16px] leading-relaxed text-ink-dim">{streak.desc}</p>
+
+            <AccessModelStrip className="mt-6" />
 
             <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
               {streak.features.map((feature) => (
@@ -43,10 +49,18 @@ export default function TierFlagship(): React.JSX.Element {
                 {streak.cta}
               </CtaButton>
             </div>
+
+            {/* Proof-Adjacent-to-Offer™ — a real testimonial (same source
+                as the Testimonials section below) placed right next to
+                the CTA it's evidence for, not just further down the page. */}
+            <p className="mt-6 border-l-2 border-gold/40 pl-4 text-[13.5px] italic leading-relaxed text-ink-dim">
+              &ldquo;{streak.trustQuote.quote}&rdquo;
+              <span className="not-italic text-ink-faint"> — {streak.trustQuote.name}</span>
+            </p>
           </div>
 
           {/* 30-day streak visual */}
-          <div className="relative flex aspect-square items-center justify-center rounded-sm border border-line bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.14),transparent_70%)]">
+          <div className="relative flex aspect-square items-center justify-center rounded-sm border border-line bg-[radial-gradient(circle_at_50%_50%,rgba(184,134,46,0.14),transparent_70%)]">
             <div className="flex w-[210px] flex-wrap justify-center gap-1.5" aria-hidden="true">
               {Array.from({ length: 30 }).map((_, i) => (
                 <span

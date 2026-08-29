@@ -1320,6 +1320,42 @@ export type Database = {
         }
         Relationships: []
       }
+      masterclass_payments: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          email: string | null
+          granted_at: string | null
+          id: string
+          phone: string | null
+          razorpay_payment_id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          granted_at?: string | null
+          id?: string
+          phone?: string | null
+          razorpay_payment_id: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          granted_at?: string | null
+          id?: string
+          phone?: string | null
+          razorpay_payment_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       memory_discovery_sessions: {
         Row: {
           completed: boolean
@@ -1652,24 +1688,30 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
+          phone: string | null
           selected_reading_goal: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
+          phone?: string | null
           selected_reading_goal?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           selected_reading_goal?: string | null
           updated_at?: string
         }

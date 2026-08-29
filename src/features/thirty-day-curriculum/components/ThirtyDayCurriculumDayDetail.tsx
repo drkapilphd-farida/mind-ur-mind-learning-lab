@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, FileText, Sparkles } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FileText, RotateCcw, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BrandWatermark } from '@/components/brand/BrandWatermark'
 import { buildCurriculumDayPlan, getCurriculumPhase, getPhaseJustCompleted, isCheckpointDay } from '../curriculumDatabase'
@@ -32,6 +33,15 @@ type ThirtyDayCurriculumDayDetailProps = {
 // checkpoint day's real completion condition is always the WPM +
 // comprehension check-in, never bypassable by just clicking through
 // exercises (see curriculumReturnRouting.ts's own doc comment on this).
+//
+// Permanent Replay™ — a completed day still lands on the celebratory
+// summary below by default (the checkpoint stats/badge are worth
+// keeping front and center), but `isReplaying` lets a learner re-open
+// DayMasterPlayer on demand via "Practice Day Again," any number of
+// times. DayMasterPlayer's own finishDay() already calls
+// markCurriculumDayComplete/syncCurriculumDayCompletion idempotently, so
+// re-finishing a replay is safe — it's a no-op against
+// completedDays/checkpoints, not a second "completion."
 export function ThirtyDayCurriculumDayDetail({
   day,
   progress,
@@ -39,6 +49,7 @@ export function ThirtyDayCurriculumDayDetail({
   onBack,
   onLaunchAssessment,
 }: ThirtyDayCurriculumDayDetailProps): React.JSX.Element {
+  const [isReplaying, setIsReplaying] = useState(false)
   const plan = buildCurriculumDayPlan(day)
   const phase = getCurriculumPhase(plan.phase)
   const isCompleted = progress.completedDays.includes(day)
@@ -51,19 +62,25 @@ export function ThirtyDayCurriculumDayDetail({
   const nextPhase = phaseJustCompleted !== null ? getCurriculumPhase((phaseJustCompleted + 1) as 2 | 3 | 4) : null
   const checkpointDelta = computeCheckpointDelta(progress, day)
 
-  // True Full-Screen Viewport Lock™ — while a day isn't complete yet,
-  // DayMasterPlayer renders as a real fixed-inset-0 full-screen wizard
-  // (its own header/exit control included) the instant it mounts. The
-  // back button + Day Theme card below aren't just visually covered by
-  // that overlay — they're real interactive elements a screen reader or
-  // keyboard user could otherwise reach, so they're not rendered at all
-  // while the wizard owns the screen, not just hidden behind it. This is
-  // also what "zero parent titles/breadcrumbs during an active exercise"
-  // requires: a second header stacked above the wizard's own was exactly
-  // what forced the page taller than one screen and made it scroll.
-  if (!isCompleted) {
+  // True Full-Screen Viewport Lock™ — while a day isn't complete yet (or
+  // is being replayed), DayMasterPlayer renders as a real
+  // fixed-inset-0 full-screen wizard (its own header/exit control
+  // included) the instant it mounts. The back button + Day Theme card
+  // below aren't just visually covered by that overlay — they're real
+  // interactive elements a screen reader or keyboard user could
+  // otherwise reach, so they're not rendered at all while the wizard
+  // owns the screen, not just hidden behind it. This is also what "zero
+  // parent titles/breadcrumbs during an active exercise" requires: a
+  // second header stacked above the wizard's own was exactly what
+  // forced the page taller than one screen and made it scroll.
+  if (!isCompleted || isReplaying) {
     return (
-      <DayMasterPlayer day={day} onExitToRoadmap={onBack} onDayComplete={onBack} onReadyForCheckpoint={() => onLaunchAssessment(day)} />
+      <DayMasterPlayer
+        day={day}
+        onExitToRoadmap={isReplaying ? () => setIsReplaying(false) : onBack}
+        onDayComplete={isReplaying ? () => setIsReplaying(false) : onBack}
+        onReadyForCheckpoint={() => onLaunchAssessment(day)}
+      />
     )
   }
 
@@ -152,6 +169,14 @@ export function ThirtyDayCurriculumDayDetail({
         ) : (
           <p className="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">Day {day} complete — nice work.</p>
         )}
+        <button
+          type="button"
+          onClick={() => setIsReplaying(true)}
+          className="mx-auto mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+        >
+          <RotateCcw className="size-3.5" aria-hidden="true" />
+          Practice Day Again
+        </button>
       </div>
 
       {/* Upload & Learn Masterclass Integration™ — weaves the AI Document

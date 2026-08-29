@@ -29,8 +29,9 @@ export default function TierSpecialized(): React.JSX.Element {
               key={href}
               className="flex flex-col rounded-sm border border-line bg-panel p-8 sm:p-9"
             >
-              <div className="mb-4 font-mono text-[11px] uppercase tracking-[0.09em] text-rose">
-                {data.tag}
+              <div className="mb-3 flex flex-wrap items-center gap-2.5">
+                <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-rose">{data.tag}</span>
+                <Pill>{data.audienceTag}</Pill>
               </div>
               <h3 className="mb-3 text-[21px] font-bold leading-snug">{data.title}</h3>
               <p className="mb-6 text-[14.5px] leading-relaxed text-ink-dim">{data.desc}</p>
@@ -39,6 +40,12 @@ export default function TierSpecialized(): React.JSX.Element {
                   <Pill key={pill}>{pill}</Pill>
                 ))}
               </div>
+              {"trustQuote" in data && (
+                <p className="mb-8 border-l-2 border-rose/40 pl-4 text-[13.5px] italic leading-relaxed text-ink-dim">
+                  &ldquo;{data.trustQuote.quote}&rdquo;
+                  <span className="not-italic text-ink-faint"> — {data.trustQuote.name}</span>
+                </p>
+              )}
               <a
                 href={href}
                 className="group mt-auto inline-flex w-fit items-center gap-2.5 rounded-sm border border-rose/50 px-7 py-[15px] text-[14.5px] font-semibold text-rose transition-colors hover:bg-rose-soft"

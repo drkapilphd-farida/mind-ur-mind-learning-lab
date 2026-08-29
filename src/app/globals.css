@@ -79,16 +79,17 @@
 }
 
 /*
- * Marketing Homepage™ — color/spacing tokens for the new
- * app.mindurmind.org.in root homepage (src/app/(marketing)/page.tsx)
- * only. These utility classes (bg-void, text-ink, border-gold, etc.) are
- * technically available app-wide like any other Tailwind theme token,
- * but nothing outside .homepage-void (below) uses them today — same
- * additive, zero-risk-to-existing-pages posture as .school-corporate/
- * .glass-premium further down this file. font-display is new too (no
- * existing token by that name); its value comes from --font-homepage-display,
- * loaded by the root layout only for this page (see layout.tsx) — falls
- * back to the system serif stack anywhere that variable isn't set.
+ * Warm Luxury Mentorship™ — color/spacing token NAMES shared by both
+ * "Mind Ur Mind" marketing pages (the homepage and the QSR landing page,
+ * see .warm-light below for where the actual palette values live). These
+ * utility classes (bg-void, text-ink, border-gold, etc.) are technically
+ * available app-wide like any other Tailwind theme token, but nothing
+ * outside .warm-light uses them today — same additive, zero-risk-to-
+ * existing-pages posture as .school-corporate/.glass-premium further down
+ * this file. font-display is new too (no existing token by that name);
+ * its value comes from --font-homepage-display, loaded by the root layout
+ * only for these pages (see layout.tsx) — falls back to the system serif
+ * stack anywhere that variable isn't set.
  */
 @theme {
   --color-void: #0b0f17;
@@ -132,33 +133,63 @@
 }
 
 /*
- * Marketing Homepage™ — scoped surface + font override, applied to a
- * single wrapper div around the new homepage's content only (see
- * (marketing)/page.tsx). Follows the exact same pattern as
- * .school-corporate below: redefines --font-sans/--font-mono (which every
- * existing font-sans/font-mono utility usage inside this scope picks up
- * automatically via CSS custom-property inheritance) rather than touching
- * the app-wide tokens those utilities resolve to everywhere else.
- * --font-homepage-* variables are loaded by the root layout only (next/
- * font, additive alongside the existing Geist fonts) — falls back to the
- * app's normal fonts if ever rendered somewhere those aren't set.
+ * Warm Luxury Mentorship™ — the shared scoped surface + font override for
+ * every "Mind Ur Mind" marketing page (the homepage at (marketing)/page.tsx
+ * and the QSR landing page at programs/quantum-speed-reading/page.tsx),
+ * applied to a single wrapper div around each page's content. Originally
+ * two separate scopes (.homepage-void, dark, for the homepage; .qsr-light,
+ * this same warm palette, for the QSR page only) — consolidated into one
+ * once the homepage moved to the identical palette, so the two never risk
+ * drifting apart with duplicated values. Deliberately NOT applied to the
+ * (legacy) marketing pages (pricing/reviews/courses/certificates, which
+ * use the app's own global shadcn tokens below) or to the authenticated
+ * dashboard — both out of scope for this rebrand.
+ *
+ * Redefines --font-sans/--font-mono (which every existing font-sans/
+ * font-mono utility usage inside this scope picks up automatically via
+ * CSS custom-property inheritance) rather than touching the app-wide
+ * tokens those utilities resolve to everywhere else. --font-homepage-*
+ * variables are loaded by the root layout only (next/font, additive
+ * alongside the existing Geist fonts) — falls back to the app's normal
+ * fonts if ever rendered somewhere those aren't set.
+ *
+ * The --color-teal-* tokens are repurposed to this palette's copper/
+ * terracotta secondary accent (#A85A2A), not literal teal — the variable
+ * NAME stays "teal" so every existing text-teal/bg-teal-soft/border-teal
+ * usage across every consuming component lights up copper automatically,
+ * with no component edits needed for the rebrand.
  */
-.homepage-void {
-  /* Inter covers Latin; Noto Sans Devanagari fills in for Hindi copy
-     since Inter has no Devanagari glyphs — the browser picks the right
-     one per-character automatically from this fallback stack. */
+.warm-light {
   --font-sans: var(--font-homepage-sans), var(--font-homepage-devanagari), var(--font-sans);
   --font-mono: var(--font-homepage-mono, var(--font-mono));
+
+  --color-void: #efeae2;
+  --color-panel: #ffffff;
+  --color-panel-2: #f5f1ea;
+  --color-ink: #221f1d;
+  --color-ink-dim: #6e6660;
+  --color-ink-faint: #8a8177;
+  --color-gold: #b8862e;
+  --color-gold-dim: #8f6820;
+  --color-gold-soft: rgba(184, 134, 46, 0.12);
+  --color-teal: #a85a2a;
+  --color-teal-light: #c17240;
+  --color-teal-soft: rgba(168, 90, 42, 0.08);
+  --color-rose: #9c4a4a;
+  --color-rose-soft: rgba(156, 74, 74, 0.08);
+  --color-line: rgba(34, 31, 29, 0.1);
+  --color-line-strong: rgba(34, 31, 29, 0.18);
+
   background-color: var(--color-void);
   color: var(--color-ink);
 }
 
-.homepage-void ::selection {
-  background-color: rgba(212, 175, 55, 0.25);
+.warm-light ::selection {
+  background-color: rgba(184, 134, 46, 0.22);
   color: var(--color-ink);
 }
 
-.homepage-void :focus-visible {
+.warm-light :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
 }

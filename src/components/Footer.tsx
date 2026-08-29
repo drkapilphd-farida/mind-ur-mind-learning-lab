@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
+import { LivingBrainLogo } from "./brand/LivingBrainLogo";
 
 export default function Footer(): React.JSX.Element {
   const { t } = useLanguage();
@@ -13,9 +14,7 @@ export default function Footer(): React.JSX.Element {
         <div className="mb-12 grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-2.5 font-mono text-sm tracking-[0.06em]">
-              <span className="relative block h-6 w-6 rounded-full border border-gold">
-                <span className="absolute inset-[5px] rounded-full border border-gold/60" />
-              </span>
+              <LivingBrainLogo size={24} decorative={false} animated={false} />
               MIND UR MIND
             </div>
             <p className="mt-4 max-w-[220px] text-[13.5px] leading-relaxed text-ink-dim">

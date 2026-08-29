@@ -4,13 +4,14 @@ import HeroSection from '@/components/HeroSection'
 import TierFlagship from '@/components/TierFlagship'
 import TierRetreats from '@/components/TierRetreats'
 import TierSpecialized from '@/components/TierSpecialized'
-import HabitAppStrip from '@/components/HabitAppStrip'
 import Testimonials from '@/components/Testimonials'
+import FAQSection from '@/components/FAQSection'
+import WhatsAppWidget from '@/components/WhatsAppWidget'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'Mind Ur Mind — Dr. Kapil Dev Sharma | Quantum Speed Reading & Psychic-Spiritual Mastery',
-  description: 'Quantum Speed Reading, psychic & spiritual retreats, 1-on-1 mentoring, and a free Habit App — under Dr. Kapil Dev Sharma.',
+  description: 'The 30-Day Quantum Speed Reading Live Masterclass, psychic & spiritual retreats, and 1-on-1 mentoring — under Dr. Kapil Dev Sharma.',
 }
 
 // New Homepage™ — app.mindurmind.org.in's root now renders this directly
@@ -21,17 +22,18 @@ export const metadata: Metadata = {
 // override every other route is completely unaffected by.
 export default function HomePage(): React.JSX.Element {
   return (
-    <div className="homepage-void min-h-screen font-sans antialiased">
+    <div className="warm-light min-h-screen font-sans antialiased">
       <Navbar />
       <main>
         <HeroSection />
         <TierFlagship />
         <TierRetreats />
         <TierSpecialized />
-        <HabitAppStrip />
         <Testimonials />
+        <FAQSection />
       </main>
       <Footer />
+      <WhatsAppWidget />
     </div>
   )
 }

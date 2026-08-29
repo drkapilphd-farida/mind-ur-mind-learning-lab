@@ -46,6 +46,15 @@ function supabaseOrigin(): string | null {
 // (public/sw.js, registered by ServiceWorkerRegistration.tsx) — some
 // browsers don't fall back to default-src for worker registration, so
 // this needs to be explicit rather than assumed.
+//
+// Google Analytics 4: same proactive-allowance pattern as Razorpay's
+// Checkout.js entries above — GoogleAnalytics.tsx only injects the
+// gtag.js <script> when NEXT_PUBLIC_GA_MEASUREMENT_ID is actually set,
+// but the CSP is build-time static, so the allowance is unconditional
+// here rather than keyed off the env var. Harmless when GA is unused:
+// nothing on these domains loads unless the script tag itself renders.
+// googletagmanager.com serves gtag.js; google-analytics.com (and its
+// region-sharded 'analytics.google.com') is where gtag.js sends hits.
 function buildContentSecurityPolicy(): string {
   const isDev = process.env.NODE_ENV !== 'production'
   const supabase = supabaseOrigin()
@@ -54,11 +63,11 @@ function buildContentSecurityPolicy(): string {
     'default-src': ["'self'"],
     // 'unsafe-eval' only in dev — Next.js's dev-mode HMR/source-map
     // pipeline needs it; the production bundle does not.
-    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), 'https://checkout.razorpay.com'],
+    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), 'https://checkout.razorpay.com', 'https://www.googletagmanager.com'],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:', ...(supabase ? [supabase] : [])],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", ...(supabase ? [supabase, supabase.replace('https://', 'wss://')] : []), 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
+    'connect-src': ["'self'", ...(supabase ? [supabase, supabase.replace('https://', 'wss://')] : []), 'https://api.razorpay.com', 'https://lumberjack.razorpay.com', 'https://www.google-analytics.com', 'https://analytics.google.com'],
     'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com', 'https://www.youtube-nocookie.com'],
     'worker-src': ["'self'"],
     'object-src': ["'none'"],
