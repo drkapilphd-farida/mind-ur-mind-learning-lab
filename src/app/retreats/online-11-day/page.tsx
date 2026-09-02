@@ -11,6 +11,7 @@ import RetreatLiveStructure from '@/components/retreat/RetreatLiveStructure'
 import RetreatOutcomes from '@/components/retreat/RetreatOutcomes'
 import RetreatVideoTestimonials from '@/components/retreat/RetreatVideoTestimonials'
 import RetreatFaq from '@/components/retreat/RetreatFaq'
+import FreeMeditationPlayer from '@/components/retreat/FreeMeditationPlayer'
 import RetreatFinalCta from '@/components/retreat/RetreatFinalCta'
 import Footer from '@/components/Footer'
 import RetreatStickyBar from '@/components/retreat/RetreatStickyBar'
@@ -36,7 +37,9 @@ export const metadata: Metadata = {
 // who's teaching it, 12+ years (Authority) -> when it actually happens
 // (Schedule, with the real Razorpay checkout) -> how the 11 nights
 // actually run (LiveStructure) -> what changes (Outcomes) -> social
-// proof (VideoTestimonials) -> objection handling (Faq) -> final push
+// proof (VideoTestimonials) -> objection handling (Faq) -> a free,
+// no-signup taste of the practice for hesitant visitors, deliberately
+// placed right before the final ask (FreeMeditationPlayer) -> final push
 // (FinalCta) before the footer.
 export default function OnlineElevenDayRetreatPage(): React.JSX.Element {
   const faqSchema = buildFaqPageSchema(translations.en.retreatLanding.faq.items)
@@ -55,6 +58,7 @@ export default function OnlineElevenDayRetreatPage(): React.JSX.Element {
         <RetreatOutcomes />
         <RetreatVideoTestimonials />
         <RetreatFaq />
+        <FreeMeditationPlayer />
         <RetreatFinalCta />
       </main>
       <Footer />

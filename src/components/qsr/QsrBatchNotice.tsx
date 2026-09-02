@@ -5,6 +5,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
 import AccessModelStrip from "../AccessModelStrip";
 import CheckoutTrustLine from "../CheckoutTrustLine";
+import QsrGuaranteeBadge from "./QsrGuaranteeBadge";
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from "@/config/masterclassPaymentLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
@@ -46,7 +47,7 @@ export default function QsrBatchNotice(): React.JSX.Element {
       : "";
 
   return (
-    <section className="border-b border-line bg-panel px-6 py-24 sm:px-8">
+    <section id="pricing" className="border-b border-line bg-panel px-6 py-24 sm:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <div className="flex justify-center">
           <Eyebrow color="text-gold">{qsr.finalCta.eyebrow}</Eyebrow>
@@ -83,6 +84,8 @@ export default function QsrBatchNotice(): React.JSX.Element {
             <CheckoutTrustLine className="mx-auto mt-1.5 max-w-[220px] text-center" />
           </div>
         </div>
+
+        <QsrGuaranteeBadge className="mx-auto mt-8 max-w-md text-left" />
       </div>
     </section>
   );

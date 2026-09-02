@@ -52,7 +52,7 @@ export default function HeroSection(): React.JSX.Element {
             <CtaButton href="#tier-1" variant="primary" accent="gold">
               {t.hero.ctaPrimary}
             </CtaButton>
-            <CtaButton href="/signup" variant="ghost" accent="teal">
+            <CtaButton href="/programs/quantum-speed-reading/speed-test" variant="ghost" accent="teal">
               {t.hero.ctaSecondary}
             </CtaButton>
           </div>

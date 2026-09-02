@@ -14,7 +14,7 @@ import PhotoPlaceholder from "./PhotoPlaceholder";
 // slots below map by position, same pattern as the icon-by-index used
 // elsewhere on this page.
 const VENUE_PHOTOS = [RESIDENTIAL_PHOTOS.venues.lonavala, RESIDENTIAL_PHOTOS.venues.rishikesh];
-const VENUE_PHOTO_LABELS = ["Lonavala Snapshot — Drop In Photo Here", "Rishikesh Snapshot — Drop In Photo Here"];
+const VENUE_PHOTO_LABELS = ["Lonavala", "Rishikesh"];
 
 export default function ResidentialVenues(): React.JSX.Element {
   const { t } = useLanguage();
@@ -35,7 +35,7 @@ export default function ResidentialVenues(): React.JSX.Element {
               <PhotoPlaceholder
                 src={VENUE_PHOTOS[index]}
                 alt={`${location.name}, ${location.address}`}
-                label={VENUE_PHOTO_LABELS[index] ?? "Venue Snapshot — Drop In Photo Here"}
+                label={VENUE_PHOTO_LABELS[index] ?? "Venue Photo"}
                 className="aspect-[4/3] w-full"
                 sizes="(min-width: 640px) 50vw, 100vw"
               />

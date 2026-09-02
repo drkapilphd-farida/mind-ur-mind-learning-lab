@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
 import QsrTrustBadge from "./QsrTrustBadge";
+import QsrGuaranteeBadge from "./QsrGuaranteeBadge";
 import CheckoutTrustLine from "../CheckoutTrustLine";
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from "@/config/masterclassPaymentLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
@@ -53,7 +54,7 @@ export default function QsrHero(): React.JSX.Element {
               <CheckoutTrustLine className="mt-1.5 max-w-[220px]" />
             </div>
             <Link
-              href="/signup"
+              href="/programs/quantum-speed-reading/speed-test"
               className="group inline-flex items-center gap-2.5 rounded-sm border border-teal/60 px-7 py-[15px] text-[14.5px] font-semibold text-teal transition-colors hover:bg-teal-soft"
             >
               {qsr.hero.ctaSecondary}
@@ -64,6 +65,8 @@ export default function QsrHero(): React.JSX.Element {
           <div className="mt-6">
             <QsrTrustBadge />
           </div>
+
+          <QsrGuaranteeBadge className="mt-4 max-w-md" />
 
           <p className="mt-8 text-[13.5px] text-ink-dim">{qsr.hero.trustLine}</p>
 

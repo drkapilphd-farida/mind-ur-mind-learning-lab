@@ -2,18 +2,18 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
-import {
-  RESIDENTIAL_TESTIMONIAL_VIDEO_IDS,
-  RESIDENTIAL_TESTIMONIALS_PLAYLIST_WATCH_URL,
-  buildResidentialTestimonialEmbedUrl,
-} from "@/config/residentialRetreatMedia";
+import VideoReviewGrid from "../VideoReviewGrid";
+import { RETREAT_VIDEO_REVIEWS, RETREAT_VIDEO_REVIEWS_PLAYLIST_WATCH_URL } from "@/config/retreatVideoReviews";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
-// 4 real, individual video testimonials (given directly, not pulled via
-// a Data API), each embedded on its own — different from the single
-// "videoseries" playlist embed used on /reviews and the QSR/Online
-// Retreat pages. "Watch More" points to the separate, broader playlist
-// given specifically for this page.
+// Real Retreat Video Reviews™ — same shared 6-video gallery+lightbox as
+// the Online 11-Day Retreat page (see retreatVideoReviews.ts and
+// VideoReviewGrid.tsx): real students speaking to the retreat experience
+// generally, not specific to one format. Previously this page embedded 4
+// individually-selected videos inline via its own
+// residentialRetreatMedia.ts config — consolidated into the same shared
+// set both retreat pages now use, real extracted thumbnails instead of
+// an inline YouTube iframe per video.
 export default function ResidentialVideoTestimonials(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.residentialLanding.videoTestimonials;
@@ -27,23 +27,11 @@ export default function ResidentialVideoTestimonials(): React.JSX.Element {
           <p className="mt-3 text-[15.5px] text-ink-dim">{section.desc}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {RESIDENTIAL_TESTIMONIAL_VIDEO_IDS.map((videoId, index) => (
-            <div key={videoId} className="aspect-video overflow-hidden rounded-sm border border-line-strong">
-              <iframe
-                src={buildResidentialTestimonialEmbedUrl(videoId)}
-                title={`Real Student Story ${index + 1}`}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          ))}
-        </div>
+        <VideoReviewGrid videos={RETREAT_VIDEO_REVIEWS} />
 
         <div className="mt-10 flex justify-center">
           <a
-            href={RESIDENTIAL_TESTIMONIALS_PLAYLIST_WATCH_URL}
+            href={RETREAT_VIDEO_REVIEWS_PLAYLIST_WATCH_URL}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackGaEvent("video_testimonial_click", { location: "residential_watch_more_videos" })}

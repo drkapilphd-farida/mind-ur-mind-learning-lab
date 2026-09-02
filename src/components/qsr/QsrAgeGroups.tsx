@@ -7,12 +7,13 @@ import { Eyebrow } from "../ui";
 const PATHWAY_ICONS = [Baby, BookOpenCheck] as const;
 
 // One Masterclass, Two Real Pathways™ — replaces the earlier myth/reality
-// framing. Blindfold reading for children is a real, verified skill
-// visible in the student video reviews (per direct confirmation), so
-// this section presents it as a genuine pathway rather than something to
-// downplay — paired with the adult open-eye pathway, tied together by
-// the shared underlying training (peripheral vision, concentration,
-// right-brain engagement) already covered in QsrBrainScience above.
+// framing. Blindfold reading for children is presented honestly here as
+// what it is: a trained skill visible in the student video reviews, not
+// an independently verified/tested ability — the copy deliberately
+// avoids "verified" (see the ADR/session note on this) — paired with
+// the adult open-eye pathway, tied together by the shared underlying
+// training (peripheral vision, concentration, right-brain engagement)
+// already covered in QsrBrainScience above.
 export default function QsrAgeGroups(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.ageGroups;

@@ -8,15 +8,20 @@ import QsrAgeGroups from '@/components/qsr/QsrAgeGroups'
 import QsrAppPreview from '@/components/qsr/QsrAppPreview'
 import QsrMechanics from '@/components/qsr/QsrMechanics'
 import QsrCurriculum from '@/components/qsr/QsrCurriculum'
+import QsrExamBenefits from '@/components/qsr/QsrExamBenefits'
 import QsrAuthority from '@/components/qsr/QsrAuthority'
+import QsrCredibilityStrip from '@/components/qsr/QsrCredibilityStrip'
 import QsrFounderVideo from '@/components/qsr/QsrFounderVideo'
+import QsrLiveIntroSession from '@/components/qsr/QsrLiveIntroSession'
 import QsrAudience from '@/components/qsr/QsrAudience'
 import QsrVideoTestimonials from '@/components/qsr/QsrVideoTestimonials'
 import QsrFaq from '@/components/qsr/QsrFaq'
 import QsrBatchNotice from '@/components/qsr/QsrBatchNotice'
+import QsrSpeedTestInlineCta from '@/components/qsr/QsrSpeedTestInlineCta'
 import Footer from '@/components/Footer'
 import QsrStickyBar from '@/components/qsr/QsrStickyBar'
 import QsrWhatsAppWidget from '@/components/qsr/QsrWhatsAppWidget'
+import { WORKSHOP_CITIES } from '@/config/workshopCities'
 
 export const metadata: Metadata = {
   title: '30-Day Quantum Speed Reading Masterclass — Dr. Kapil Dev Sharma',
@@ -34,12 +39,18 @@ export const metadata: Metadata = {
 // WhatsApp widget tuned to this exact program.
 //
 // Section order follows a deliberate narrative arc: hook (Hero) → why it
-// works (BrainScience) → how the training meets kids and adults
+// works (BrainScience) → a free, no-risk taste of the technique itself
+// (SpeedTestInlineCta) → how the training meets kids and adults
 // differently (AgeGroups) → what daily practice feels like (AppPreview)
 // → how the program is structured (Mechanics, Curriculum) → who is
-// actually teaching it (Authority, FounderVideo) → fit (Audience) →
-// social proof (VideoTestimonials) → final objection handling (Faq) →
-// real batch cadence + final push (BatchNotice) before the footer.
+// actually teaching it (Authority, CredibilityStrip, FounderVideo) → fit
+// (Audience) → the same free test again, now as a lower-commitment
+// alternative right where a hesitant visitor is deciding whether to
+// commit to ₹4,999 (SpeedTestInlineCta) → social proof
+// (VideoTestimonials) → final objection handling (Faq) → real batch
+// cadence + final push (BatchNotice) before the footer. Three total
+// speed-test CTAs on this page (Hero + these two) — deliberately no
+// fourth or sticky/floating version, to avoid feeling spammy.
 export default function QuantumSpeedReadingLandingPage(): React.JSX.Element {
   const faqSchema = buildFaqPageSchema(translations.en.qsrLanding.faq.items)
 
@@ -50,13 +61,18 @@ export default function QuantumSpeedReadingLandingPage(): React.JSX.Element {
       <main>
         <QsrHero />
         <QsrBrainScience />
+        <QsrSpeedTestInlineCta variant="afterScience" />
         <QsrAgeGroups />
         <QsrAppPreview />
         <QsrMechanics />
         <QsrCurriculum />
+        <QsrExamBenefits />
         <QsrAuthority />
+        <QsrCredibilityStrip cities={WORKSHOP_CITIES} />
         <QsrFounderVideo />
+        <QsrLiveIntroSession />
         <QsrAudience />
+        <QsrSpeedTestInlineCta variant="beforePricing" />
         <QsrVideoTestimonials />
         <QsrFaq />
         <QsrBatchNotice />

@@ -3,6 +3,7 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
 import CheckoutTrustLine from "../CheckoutTrustLine";
+import PracticeDisclaimer from "../PracticeDisclaimer";
 import { RAZORPAY_RETREAT_PAYMENT_LINK } from "@/config/retreatPaymentLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
@@ -31,6 +32,7 @@ export default function RetreatFinalCta(): React.JSX.Element {
           </a>
         </div>
         <CheckoutTrustLine className="mx-auto mt-3 max-w-xs text-center" />
+        <PracticeDisclaimer className="mx-auto mt-6 max-w-md text-left" />
       </div>
     </section>
   );

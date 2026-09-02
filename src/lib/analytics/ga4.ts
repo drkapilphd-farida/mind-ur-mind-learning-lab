@@ -17,10 +17,13 @@ declare global {
 // clicks and Razorpay checkout button clicks, across both landing
 // pages, plus a video-engagement event for the Residential Retreats
 // page's "watch more" playlist link (not itself a conversion, but a
-// meaningful engagement signal distinct from a WhatsApp/checkout click).
-// Extend this union, not ad-hoc string literals, so every call site
-// stays typo-proof and greppable.
-export type GaEventName = 'whatsapp_click' | 'razorpay_checkout_click' | 'video_testimonial_click'
+// meaningful engagement signal distinct from a WhatsApp/checkout click),
+// and a Classplus checkout-click event for the Overthinking Mastery
+// Course page (external checkout, same conversion intent as
+// razorpay_checkout_click but a different provider — kept distinct so
+// GA4 reports can tell the two apart). Extend this union, not ad-hoc
+// string literals, so every call site stays typo-proof and greppable.
+export type GaEventName = 'whatsapp_click' | 'razorpay_checkout_click' | 'video_testimonial_click' | 'classplus_click'
 
 // No-ops when GA isn't configured (NEXT_PUBLIC_GA_MEASUREMENT_ID unset)
 // or gtag.js hasn't loaded yet — never throws, since a tracking call

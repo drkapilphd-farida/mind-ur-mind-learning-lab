@@ -6,21 +6,41 @@ type LegalPageShellProps = {
   title: string
   lastUpdated: string
   children: React.ReactNode
+  // Overrides for reuse by the new Mind Ur Mind draft legal pages
+  // (/legal-drafts/*) — the live /privacy and /terms are legacy content
+  // from before the pivot (still branded "Quantum Mind Learning Lab™",
+  // a different entity/email than the current site) and are left as-is
+  // here; these props let a second, differently-branded set of legal
+  // pages reuse this same chrome without forking it.
+  brandName?: string
+  footerLinks?: readonly { label: string; href: string }[]
 }
+
+const DEFAULT_BRAND_NAME = 'Quantum Mind Learning Lab™'
+const DEFAULT_FOOTER_LINKS = [
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
+] as const
 
 // Shared chrome for /privacy and /terms — both live directly under
 // src/app (not the (marketing) route group), so neither inherits that
 // group's header/footer automatically. This gives them the same visual
 // language (same logo mark, same footer copyright/cross-links) without
 // duplicating that markup across two long content pages.
-export function LegalPageShell({ title, lastUpdated, children }: LegalPageShellProps): React.JSX.Element {
+export function LegalPageShell({
+  title,
+  lastUpdated,
+  children,
+  brandName = DEFAULT_BRAND_NAME,
+  footerLinks = DEFAULT_FOOTER_LINKS,
+}: LegalPageShellProps): React.JSX.Element {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-3xl items-center px-6">
           <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
             <LivingBrainLogo size={24} decorative={false} animated={false} />
-            Quantum Mind Learning Lab™
+            {brandName}
           </Link>
         </div>
       </header>
@@ -41,17 +61,18 @@ export function LegalPageShell({ title, lastUpdated, children }: LegalPageShellP
 
       <footer className="border-t border-border/60 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 text-center">
-          <p className="text-foreground text-sm font-medium">Quantum Mind Learning Lab™</p>
+          <p className="text-foreground text-sm font-medium">{brandName}</p>
           <div className="text-muted-foreground flex items-center gap-4 text-sm">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
-              Privacy Policy
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link href="/terms" className="hover:text-foreground transition-colors">
-              Terms of Service
-            </Link>
+            {footerLinks.map((link, index) => (
+              <span key={link.href} className="flex items-center gap-4">
+                {index > 0 && <span aria-hidden="true">·</span>}
+                <Link href={link.href} className="hover:text-foreground transition-colors">
+                  {link.label}
+                </Link>
+              </span>
+            ))}
           </div>
-          <p className="text-muted-foreground text-sm">© 2026 Quantum Mind Learning Lab™. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm">© 2026 {brandName}. All rights reserved.</p>
         </div>
       </footer>
     </div>

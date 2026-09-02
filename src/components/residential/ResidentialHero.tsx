@@ -22,7 +22,7 @@ export default function ResidentialHero(): React.JSX.Element {
       <PhotoPlaceholder
         src={RESIDENTIAL_PHOTOS.heroBackground}
         alt="Residential retreat setting"
-        label="Hero Background — Drop In Photo Here"
+        label="Residential Retreat"
         variant="subtle"
         priority
         className="absolute inset-0 z-0"

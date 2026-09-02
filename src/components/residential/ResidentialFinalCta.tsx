@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
+import PracticeDisclaimer from "../PracticeDisclaimer";
 import { WHATSAPP_RESIDENTIAL_INQUIRY_LINK } from "@/config/whatsappSupportLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
@@ -29,6 +30,7 @@ export default function ResidentialFinalCta(): React.JSX.Element {
             <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </a>
         </div>
+        <PracticeDisclaimer className="mx-auto mt-6 max-w-md text-left" />
       </div>
     </section>
   );

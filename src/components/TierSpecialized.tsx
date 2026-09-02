@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow, Pill } from "./ui";
+import PracticeDisclaimer from "./PracticeDisclaimer";
 
 export default function TierSpecialized(): React.JSX.Element {
   const { t } = useLanguage();
@@ -9,7 +10,7 @@ export default function TierSpecialized(): React.JSX.Element {
 
   const cards = [
     { data: tier.mentoring, href: "/mentoring/personal-class" },
-    { data: tier.course, href: "/courses/overthinking-mastery" },
+    { data: tier.course, href: "/mentoring/overthinking-course" },
   ] as const;
 
   return (
@@ -53,6 +54,7 @@ export default function TierSpecialized(): React.JSX.Element {
                 {data.cta}
                 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
               </a>
+              {href === "/mentoring/personal-class" && <PracticeDisclaimer className="mt-5" />}
             </div>
           ))}
         </div>

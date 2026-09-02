@@ -61,6 +61,14 @@ export default function TierRetreats(): React.JSX.Element {
               >
                 {data.cta}
               </CtaButton>
+              {"freePracticeLinkLabel" in data && (
+                <a
+                  href="/retreats/online-11-day#free-meditation"
+                  className="mt-3 text-[12.5px] font-semibold text-teal underline decoration-teal/40 underline-offset-2 hover:text-teal-light"
+                >
+                  {data.freePracticeLinkLabel}
+                </a>
+              )}
             </div>
           ))}
         </div>

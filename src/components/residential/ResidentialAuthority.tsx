@@ -25,10 +25,13 @@ export default function ResidentialAuthority(): React.JSX.Element {
           <p className="mt-3 text-[15.5px] text-ink-dim">{section.desc}</p>
         </div>
 
+        {/* Real photo slot — wires in from RESIDENTIAL_PHOTOS.liveTeaching
+            (residentialGalleryPhotos.ts) once one exists; renders a clean
+            placeholder tile until then, never instructional text. */}
         <PhotoPlaceholder
           src={RESIDENTIAL_PHOTOS.liveTeaching}
           alt="Dr. Kapil Dev Sharma live-teaching a residential retreat cohort"
-          label="Dr. Kapil Live-Teaching — Drop In Photo Here"
+          label="Live Teaching Photo"
           className="mb-10 aspect-[21/9] w-full rounded-sm"
           sizes="(min-width: 1024px) 1100px, 100vw"
         />

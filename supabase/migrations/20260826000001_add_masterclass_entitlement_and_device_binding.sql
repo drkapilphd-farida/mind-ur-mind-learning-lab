@@ -76,15 +76,18 @@ GRANT UPDATE (full_name, avatar_url, selected_reading_goal) ON public.profiles T
 -- the subscription row (getIsPaidUser only checks status, never
 -- current_period_end — NULL there means "never expires").
 --
--- qsr-app-continued: the new ₹499 plan — what unlocks continued app
--- practice access once a user's 60-day free window (see getIsPaidUser.ts)
--- lapses, for users who want continued practice without the full live
--- Masterclass. Seeded as billing_interval = 'month' (recurring) — this
--- was not specified in the request; a one-time/'lifetime' ₹499 unlock is
--- an equally simple one-value change here if that's what's actually
--- intended. No Razorpay payment link exists yet for this plan (nothing
--- analogous to RAZORPAY_MASTERCLASS_PAYMENT_LINK) — provide one and a
--- webhook can be added to grant it the same way masterclass-webhook does.
+-- qsr-app-continued: the ₹499 plan — what unlocks continued app
+-- practice access after a user has completed the 30-day paid
+-- Masterclass and wants to keep practicing without re-enrolling.
+-- There is no free-access tier this follows on from (see
+-- getIsPaidUser.ts — the earlier 60-day free window was removed; access
+-- requires a real subscription from day one). Seeded as
+-- billing_interval = 'month' (recurring) — this was not specified in
+-- the request; a one-time/'lifetime' ₹499 unlock is an equally simple
+-- one-value change here if that's what's actually intended. No
+-- Razorpay payment link exists yet for this plan (nothing analogous to
+-- RAZORPAY_MASTERCLASS_PAYMENT_LINK) — provide one and a webhook can be
+-- added to grant it the same way masterclass-webhook does.
 --
 -- ON CONFLICT makes this migration safe to reason about even if a plan
 -- with either key is ever seeded by hand before this runs.
@@ -102,7 +105,7 @@ VALUES
   (
     'qsr-app-continued',
     'Quantum Mind App — Continued Practice Access',
-    'Continued access to the Quantum Mind App''s daily practice tools after your 60-day free window ends.',
+    'Continued access to the Quantum Mind App''s daily practice tools after completing the 30-Day Masterclass.',
     49900,
     'month',
     true
