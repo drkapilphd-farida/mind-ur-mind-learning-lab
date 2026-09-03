@@ -65,6 +65,36 @@ export const WHATSAPP_MENTORING_INQUIRY_LINK =
 export const WHATSAPP_HABIT_BUILDER_INQUIRY_LINK =
   'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20have%20a%20question%20about%20the%20Quantum%20Mindset%20%26%20Habit%20Builder'
 
+// Same number, used by the Franchise/Individual Trainer application form
+// (/franchise-individual) to hand off every submitted field — this is the
+// real, primary submission path for that form (WhatsApp-first, per
+// explicit instruction): opened directly on submit, not just an
+// inquiry-before-paying link like the others in this file. The franchise
+// page's own Server Action (submitFranchiseLead.ts) separately saves the
+// same fields to `franchise_leads` as a best-effort backup record — that
+// insert must never block or delay this WhatsApp redirect.
+export function buildFranchiseApplicationWhatsAppLink(details: {
+  name: string
+  phone: string
+  city: string
+  background: string
+  whyInterested: string
+}): string {
+  const lines = [
+    'New Franchise Application',
+    `Name: ${details.name}`,
+    `Phone: ${details.phone}`,
+    `City: ${details.city}`,
+  ]
+  if (details.background.trim().length > 0) {
+    lines.push(`Background: ${details.background.trim()}`)
+  }
+  if (details.whyInterested.trim().length > 0) {
+    lines.push(`Why interested: ${details.whyInterested.trim()}`)
+  }
+  return `https://wa.me/919540123161?text=${encodeURIComponent(lines.join('\n'))}`
+}
+
 // Same number, used by the Personal Class application form to hand off
 // the name/phone/city/situation the visitor already typed — so Dr.
 // Kapil's team has real context before the conversation starts, same

@@ -25,13 +25,14 @@ import SimplePageNav from "./SimplePageNav";
 import Footer from "./Footer";
 import WhatsAppWidget from "./WhatsAppWidget";
 import { submitFranchiseLead } from "@/app/franchise-individual/actions/submitFranchiseLead";
+import { buildFranchiseApplicationWhatsAppLink } from "@/config/whatsappSupportLink";
 
 const PROBLEM_ICONS = [Blocks, IndianRupee, TrendingDown] as const;
 const INCLUDED_ICONS = [BookOpen, HeartPulse, Megaphone, Presentation, LayoutDashboard, LifeBuoy] as const;
 const EARNING_ICONS = [Clock, TrendingUp, Rocket] as const;
 const WHO_FOR_ICONS = [GraduationCap, Building2, Presentation] as const;
 
-type FormStatus = "idle" | "submitting" | "success" | "error";
+type FormStatus = "idle" | "success";
 
 function SectionCta({ label }: { label: string }): React.JSX.Element {
   return (
@@ -68,32 +69,48 @@ export default function FranchisePageContent(): React.JSX.Element {
   const [background, setBackground] = useState("");
   const [whyInterested, setWhyInterested] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canSubmit = name.trim().length > 0 && phone.trim().length > 0 && city.trim().length > 0 && status !== "submitting";
+  const canSubmit = name.trim().length > 0 && phone.trim().length > 0 && city.trim().length > 0;
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+  // WhatsApp-First Application™ — the WhatsApp tab is opened synchronously,
+  // inside this same click/submit event, before any `await` — required
+  // for the redirect to reliably open the WhatsApp app (not get silently
+  // blocked as a popup) on mobile Safari and other browsers that revoke
+  // "user activation" the moment an async gap is crossed. The
+  // franchise_leads DB save is a best-effort backup record only: fired
+  // after the redirect, never awaited, and its failure is deliberately
+  // never surfaced to the visitor — the WhatsApp message they're about to
+  // send is the real application either way.
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     if (!canSubmit) return;
 
-    setStatus("submitting");
-    setErrorMessage(null);
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedCity = city.trim();
+    const trimmedBackground = background.trim();
+    const trimmedWhyInterested = whyInterested.trim();
 
-    const result = await submitFranchiseLead({
-      name: name.trim(),
-      phone: phone.trim(),
-      city: city.trim(),
-      background: background.trim().length > 0 ? background.trim() : undefined,
-      whyInterested: whyInterested.trim().length > 0 ? whyInterested.trim() : undefined,
+    const whatsAppLink = buildFranchiseApplicationWhatsAppLink({
+      name: trimmedName,
+      phone: trimmedPhone,
+      city: trimmedCity,
+      background: trimmedBackground,
+      whyInterested: trimmedWhyInterested,
     });
-
-    if (!result.success) {
-      setStatus("error");
-      setErrorMessage(result.error || page.apply.errorFallback);
-      return;
-    }
+    window.open(whatsAppLink, "_blank", "noopener,noreferrer");
 
     setStatus("success");
+
+    void submitFranchiseLead({
+      name: trimmedName,
+      phone: trimmedPhone,
+      city: trimmedCity,
+      background: trimmedBackground.length > 0 ? trimmedBackground : undefined,
+      whyInterested: trimmedWhyInterested.length > 0 ? trimmedWhyInterested : undefined,
+    }).catch(() => {
+      // Silent by design — see this function's own doc comment.
+    });
   }
 
   return (
@@ -341,7 +358,7 @@ export default function FranchisePageContent(): React.JSX.Element {
                 <p className="max-w-sm text-[14px] leading-relaxed text-ink-dim">{page.apply.successDesc}</p>
               </div>
             ) : (
-              <form onSubmit={(event) => void handleSubmit(event)} noValidate className="rounded-sm border border-line-strong bg-panel2 p-6 sm:p-8">
+              <form onSubmit={handleSubmit} noValidate className="rounded-sm border border-line-strong bg-panel2 p-6 sm:p-8">
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="franchise-name" className="text-[12.5px] font-semibold text-ink-dim">
@@ -430,16 +447,12 @@ export default function FranchisePageContent(): React.JSX.Element {
                   </div>
                 </div>
 
-                {status === "error" && errorMessage !== null && (
-                  <p className="mt-4 text-[13px] text-rose">{errorMessage}</p>
-                )}
-
                 <button
                   type="submit"
                   disabled={!canSubmit}
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-sm bg-teal px-7 py-[15px] text-[14.5px] font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-teal-light disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                 >
-                  {status === "submitting" ? "..." : page.apply.submitLabel}
+                  {page.apply.submitLabel}
                 </button>
               </form>
             )}
