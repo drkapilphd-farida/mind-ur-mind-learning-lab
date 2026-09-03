@@ -3,24 +3,16 @@
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
-import PhotoGallery, { type GalleryPhoto } from "../PhotoGallery";
-import { RESIDENTIAL_PHOTOS } from "@/config/residentialGalleryPhotos";
+import PhotoGallery from "../PhotoGallery";
+import { ONLINE_RETREAT_GALLERY_PHOTOS } from "@/config/onlineRetreatGalleryPhotos";
 
-// Retreat environment / group photo gallery grid — 6 slots today, all
-// placeholders until real photos are dropped into
-// RESIDENTIAL_PHOTOS.gallery (residentialGalleryPhotos.ts). Now uses the
-// shared PhotoGallery component (lightbox with prev/next navigation)
-// instead of static PhotoPlaceholder tiles, matching the interactive
-// gallery pattern built for /gallery and the other retreat pages.
-export default function ResidentialGallery(): React.JSX.Element {
+// Scoped to this retreat specifically (ONLINE_RETREAT_GALLERY_PHOTOS),
+// not the homepage's general gallery subset or Residential's own venue
+// photos — same per-page photo scoping the video reviews already went
+// through.
+export default function RetreatGalleryGlimpse(): React.JSX.Element {
   const { t } = useLanguage();
-  const section = t.residentialLanding.gallery;
-
-  const photos: GalleryPhoto[] = RESIDENTIAL_PHOTOS.gallery.map((src, index) => ({
-    id: `residential-gallery-${index + 1}`,
-    src,
-    alt: `Residential retreat environment photo ${index + 1}`,
-  }));
+  const section = t.retreatLanding.gallery;
 
   return (
     <section className="border-b border-line px-6 py-24 sm:px-8">
@@ -40,7 +32,7 @@ export default function ResidentialGallery(): React.JSX.Element {
           </Link>
         </div>
 
-        <PhotoGallery photos={photos} />
+        <PhotoGallery photos={ONLINE_RETREAT_GALLERY_PHOTOS} />
       </div>
     </section>
   );

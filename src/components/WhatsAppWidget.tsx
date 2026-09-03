@@ -33,7 +33,13 @@ export default function WhatsAppWidget({
   bubble,
   buttonLabel,
   ariaLabel,
-  bottomClassName = "bottom-5 sm:bottom-7",
+  // Mobile QA™ — bottom-16 (not bottom-5) below sm: on a typical phone
+  // viewport the homepage hero's primary CTA button lands right at the
+  // bottom edge of the first viewport, exactly where this fixed widget
+  // also sits — bottom-5 put the two in direct contact. More clearance
+  // by default on mobile; unchanged on larger screens where hero content
+  // doesn't run this close to the fold.
+  bottomClassName = "bottom-16 sm:bottom-7",
   analyticsLocation,
 }: WhatsAppWidgetProps): React.JSX.Element {
   const { t } = useLanguage();
@@ -42,7 +48,15 @@ export default function WhatsAppWidget({
   return (
     <div className={`fixed right-5 z-50 flex flex-col items-end gap-3 sm:right-7 ${bottomClassName}`}>
       {!bubbleDismissed && (
-        <div className="relative max-w-[240px] rounded-sm border border-line-strong bg-panel2 p-4 text-[13px] leading-relaxed text-ink shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:max-w-[260px]">
+        // Mobile QA™ — hidden below sm: on a typical phone viewport this
+        // bubble sat directly over the hero's primary CTA button on
+        // first paint (before any scroll), since the widget is fixed to
+        // the same bottom-right corner the hero's CTA row often lands in
+        // on shorter viewports. The compact round button stays fully
+        // visible and tappable at every size — only the auto-shown
+        // explanatory text is mobile-hidden, same information a tap on
+        // the button itself leads to.
+        <div className="relative hidden max-w-[240px] rounded-sm border border-line-strong bg-panel2 p-4 text-[13px] leading-relaxed text-ink shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:block sm:max-w-[260px]">
           <button
             type="button"
             onClick={() => setBubbleDismissed(true)}

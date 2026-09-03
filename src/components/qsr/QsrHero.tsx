@@ -7,12 +7,16 @@ import { Eyebrow } from "../ui";
 import QsrTrustBadge from "./QsrTrustBadge";
 import QsrGuaranteeBadge from "./QsrGuaranteeBadge";
 import CheckoutTrustLine from "../CheckoutTrustLine";
+import HeroTestimonialBadge from "../HeroTestimonialBadge";
 import { RAZORPAY_MASTERCLASS_PAYMENT_LINK } from "@/config/masterclassPaymentLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
 export default function QsrHero(): React.JSX.Element {
   const { t } = useLanguage();
   const qsr = t.qsrLanding;
+  // Dr. Preeti's real, correctly-scoped QSR testimonial (qsrPageOnly) —
+  // appropriate here since this is the QSR page itself.
+  const featuredTestimonial = t.testimonials.items.find((item) => item.id === "dr-preeti");
 
   return (
     <section className="relative overflow-hidden border-b border-line px-6 pb-16 pt-14 sm:px-8 sm:pt-20 lg:pb-24">
@@ -52,6 +56,11 @@ export default function QsrHero(): React.JSX.Element {
                 {qsr.hero.ctaPrimaryMeta}
               </p>
               <CheckoutTrustLine className="mt-1.5 max-w-[220px]" />
+              {/* Short guarantee line right at the CTA itself — one line,
+                  small text, distinct from QsrGuaranteeBadge's full box
+                  further below, which stays as the complete-detail
+                  version. */}
+              <p className="mt-1.5 max-w-[240px] text-[11px] leading-snug text-ink-faint">{qsr.guarantee.heroLine}</p>
             </div>
             <Link
               href="/programs/quantum-speed-reading/speed-test"
@@ -61,6 +70,15 @@ export default function QsrHero(): React.JSX.Element {
               <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
             </Link>
           </div>
+
+          {featuredTestimonial !== undefined && (
+            <HeroTestimonialBadge
+              className="mt-5"
+              quote={featuredTestimonial.quote}
+              name={featuredTestimonial.name}
+              context={featuredTestimonial.context || featuredTestimonial.program}
+            />
+          )}
 
           <div className="mt-6">
             <QsrTrustBadge />

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { hasHabitBuilderAccess } from '@/lib/subscription/hasHabitBuilderAccess'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
 import { GreetingHeading } from '@/components/dashboard/GreetingHeading'
 import { TwentyOneDayJourneyCard } from '@/components/dashboard/TwentyOneDayJourneyCard'
@@ -25,7 +25,7 @@ export async function HabitDashboard(): Promise<React.JSX.Element> {
   const [profile, dailyQuantumSessionHistory, isPaidUser] = await Promise.all([
     getCurrentUserProfile(user.id),
     getDailyQuantumSessionHistory(),
-    getIsPaidUser(user.id),
+    hasHabitBuilderAccess(user.id),
   ])
 
   // The next real 21-Day Journey day (1-21) — daily_quantum_sessions has

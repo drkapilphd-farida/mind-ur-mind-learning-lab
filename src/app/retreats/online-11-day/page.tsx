@@ -8,6 +8,7 @@ import RetreatSchedule from '@/components/retreat/RetreatSchedule'
 import RetreatDisciplines from '@/components/retreat/RetreatDisciplines'
 import RetreatAuthority from '@/components/retreat/RetreatAuthority'
 import RetreatLiveStructure from '@/components/retreat/RetreatLiveStructure'
+import RetreatGalleryGlimpse from '@/components/retreat/RetreatGalleryGlimpse'
 import RetreatOutcomes from '@/components/retreat/RetreatOutcomes'
 import RetreatVideoTestimonials from '@/components/retreat/RetreatVideoTestimonials'
 import RetreatFaq from '@/components/retreat/RetreatFaq'
@@ -36,11 +37,13 @@ export const metadata: Metadata = {
 // the real mechanism (CoreProblem) -> what's covered (Disciplines) ->
 // who's teaching it, 12+ years (Authority) -> when it actually happens
 // (Schedule, with the real Razorpay checkout) -> how the 11 nights
-// actually run (LiveStructure) -> what changes (Outcomes) -> social
-// proof (VideoTestimonials) -> objection handling (Faq) -> a free,
-// no-signup taste of the practice for hesitant visitors, deliberately
-// placed right before the final ask (FreeMeditationPlayer) -> final push
-// (FinalCta) before the footer.
+// actually run (LiveStructure) -> a real glimpse of what that looks like
+// (GalleryGlimpse, scoped to this retreat's own photos — see that
+// component's own note) -> what changes (Outcomes) -> social proof
+// (VideoTestimonials) -> objection handling (Faq) -> a free, no-signup
+// taste of the practice for hesitant visitors, deliberately placed right
+// before the final ask (FreeMeditationPlayer) -> final push (FinalCta)
+// before the footer.
 export default function OnlineElevenDayRetreatPage(): React.JSX.Element {
   const faqSchema = buildFaqPageSchema(translations.en.retreatLanding.faq.items)
 
@@ -55,6 +58,7 @@ export default function OnlineElevenDayRetreatPage(): React.JSX.Element {
         <RetreatAuthority />
         <RetreatSchedule />
         <RetreatLiveStructure />
+        <RetreatGalleryGlimpse />
         <RetreatOutcomes />
         <RetreatVideoTestimonials />
         <RetreatFaq />

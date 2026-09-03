@@ -7,6 +7,9 @@ import QsrBrainScience from '@/components/qsr/QsrBrainScience'
 import QsrAgeGroups from '@/components/qsr/QsrAgeGroups'
 import QsrAppPreview from '@/components/qsr/QsrAppPreview'
 import QsrMechanics from '@/components/qsr/QsrMechanics'
+import QsrMoreThanSpeed from '@/components/qsr/QsrMoreThanSpeed'
+import QsrFocusScreenTime from '@/components/qsr/QsrFocusScreenTime'
+import QsrAllRoundDevelopment from '@/components/qsr/QsrAllRoundDevelopment'
 import QsrCurriculum from '@/components/qsr/QsrCurriculum'
 import QsrExamBenefits from '@/components/qsr/QsrExamBenefits'
 import QsrAuthority from '@/components/qsr/QsrAuthority'
@@ -42,8 +45,11 @@ export const metadata: Metadata = {
 // works (BrainScience) → a free, no-risk taste of the technique itself
 // (SpeedTestInlineCta) → how the training meets kids and adults
 // differently (AgeGroups) → what daily practice feels like (AppPreview)
-// → how the program is structured (Mechanics, Curriculum) → who is
-// actually teaching it (Authority, CredibilityStrip, FounderVideo) → fit
+// → how the program is structured (Mechanics) → what it covers beyond
+// raw reading speed (MoreThanSpeed, FocusScreenTime, AllRoundDevelopment
+// — the latter cross-sells the standalone Habit App) → the week-by-week
+// breakdown (Curriculum) → who is actually teaching it (Authority,
+// CredibilityStrip, FounderVideo) → fit
 // (Audience) → the same free test again, now as a lower-commitment
 // alternative right where a hesitant visitor is deciding whether to
 // commit to ₹4,999 (SpeedTestInlineCta) → social proof
@@ -65,6 +71,9 @@ export default function QuantumSpeedReadingLandingPage(): React.JSX.Element {
         <QsrAgeGroups />
         <QsrAppPreview />
         <QsrMechanics />
+        <QsrMoreThanSpeed />
+        <QsrFocusScreenTime />
+        <QsrAllRoundDevelopment />
         <QsrCurriculum />
         <QsrExamBenefits />
         <QsrAuthority />

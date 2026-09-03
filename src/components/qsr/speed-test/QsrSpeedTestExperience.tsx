@@ -157,7 +157,7 @@ export default function QsrSpeedTestExperience(): React.JSX.Element {
     <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-24">
       <div className="mx-auto w-full max-w-xl rounded-sm border border-line-strong bg-panel2 p-8 sm:p-10">
         {currentStageIndex >= 0 && (
-          <div className="mb-8 flex gap-5">
+          <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2">
             {STAGE_LABELS.map((label, index) => {
               const state = index < currentStageIndex ? "done" : index === currentStageIndex ? "active" : "pending";
               return (

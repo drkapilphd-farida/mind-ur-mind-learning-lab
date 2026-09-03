@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/HeroSection'
-import TierFlagship from '@/components/TierFlagship'
-import TierRetreats from '@/components/TierRetreats'
-import TierSpecialized from '@/components/TierSpecialized'
+import ProgramSelector from '@/components/ProgramSelector'
+import ProgramCardsGrid from '@/components/ProgramCardsGrid'
+import HomeGalleryGlimpse from '@/components/HomeGalleryGlimpse'
 import Testimonials from '@/components/Testimonials'
 import FAQSection from '@/components/FAQSection'
+import HomeFranchiseTeaser from '@/components/HomeFranchiseTeaser'
 import WhatsAppWidget from '@/components/WhatsAppWidget'
 import Footer from '@/components/Footer'
 
@@ -20,17 +21,25 @@ export const metadata: Metadata = {
 // group's simpler header/footer — see (legacy)/layout.tsx) wrapped in
 // .homepage-void (globals.css), the scoped dark/gold surface + font
 // override every other route is completely unaffected by.
+//
+// Program Cards Redesign™ — TierFlagship/TierRetreats/TierSpecialized
+// (three separate, visually-identical card sections) are retired from
+// this page in favor of ProgramCardsGrid.tsx, one grid built for visual
+// variety instead of a repeated template — see that component's own
+// notes for what changed and why. GalleryGlimpse sits right after it,
+// before the social proof section, matching the request's placement.
 export default function HomePage(): React.JSX.Element {
   return (
     <div className="warm-light min-h-screen font-sans antialiased">
       <Navbar />
       <main>
         <HeroSection />
-        <TierFlagship />
-        <TierRetreats />
-        <TierSpecialized />
+        <ProgramSelector />
+        <ProgramCardsGrid />
+        <HomeGalleryGlimpse />
         <Testimonials />
         <FAQSection />
+        <HomeFranchiseTeaser />
       </main>
       <Footer />
       <WhatsAppWidget />

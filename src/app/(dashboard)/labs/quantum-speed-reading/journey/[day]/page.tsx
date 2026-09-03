@@ -11,7 +11,7 @@ import { getBaselineDiagnostic } from '@/features/quantum-journey/baselineDiagno
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserProfile } from '@/lib/supabase/getCurrentUserProfile'
-import { getIsPaidUser } from '@/lib/subscription/getIsPaidUser'
+import { hasHabitBuilderAccess } from '@/lib/subscription/hasHabitBuilderAccess'
 import { RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK } from '@/config/quantumMindsetHabitBuilderPaymentLink'
 
 // 21-Day Journey Paywall™ — Days 1 through 7 (the full first week) are
@@ -56,8 +56,8 @@ export default async function QuantumJourneyDayPage({ params }: QuantumJourneyDa
   // not the general /pricing page — same "one real checkout URL" pattern
   // the 30-Day Masterclass's own paywall already uses.
   if (dayNumber > FREE_JOURNEY_DAYS && !isDevUnlockEnabled()) {
-    const isPaidUser = user ? await getIsPaidUser(user.id) : false
-    if (!isPaidUser) {
+    const hasAccess = user ? await hasHabitBuilderAccess(user.id) : false
+    if (!hasAccess) {
       redirect(RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK)
     }
   }

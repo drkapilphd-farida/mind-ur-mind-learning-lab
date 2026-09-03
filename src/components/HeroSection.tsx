@@ -4,9 +4,13 @@ import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow, CtaButton } from "./ui";
 import FrequencyDial from "./FrequencyDial";
+import HeroTestimonialBadge from "./HeroTestimonialBadge";
 
 export default function HeroSection(): React.JSX.Element {
   const { t } = useLanguage();
+  // General, cross-program quote (qsrPageOnly: false) — appropriate for
+  // the homepage hero, which isn't specific to any one offer.
+  const featuredTestimonial = t.testimonials.items.find((item) => item.id === "ananya-r");
 
   return (
     <section id="top" className="relative overflow-hidden border-b border-line px-6 pb-20 pt-16 sm:px-8 sm:pt-24 lg:pb-28">
@@ -56,6 +60,15 @@ export default function HeroSection(): React.JSX.Element {
               {t.hero.ctaSecondary}
             </CtaButton>
           </div>
+
+          {featuredTestimonial !== undefined && (
+            <HeroTestimonialBadge
+              className="mt-5"
+              quote={featuredTestimonial.quote}
+              name={featuredTestimonial.name}
+              context={featuredTestimonial.context || featuredTestimonial.program}
+            />
+          )}
 
           <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-5 border-t border-line pt-6 sm:grid-cols-3 lg:grid-cols-none lg:flex lg:flex-wrap">
             {t.hero.stats.map((stat) => (

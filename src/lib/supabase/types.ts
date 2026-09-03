@@ -1281,6 +1281,78 @@ export type Database = {
         }
         Relationships: []
       }
+      franchise_leads: {
+        Row: {
+          background: string | null
+          city: string
+          id: string
+          name: string
+          phone: string
+          status: string
+          submitted_at: string
+          updated_at: string
+          why_interested: string | null
+        }
+        Insert: {
+          background?: string | null
+          city: string
+          id?: string
+          name: string
+          phone: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          why_interested?: string | null
+        }
+        Update: {
+          background?: string | null
+          city?: string
+          id?: string
+          name?: string
+          phone?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          why_interested?: string | null
+        }
+        Relationships: []
+      }
+      habit_builder_payments: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          email: string | null
+          granted_at: string | null
+          id: string
+          phone: string | null
+          razorpay_payment_id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          granted_at?: string | null
+          id?: string
+          phone?: string | null
+          razorpay_payment_id: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          granted_at?: string | null
+          id?: string
+          phone?: string | null
+          razorpay_payment_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       masterclasses: {
         Row: {
           created_at: string

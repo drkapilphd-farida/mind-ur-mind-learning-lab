@@ -8,6 +8,7 @@ export const translations = {
         { label: "Retreats", href: "#tier-2" },
         { label: "Mentoring", href: "#tier-3" },
         { label: "FAQ", href: "#faq" },
+        { label: "Partner With Us", href: "/franchise-individual" },
       ],
       ctaPrimary: "Explore Speed Reading",
     },
@@ -143,6 +144,245 @@ export const translations = {
         desc: "A focused, 21-day course built to interrupt the overthinking loop — practical, daily, specific.",
         pills: ["Daily Practice", "21 Days", "Mental Clarity Focus"],
         cta: "Begin Your 21-Day Reset",
+      },
+    },
+    programSelector: {
+      prompt: "Not sure where to start? Tell us what's going on.",
+      options: [
+        { text: "I read too slowly for everything I need to get through", anchor: "#tier-1" },
+        { text: "My mind won't stop overthinking", anchor: "#course-card" },
+        { text: "I want deep, guided personal/spiritual work", anchor: "#tier-2" },
+        { text: "I need focused 1-on-1 support", anchor: "#tier-3" },
+      ],
+    },
+    homeProgramCards: {
+      featured: {
+        eyebrowLabel: "Flagship · 30 Days",
+        cta: "Explore Speed Reading",
+      },
+      retreat: {
+        eyebrowLabel: "Retreat · Online",
+        cta: "Explore Retreat",
+      },
+      mentoring: {
+        eyebrowLabel: "Private · 1-on-1",
+        cta: "Apply Now",
+      },
+      course: {
+        eyebrowLabel: "Self-Paced · 21 Days",
+        cta: "Start the Reset",
+      },
+      speedTest: {
+        eyebrowLabel: "Always Free",
+        title: "Free Reading Speed Test",
+        desc: "See your real reading speed in under 2 minutes — no signup, no cost.",
+        cta: "Take the Free Test",
+      },
+      whatsappCard: {
+        title: "Have Questions?",
+        desc: "Not sure which program fits? Message us directly — a real person replies, not a bot.",
+        cta: "Chat on WhatsApp",
+      },
+    },
+    galleryGlimpse: {
+      eyebrow: "A Glimpse Inside",
+      title: "Moments From Our Workshops",
+      subPrefix: "Real workshops. Real people. Across",
+      subSuffix: "cities in India.",
+      viewGalleryCta: "View Full Gallery",
+    },
+    galleryPage: {
+      eyebrow: "The Gallery",
+      title: "Real Moments From Real Programs",
+      desc: "Workshops, retreats, and live sessions — photos dropped in as each program happens.",
+      filterAll: "All",
+      filterWorkshops: "Workshops",
+      filterRetreats: "Retreats",
+      filterQsr: "QSR Sessions",
+    },
+    homeFranchiseTeaser: {
+      headline: "Are You a Trainer or Edupreneur?",
+      line: "Start your own QSR Training Business — with a ready platform, marketing kit, and certification.",
+      cta: "See Franchise Details",
+    },
+    franchisePage: {
+      hero: {
+        eyebrow: "Franchise Opportunity",
+        headline: "Are You a Trainer or Edupreneur?",
+        sub: "Start your own Quantum Speed Reading training business — with a ready platform, marketing kit, and certification.",
+      },
+      applyCta: "Apply Now",
+      problem: {
+        eyebrow: "The Reality",
+        headline: "Starting Alone Is Hard",
+        points: [
+          {
+            title: "No Ready Platform",
+            desc: "No curriculum, no training platform — you'd have to build everything from zero before you can teach a single class.",
+          },
+          {
+            title: "Expensive Content",
+            desc: "Producing your own marketing materials and course content costs time and money most first-time trainers don't have.",
+          },
+          {
+            title: "No Marketing Know-How",
+            desc: "Being a great trainer doesn't mean you know how to find students, run ads, or convert a demo into an enrollment.",
+          },
+        ],
+      },
+      included: {
+        eyebrow: "What You Get",
+        title: "Everything you need to start",
+        items: [
+          {
+            title: "Trainer Handbook",
+            desc: "A complete guide to Quantum Speed Reading technique and how to facilitate a session.",
+          },
+          {
+            title: "Student Wellness Module",
+            desc: "Meditation, memory technique, and all-round development content to teach alongside speed reading.",
+          },
+          {
+            title: "Marketing Kit",
+            desc: "Ready-to-use Facebook/Instagram ad copy and WhatsApp templates to find your first students.",
+          },
+          {
+            title: "Demo Workshop Blueprint",
+            desc: "A ready 60-minute session script built to convert attendees into enrolled students.",
+          },
+          {
+            title: "Partner Portal Access",
+            desc: "Your own dashboard for billing, resources, and branded materials.",
+          },
+          {
+            title: "Ongoing Support",
+            desc: "Direct access to the Mind Ur Mind team whenever you have a question.",
+          },
+        ],
+      },
+      investment: {
+        eyebrow: "Investment",
+        headline: "Your Investment",
+        feeLabel: "One-Time Partner Onboarding Fee",
+        feeValue: "₹20,000 – ₹25,000",
+        revenueLabel: "Revenue Share",
+        revenueValue: "15–20%",
+        revenueUnit: "per student enrollment",
+        revenueNote: "goes back to Mind Ur Mind Academy — no fixed monthly fee.",
+        includesTitle: "What's included in this fee",
+        includesItems: [
+          "Official trainer certification",
+          "Full platform and curriculum access",
+          "Ready marketing kit",
+          "Partner portal access",
+          "Ongoing support from our team",
+        ],
+      },
+      earning: {
+        eyebrow: "Earning Potential",
+        headline: "What You Could Earn",
+        scenarios: [
+          {
+            label: "Part-Time",
+            desc: "3–5 students / month",
+            range: "₹21,600 – ₹36,000",
+          },
+          {
+            label: "Established",
+            desc: "8–10 students / month",
+            range: "₹57,600 – ₹72,000",
+          },
+          {
+            label: "Full-Time",
+            desc: "15+ students / month",
+            range: "₹1,08,000+",
+          },
+        ],
+        disclaimer: "These are illustrative estimates based on an example course fee, not guaranteed outcomes. Actual earnings depend on your effort, local market, and enrollment numbers.",
+      },
+      howItWorks: {
+        eyebrow: "Process",
+        headline: "How It Works",
+        steps: [
+          { title: "Apply", desc: "Submit the form below." },
+          { title: "Screening Call", desc: "A short call with our team." },
+          { title: "Certification", desc: "A 7–14 day training program." },
+          { title: "Start Your Cohort", desc: "Launch using our marketing kit." },
+          { title: "Earn", desc: "Get paid per enrollment." },
+        ],
+      },
+      about: {
+        eyebrow: "About",
+        headline: "Who You're Partnering With",
+        bio: "Dr. Kapil Dev Sharma has 26 years of experience as a mind trainer and coach. He developed the Quantum Speed Reading methodology in 2015, and has continued to evolve it into a structured, cognitive-science-based program since — the same curriculum and training method this partner program is built on.",
+        credentials: [
+          "26 years as a mind trainer and coach",
+          "Developer of the Quantum Speed Reading methodology, since 2015",
+          "10,000+ students guided directly",
+        ],
+      },
+      whoFor: {
+        eyebrow: "Who Is This For",
+        headline: "Is This Right For You?",
+        cards: [
+          {
+            title: "Recent Graduates",
+            desc: "Looking to start a career with a ready curriculum instead of building one from scratch.",
+          },
+          {
+            title: "Coaching Center / Tuition Owners",
+            desc: "Wanting a new revenue stream by adding a high-demand program to your existing business.",
+          },
+          {
+            title: "Teachers",
+            desc: "Wanting a part-time or side income, running your own sessions alongside your existing work.",
+          },
+        ],
+      },
+      faq: {
+        eyebrow: "Questions",
+        headline: "Frequently Asked Questions",
+        items: [
+          {
+            question: "Do I need prior teaching experience?",
+            answer: "No formal teaching degree is required, but you should be comfortable speaking in front of a group. The certification program trains you in the technique and facilitation itself.",
+          },
+          {
+            question: "How long does it take to get started?",
+            answer: "Certification takes 7–14 days from the screening call. After that, it's flexible — most partners run sessions part-time alongside their existing work, and scale up as their student base grows.",
+          },
+          {
+            question: "Is this a genuine business, or a scheme?",
+            answer: "It's a real business under your name, not a recruitment or referral scheme — you earn from teaching your own students, not from signing up other partners. The Earning Potential section above shows realistic ranges at different levels of commitment, not guarantees.",
+          },
+          {
+            question: "What ongoing support will I get?",
+            answer: "Direct access to the Mind Ur Mind team for questions, your own partner portal for resources and billing, and the marketing kit to help you find students — this doesn't end at certification.",
+          },
+          {
+            question: "What if I want to stop — is there a lock-in or cancellation policy?",
+            answer: "There's no long-term lock-in. Reach out to our team directly to discuss your specific situation — we'll walk you through the options rather than lock you into fine print here.",
+          },
+        ],
+      },
+      apply: {
+        eyebrow: "Apply",
+        title: "Apply Now",
+        sub: "Tell us a bit about yourself — we'll reach out within a few days.",
+        nameLabel: "Name",
+        phoneLabel: "Phone",
+        cityLabel: "City",
+        backgroundLabel: "Background / Experience",
+        backgroundOptionalTag: "Optional",
+        backgroundPlaceholder: "Select one",
+        backgroundOptions: ["Teacher", "Coaching Center Owner", "Recent Graduate", "Other"],
+        whyInterestedLabel: "Why Are You Interested?",
+        whyInterestedOptionalTag: "Optional",
+        whyInterestedPlaceholder: "What made you want to become a Mind Ur Mind partner?",
+        submitLabel: "Submit Application",
+        successTitle: "Thank you!",
+        successDesc: "We've received your application and will reach out within a few days.",
+        errorFallback: "Something went wrong. Please try again.",
       },
     },
     testimonials: {
@@ -302,7 +542,7 @@ export const translations = {
       ariaLabel: "Chat with Dr. Kapil's team on WhatsApp",
     },
     footer: {
-      blurb: "Quantum Speed Reading and advanced Psychic & Spiritual training under Dr. Kapil Dev Sharma.",
+      blurb: "Quantum Speed Reading and advanced Meditation & Mind-Training under Dr. Kapil Dev Sharma.",
       columns: {
         programs: {
           heading: "Programs",
@@ -331,6 +571,7 @@ export const translations = {
           links: [
             { label: "About Us", href: "/about" },
             { label: "Contact", href: "/contact" },
+            { label: "Become a Partner", href: "/franchise-individual" },
           ],
         },
       },
@@ -399,6 +640,7 @@ export const translations = {
         title: "7-Day Result Guarantee",
         desc: "Complete the first 7 days of the program as instructed. If your WPM hasn't measurably improved, tell us and we'll issue a full refund — no questions asked.",
         policyLabel: "See our Refund & Cancellation Policy",
+        heroLine: "Try the first 7 days risk-free — if your WPM hasn't measurably improved, full refund.",
       },
       brainScience: {
         eyebrow: "The Science Behind It",
@@ -533,6 +775,69 @@ export const translations = {
             "Recordings available if you miss a session",
           ],
         },
+      },
+      moreThanSpeed: {
+        eyebrow: "Beyond Reading Speed",
+        title: "More Than Just Speed",
+        goalSetting: {
+          tag: "Day 1",
+          title: "Goal-Setting",
+          desc: "On Day 1, every student sets personal reading and learning goals with their trainer — creating ownership from day one.",
+        },
+        memoryTechniques: {
+          tag: "Practical Skills",
+          title: "Practical Memory Techniques",
+          desc: "Beyond reading speed, students learn real-world memory tools — the Memory Palace, the Peg System, and Acronym techniques — skills they can demonstrate immediately.",
+        },
+      },
+      focusInDistractedWorld: {
+        eyebrow: "Screen Time & Focus",
+        title: "Building Focus in a Distracted World",
+        intro: "Many parents worry about screen time affecting their child's focus and reading habits. This program includes practical screen-management guidance alongside the reading training.",
+        tips: [
+          {
+            title: "Posture & Eye-Care",
+            desc: "Simple tips to protect posture and reduce eye strain during long reading sessions.",
+          },
+          {
+            title: "The 20-20-20 Rule",
+            desc: "Every 20 minutes, look at something 20 feet away for 20 seconds.",
+          },
+          {
+            title: "Digital Detox Habits",
+            desc: "Simple habits — like keeping the phone away for 10 minutes before practice.",
+          },
+        ],
+        habitAppCard: {
+          eyebrow: "Pairs Well With QSR",
+          title: "Try the Habit Tracker App",
+          desc: "Pair QSR with our Habit Tracker App — build lasting screen-time and study habits alongside your reading practice.",
+          price: "First 7 days free, then just ₹99/month.",
+          cta: "Try the Habit App Free",
+        },
+      },
+      allRoundDevelopment: {
+        eyebrow: "All-Round Development",
+        title: "Complete Development, Not Just Speed Reading",
+        items: [
+          {
+            title: "Reading & Memory",
+            desc: "Faster reading, better comprehension, and practical memory techniques.",
+          },
+          {
+            title: "Focus & Calm",
+            desc: "A short daily meditation and breathing practice for concentration.",
+          },
+          {
+            title: "Life Skills",
+            desc: "Goal-setting, a gratitude habit, and posture and screen-care habits.",
+          },
+          {
+            title: "Family Bonding",
+            desc: "A monthly parent-child reading activity.",
+          },
+        ],
+        disclaimer: "These are program design elements based on practice, not guaranteed outcomes.",
       },
       curriculum: {
         eyebrow: "The Curriculum",
@@ -799,6 +1104,12 @@ export const translations = {
           "A lasting shift in how you experience your own mind — not an 11-day high that fades by day 12",
         ],
       },
+      gallery: {
+        eyebrow: "Inside the Retreat",
+        title: "What the live sessions actually look like",
+        desc: "Real screenshots and moments from past batches — photos dropped in as each batch happens.",
+        viewGalleryCta: "View Full Gallery",
+      },
       freeMeditation: {
         eyebrow: "Try It First, Free",
         title: "A free practice before you commit",
@@ -968,6 +1279,7 @@ export const translations = {
         eyebrow: "Inside the Retreat",
         title: "What It Actually Looks Like",
         desc: "A glimpse of the environment, the group, and the practice — real photos dropped in as each retreat happens.",
+        viewGalleryCta: "View Full Gallery",
       },
       authority: {
         eyebrow: "A Proven Path, Not A Trend",
@@ -1406,6 +1718,7 @@ export const translations = {
         { label: "रिट्रीट्स", href: "#tier-2" },
         { label: "मेंटरिंग", href: "#tier-3" },
         { label: "सवाल-जवाब", href: "#faq" },
+        { label: "पार्टनर बनें", href: "/franchise-individual" },
       ],
       ctaPrimary: "स्पीड रीडिंग एक्सप्लोर करें",
     },
@@ -1522,6 +1835,245 @@ export const translations = {
         desc: "ओवरथिंकिंग के चक्र को तोड़ने के लिए बनाया गया एक केंद्रित, 21-दिवसीय कोर्स — व्यावहारिक, दैनिक, विशिष्ट।",
         pills: ["दैनिक अभ्यास", "21 दिन", "मानसिक स्पष्टता पर केंद्रित"],
         cta: "अपना 21-दिवसीय रीसेट शुरू करें",
+      },
+    },
+    programSelector: {
+      prompt: "पक्का नहीं कि कहां से शुरू करें? हमें बताएं क्या चल रहा है।",
+      options: [
+        { text: "मुझे जो कुछ पढ़ना है उसके लिए मैं बहुत धीमा/धीमी हूं", anchor: "#tier-1" },
+        { text: "मेरा मन ओवरथिंकिंग करना बंद नहीं करता", anchor: "#course-card" },
+        { text: "मुझे गहरा, गाइडेड व्यक्तिगत/आध्यात्मिक काम चाहिए", anchor: "#tier-2" },
+        { text: "मुझे केंद्रित 1-ऑन-1 सहयोग चाहिए", anchor: "#tier-3" },
+      ],
+    },
+    homeProgramCards: {
+      featured: {
+        eyebrowLabel: "फ्लैगशिप · 30 दिन",
+        cta: "स्पीड रीडिंग एक्सप्लोर करें",
+      },
+      retreat: {
+        eyebrowLabel: "रिट्रीट · ऑनलाइन",
+        cta: "रिट्रीट एक्सप्लोर करें",
+      },
+      mentoring: {
+        eyebrowLabel: "निजी · 1-ऑन-1",
+        cta: "अभी आवेदन करें",
+      },
+      course: {
+        eyebrowLabel: "सेल्फ-पेस्ड · 21 दिन",
+        cta: "रीसेट शुरू करें",
+      },
+      speedTest: {
+        eyebrowLabel: "हमेशा मुफ़्त",
+        title: "मुफ़्त रीडिंग स्पीड टेस्ट",
+        desc: "2 मिनट से भी कम समय में अपनी असली रीडिंग स्पीड देखें — कोई साइनअप नहीं, कोई शुल्क नहीं।",
+        cta: "मुफ़्त टेस्ट लें",
+      },
+      whatsappCard: {
+        title: "सवाल हैं?",
+        desc: "पक्का नहीं कि कौन सा प्रोग्राम सही है? सीधे हमें मैसेज करें — एक असली व्यक्ति जवाब देगा, कोई बॉट नहीं।",
+        cta: "WhatsApp पर चैट करें",
+      },
+    },
+    galleryGlimpse: {
+      eyebrow: "एक झलक",
+      title: "हमारी वर्कशॉप्स के पल",
+      subPrefix: "असली वर्कशॉप्स। असली लोग। भारत के",
+      subSuffix: "शहरों में।",
+      viewGalleryCta: "पूरी गैलरी देखें",
+    },
+    galleryPage: {
+      eyebrow: "गैलरी",
+      title: "असली प्रोग्राम्स के असली पल",
+      desc: "वर्कशॉप्स, रिट्रीट्स, और लाइव सेशंस — हर प्रोग्राम के होने पर फ़ोटो जोड़ी जाती हैं।",
+      filterAll: "सभी",
+      filterWorkshops: "वर्कशॉप्स",
+      filterRetreats: "रिट्रीट्स",
+      filterQsr: "QSR सेशंस",
+    },
+    homeFranchiseTeaser: {
+      headline: "क्या आप Trainer या Edupreneur हैं?",
+      line: "अपना खुद का QSR Training Business शुरू करें — ready platform, marketing kit, और certification के साथ",
+      cta: "Franchise Details देखें",
+    },
+    franchisePage: {
+      hero: {
+        eyebrow: "फ्रेंचाइज़ी अवसर",
+        headline: "क्या आप Trainer या Edupreneur हैं?",
+        sub: "अपना खुद का Quantum Speed Reading Training Business शुरू करें — ready platform, marketing kit, और certification के साथ।",
+      },
+      applyCta: "अभी आवेदन करें",
+      problem: {
+        eyebrow: "असली चुनौती",
+        headline: "अकेले शुरुआत करना मुश्किल है",
+        points: [
+          {
+            title: "तैयार प्लेटफ़ॉर्म नहीं है",
+            desc: "कोई कर्रिकुलम या ट्रेनिंग प्लेटफ़ॉर्म नहीं — एक भी क्लास पढ़ाने से पहले आपको सब कुछ शुरुआत से बनाना पड़ेगा।",
+          },
+          {
+            title: "कंटेंट बनाना महंगा है",
+            desc: "अपनी खुद की मार्केटिंग सामग्री और कोर्स कंटेंट बनाना समय और पैसा दोनों माँगता है — जो ज़्यादातर नए ट्रेनर्स के पास नहीं होता।",
+          },
+          {
+            title: "मार्केटिंग की जानकारी नहीं है",
+            desc: "अच्छा ट्रेनर होने का मतलब यह नहीं कि आपको विद्यार्थी ढूंढना, विज्ञापन चलाना, या डेमो को एडमिशन में बदलना आता है।",
+          },
+        ],
+      },
+      included: {
+        eyebrow: "आपको क्या मिलता है",
+        title: "शुरू करने के लिए सब कुछ",
+        items: [
+          {
+            title: "ट्रेनर हैंडबुक",
+            desc: "Quantum Speed Reading तकनीक और सेशन कैसे चलाना है, इसकी पूरी गाइड।",
+          },
+          {
+            title: "स्टूडेंट वेलनेस मॉड्यूल",
+            desc: "मेडिटेशन, मेमोरी तकनीक, और सर्वांगीण विकास से जुड़ा कंटेंट, स्पीड रीडिंग के साथ पढ़ाने के लिए।",
+          },
+          {
+            title: "मार्केटिंग किट",
+            desc: "पहले विद्यार्थी ढूंढने के लिए तैयार Facebook/Instagram ad copy और WhatsApp templates।",
+          },
+          {
+            title: "डेमो वर्कशॉप ब्लूप्रिंट",
+            desc: "attendees को एडमिशन में बदलने के लिए बना हुआ 60-मिनट का तैयार सेशन स्क्रिप्ट।",
+          },
+          {
+            title: "पार्टनर पोर्टल एक्सेस",
+            desc: "बिलिंग, resources, और branded सामग्री के लिए आपका अपना डैशबोर्ड।",
+          },
+          {
+            title: "ऑनगोइंग सपोर्ट",
+            desc: "जब भी कोई सवाल हो, माइंड उर माइंड टीम से सीधा संपर्क।",
+          },
+        ],
+      },
+      investment: {
+        eyebrow: "इन्वेस्टमेंट",
+        headline: "आपका इन्वेस्टमेंट",
+        feeLabel: "One-Time Partner Onboarding Fee",
+        feeValue: "₹20,000 – ₹25,000",
+        revenueLabel: "Revenue Share",
+        revenueValue: "15–20%",
+        revenueUnit: "प्रति स्टूडेंट एनरोलमेंट",
+        revenueNote: "माइंड उर माइंड एकेडमी को जाता है — कोई फिक्स्ड मंथली फ़ीस नहीं।",
+        includesTitle: "इस फ़ीस में क्या शामिल है",
+        includesItems: [
+          "आधिकारिक ट्रेनर सर्टिफिकेशन",
+          "पूरा प्लेटफ़ॉर्म और कर्रिकुलम एक्सेस",
+          "तैयार मार्केटिंग किट",
+          "पार्टनर पोर्टल एक्सेस",
+          "हमारी टीम से ऑनगोइंग सपोर्ट",
+        ],
+      },
+      earning: {
+        eyebrow: "कमाई की संभावना",
+        headline: "आप कितना कमा सकते हैं",
+        scenarios: [
+          {
+            label: "पार्ट-टाइम",
+            desc: "3–5 स्टूडेंट / महीना",
+            range: "₹21,600 – ₹36,000",
+          },
+          {
+            label: "एस्टैब्लिश्ड",
+            desc: "8–10 स्टूडेंट / महीना",
+            range: "₹57,600 – ₹72,000",
+          },
+          {
+            label: "फुल-टाइम",
+            desc: "15+ स्टूडेंट / महीना",
+            range: "₹1,08,000+",
+          },
+        ],
+        disclaimer: "यह estimate है, गारंटी नहीं — एक उदाहरण कोर्स फ़ीस पर आधारित है। आपकी असली कमाई आपकी मेहनत, local market, और एनरोलमेंट संख्या पर निर्भर करती है।",
+      },
+      howItWorks: {
+        eyebrow: "प्रोसेस",
+        headline: "यह कैसे काम करता है",
+        steps: [
+          { title: "आवेदन करें", desc: "नीचे दिया गया फ़ॉर्म भरें।" },
+          { title: "स्क्रीनिंग कॉल", desc: "हमारी टीम के साथ एक छोटी कॉल।" },
+          { title: "सर्टिफिकेशन", desc: "7–14 दिन का ट्रेनिंग प्रोग्राम।" },
+          { title: "अपना कोहोर्ट शुरू करें", desc: "हमारी मार्केटिंग किट से लॉन्च करें।" },
+          { title: "कमाएं", desc: "हर एनरोलमेंट पर भुगतान पाएं।" },
+        ],
+      },
+      about: {
+        eyebrow: "परिचय",
+        headline: "आप किनके साथ पार्टनर बन रहे हैं",
+        bio: "डॉ. कपिल देव शर्मा को एक mind trainer और coach के रूप में 26 साल का अनुभव है। उन्होंने 2015 में Quantum Speed Reading मेथडोलॉजी बनाई, और तब से इसे लगातार एक structured, cognitive-science-based प्रोग्राम में विकसित किया है — यही कर्रिकुलम और ट्रेनिंग मेथड इस पार्टनर प्रोग्राम का आधार है।",
+        credentials: [
+          "mind trainer और coach के रूप में 26 साल",
+          "Quantum Speed Reading मेथडोलॉजी के निर्माता, 2015 से",
+          "10,000+ विद्यार्थियों को सीधे गाइड किया",
+        ],
+      },
+      whoFor: {
+        eyebrow: "यह किनके लिए है",
+        headline: "क्या यह आपके लिए सही है?",
+        cards: [
+          {
+            title: "हाल के ग्रेजुएट्स",
+            desc: "करियर शुरू करना चाहते हैं, शुरुआत से बनाने के बजाय एक तैयार कर्रिकुलम के साथ।",
+          },
+          {
+            title: "कोचिंग सेंटर / ट्यूशन ओनर्स",
+            desc: "अपने मौजूदा बिज़नेस में एक high-demand प्रोग्राम जोड़कर एक नया रेवेन्यू स्ट्रीम चाहते हैं।",
+          },
+          {
+            title: "टीचर्स",
+            desc: "अपने मौजूदा काम के साथ अपने खुद के सेशन चलाकर पार्ट-टाइम या साइड इनकम चाहते हैं।",
+          },
+        ],
+      },
+      faq: {
+        eyebrow: "सवाल-जवाब",
+        headline: "अक्सर पूछे जाने वाले सवाल",
+        items: [
+          {
+            question: "क्या मुझे पहले से टीचिंग अनुभव चाहिए?",
+            answer: "कोई औपचारिक टीचिंग डिग्री ज़रूरी नहीं, लेकिन आपको ग्रुप के सामने बोलने में सहज होना चाहिए। सर्टिफिकेशन प्रोग्राम आपको तकनीक और सेशन चलाना दोनों सिखाता है।",
+          },
+          {
+            question: "शुरू करने में कितना समय लगेगा?",
+            answer: "स्क्रीनिंग कॉल के बाद सर्टिफिकेशन में 7–14 दिन लगते हैं। उसके बाद यह फ्लेक्सिबल है — ज़्यादातर पार्टनर्स अपने मौजूदा काम के साथ पार्ट-टाइम सेशन चलाते हैं, और स्टूडेंट बेस बढ़ने के साथ स्केल करते हैं।",
+          },
+          {
+            question: "क्या यह genuine बिज़नेस है, या एक scheme?",
+            answer: "यह आपके नाम के तहत एक असली बिज़नेस है, कोई recruitment या referral scheme नहीं — आप अपने खुद के विद्यार्थियों को पढ़ाकर कमाते हैं, दूसरे पार्टनर्स जोड़कर नहीं। ऊपर दिया गया Earning Potential सेक्शन अलग-अलग स्तर पर realistic रेंज दिखाता है, गारंटी नहीं।",
+          },
+          {
+            question: "मुझे कैसा ऑनगोइंग सपोर्ट मिलेगा?",
+            answer: "सवालों के लिए माइंड उर माइंड टीम से सीधा संपर्क, resources और billing के लिए आपका अपना पार्टनर पोर्टल, और विद्यार्थी ढूंढने के लिए मार्केटिंग किट — यह सर्टिफिकेशन के बाद भी जारी रहता है।",
+          },
+          {
+            question: "अगर मैं रुकना चाहूं — क्या कोई lock-in या कैंसिलेशन पॉलिसी है?",
+            answer: "कोई लंबे समय का lock-in नहीं है। अपनी स्थिति पर चर्चा करने के लिए सीधे हमारी टीम से संपर्क करें — हम आपको यहाँ किसी fine print में बांधने के बजाय, options खुद समझाएंगे।",
+          },
+        ],
+      },
+      apply: {
+        eyebrow: "आवेदन करें",
+        title: "अभी आवेदन करें",
+        sub: "हमें अपने बारे में थोड़ा बताएं — हम कुछ दिनों में संपर्क करेंगे।",
+        nameLabel: "नाम",
+        phoneLabel: "फ़ोन",
+        cityLabel: "शहर",
+        backgroundLabel: "पृष्ठभूमि / अनुभव",
+        backgroundOptionalTag: "वैकल्पिक",
+        backgroundPlaceholder: "एक चुनें",
+        backgroundOptions: ["टीचर", "कोचिंग सेंटर ओनर", "हाल के ग्रेजुएट", "अन्य"],
+        whyInterestedLabel: "आप इसमें रुचि क्यों रखते हैं?",
+        whyInterestedOptionalTag: "वैकल्पिक",
+        whyInterestedPlaceholder: "आप माइंड उर माइंड पार्टनर क्यों बनना चाहते हैं?",
+        submitLabel: "आवेदन भेजें",
+        successTitle: "धन्यवाद!",
+        successDesc: "हमें आपका आवेदन मिल गया है, हम कुछ दिनों में संपर्क करेंगे।",
+        errorFallback: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
       },
     },
     testimonials: {
@@ -1681,7 +2233,7 @@ export const translations = {
       ariaLabel: "डॉ. कपिल की टीम से WhatsApp पर चैट करें",
     },
     footer: {
-      blurb: "डॉ. कपिल देव शर्मा के मार्गदर्शन में क्वांटम स्पीड रीडिंग और उन्नत साइकिक व स्पिरिचुअल प्रशिक्षण।",
+      blurb: "डॉ. कपिल देव शर्मा के मार्गदर्शन में क्वांटम स्पीड रीडिंग और उन्नत मेडिटेशन एवं माइंड-ट्रेनिंग।",
       columns: {
         programs: {
           heading: "प्रोग्राम्स",
@@ -1710,6 +2262,7 @@ export const translations = {
           links: [
             { label: "हमारे बारे में", href: "/about" },
             { label: "संपर्क करें", href: "/contact" },
+            { label: "पार्टनर बनें", href: "/franchise-individual" },
           ],
         },
       },
@@ -1778,6 +2331,7 @@ export const translations = {
         title: "7-दिवसीय रिज़ल्ट गारंटी",
         desc: "प्रोग्राम के पहले 7 दिन निर्देशानुसार पूरे करें। अगर आपका WPM मापने योग्य रूप से नहीं सुधरा है, तो हमें बताएं और हम पूरा रिफंड जारी करेंगे — कोई सवाल नहीं पूछा जाएगा।",
         policyLabel: "हमारी रिफंड और कैंसिलेशन नीति देखें",
+        heroLine: "पहले 7 दिन जोखिम-मुक्त आज़माएं — अगर आपका WPM मापने योग्य रूप से नहीं सुधरा, तो पूरा रिफंड।",
       },
       brainScience: {
         eyebrow: "इसके पीछे का विज्ञान",
@@ -1912,6 +2466,69 @@ export const translations = {
             "सत्र छूट जाने पर रिकॉर्डिंग उपलब्ध",
           ],
         },
+      },
+      moreThanSpeed: {
+        eyebrow: "स्पीड से आगे",
+        title: "सिर्फ स्पीड से कहीं ज़्यादा",
+        goalSetting: {
+          tag: "दिन 1",
+          title: "गोल-सेटिंग",
+          desc: "दिन 1 पर ही, हर विद्यार्थी अपने ट्रेनर के साथ अपने personal reading और learning goals तय करता है — जिससे शुरुआत से ही ownership बनती है।",
+        },
+        memoryTechniques: {
+          tag: "प्रैक्टिकल स्किल्स",
+          title: "प्रैक्टिकल मेमोरी तकनीकें",
+          desc: "रीडिंग स्पीड से आगे, विद्यार्थी असली मेमोरी टूल्स सीखते हैं — Memory Palace, Peg System, और Acronym तकनीकें — जिन्हें वे तुरंत दिखा भी सकते हैं।",
+        },
+      },
+      focusInDistractedWorld: {
+        eyebrow: "स्क्रीन टाइम और फोकस",
+        title: "एक distracted दुनिया में फोकस बनाना",
+        intro: "कई माता-पिता चिंतित रहते हैं कि स्क्रीन टाइम उनके बच्चे के फोकस और रीडिंग हैबिट्स को प्रभावित कर रहा है। यह प्रोग्राम रीडिंग ट्रेनिंग के साथ-साथ प्रैक्टिकल स्क्रीन-मैनेजमेंट गाइडेंस भी शामिल करता है।",
+        tips: [
+          {
+            title: "पोश्चर और आई-केयर",
+            desc: "लंबे रीडिंग सेशन के दौरान पोश्चर और आँखों की थकान कम करने के आसान टिप्स।",
+          },
+          {
+            title: "20-20-20 नियम",
+            desc: "हर 20 मिनट में, 20 फीट दूर किसी चीज़ को 20 सेकंड के लिए देखें।",
+          },
+          {
+            title: "डिजिटल डिटॉक्स हैबिट्स",
+            desc: "आसान आदतें — जैसे प्रैक्टिस से पहले 10 मिनट के लिए फोन दूर रखना।",
+          },
+        ],
+        habitAppCard: {
+          eyebrow: "QSR के साथ बेहतरीन जोड़ी",
+          title: "Habit Tracker App आज़माएं",
+          desc: "अपनी रीडिंग प्रैक्टिस के साथ-साथ लगातार screen-time और study habits बनाने के लिए QSR को हमारे Habit Tracker App के साथ जोड़ें।",
+          price: "पहले 7 दिन मुफ़्त, फिर सिर्फ ₹99/महीना।",
+          cta: "Habit App मुफ़्त में आज़माएं",
+        },
+      },
+      allRoundDevelopment: {
+        eyebrow: "सर्वांगीण विकास",
+        title: "सिर्फ स्पीड रीडिंग नहीं, संपूर्ण विकास",
+        items: [
+          {
+            title: "रीडिंग और मेमोरी",
+            desc: "तेज़ रीडिंग, बेहतर समझ, और प्रैक्टिकल मेमोरी तकनीकें।",
+          },
+          {
+            title: "फोकस और शांति",
+            desc: "एकाग्रता के लिए एक छोटा दैनिक मेडिटेशन और ब्रीदिंग अभ्यास।",
+          },
+          {
+            title: "लाइफ स्किल्स",
+            desc: "गोल-सेटिंग, आभार (gratitude) की आदत, और पोश्चर व स्क्रीन-केयर हैबिट्स।",
+          },
+          {
+            title: "फैमिली बॉन्डिंग",
+            desc: "एक मासिक पेरेंट-चाइल्ड रीडिंग एक्टिविटी।",
+          },
+        ],
+        disclaimer: "ये practice पर आधारित program design elements हैं, गारंटीड परिणाम नहीं।",
       },
       curriculum: {
         eyebrow: "पाठ्यक्रम",
@@ -2178,6 +2795,12 @@ export const translations = {
           "अपने मन को अनुभव करने के तरीके में एक स्थायी बदलाव — दिन 12 तक ख़त्म होने वाला 11-दिवसीय उत्साह नहीं",
         ],
       },
+      gallery: {
+        eyebrow: "रिट्रीट के अंदर",
+        title: "लाइव सेशंस वाकई कैसे दिखते हैं",
+        desc: "पिछले बैचों के असली स्क्रीनशॉट और पल — हर बैच के होने पर फ़ोटो जोड़ी जाती हैं।",
+        viewGalleryCta: "पूरी गैलरी देखें",
+      },
       freeMeditation: {
         eyebrow: "पहले मुफ़्त में आज़माएं",
         title: "प्रतिबद्ध होने से पहले एक मुफ़्त अभ्यास",
@@ -2347,6 +2970,7 @@ export const translations = {
         eyebrow: "रिट्रीट के अंदर",
         title: "यह वास्तव में कैसा दिखता है",
         desc: "माहौल, समूह, और अभ्यास की एक झलक — हर रिट्रीट के बाद असली तस्वीरें यहां जोड़ी जाएंगी।",
+        viewGalleryCta: "पूरी गैलरी देखें",
       },
       authority: {
         eyebrow: "एक सिद्ध मार्ग, कोई ट्रेंड नहीं",
