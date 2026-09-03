@@ -11,6 +11,7 @@ import { uploadPartnerResource } from '../actions/uploadPartnerResource'
 import { SUGGESTED_PARTNER_RESOURCE_CATEGORIES } from '../types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -132,8 +133,15 @@ export function UploadResourceDialog(): React.JSX.Element {
             />
 
             <div className="space-y-2">
-              <FormLabel>File</FormLabel>
+              {/* Plain Label, not FormLabel — FormLabel calls useFormField()
+                  unconditionally, which throws ("useFormField must be used
+                  within <FormField>") the instant this dialog opens, since
+                  this field is deliberately outside react-hook-form (see
+                  this component's own top comment). This was the actual
+                  root cause of the reported crash. */}
+              <Label htmlFor="partner-resource-file">File</Label>
               <Input
+                id="partner-resource-file"
                 type="file"
                 accept="application/pdf,video/mp4,image/png,image/jpeg,image/webp,.doc,.docx"
                 onChange={(event) => setFile(event.target.files?.[0] ?? null)}
