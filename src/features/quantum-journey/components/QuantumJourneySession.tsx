@@ -30,6 +30,8 @@ import { PreSessionBriefingScreen } from './PreSessionBriefingScreen'
 import { GrandCelebrationScreen } from './GrandCelebrationScreen'
 import { AppTwoMilestoneBanner } from './AppTwoMilestoneBanner'
 import { DynamicChunkingRecallCheck } from './DynamicChunkingRecallCheck'
+import { DigitalDetoxCheckIn } from '../digitalDetox/components/DigitalDetoxCheckIn'
+import { DistractionParkingLot } from './DistractionParkingLot'
 import { ReadingModeSelector } from '../readingModes/components/ReadingModeSelector'
 import { GuidingLinePacerPlayer, type GuidingLinePacerResult } from '../readingModes/components/GuidingLinePacerPlayer'
 import { RsvpModePlayer, type RsvpModeResult } from '../readingModes/components/RsvpModePlayer'
@@ -263,6 +265,13 @@ export function QuantumJourneySession({
     return requestedLevel >= 1 && requestedLevel <= 3 ? (requestedLevel as LevelState) : 'briefing'
   })
   const [hasStartedWarmup, setHasStartedWarmup] = useState(false)
+  // Digital Detox Check-in™ — gates Step 1 on every day (not just the
+  // mandatory-breathing Days 1-7), so it builds a genuine 21-day streak
+  // independent of which exercise Step 1 actually is. A local flag, not a
+  // new LevelState value, deliberately — inserting it as its own numbered
+  // step would perturb the carefully-tuned "Step X of 4" progress bar and
+  // haptics elsewhere in this component for no real benefit.
+  const [hasCompletedDetoxCheckin, setHasCompletedDetoxCheckin] = useState(false)
   // Full Reading Sprint Variety™ — the classic Quantum Reading Sprint, the
   // 4 JourneyReadingModePlayer modes, and the 2 new pacing-style players
   // (Guiding Line Pacer, RSVP Mode) all produce structurally identical
@@ -546,6 +555,9 @@ export function QuantumJourneySession({
       )
     }
     if (level === 1) {
+      if (!hasCompletedDetoxCheckin) {
+        return <DigitalDetoxCheckIn onComplete={() => setHasCompletedDetoxCheckin(true)} />
+      }
       if (isFoundationBreathingDay) {
         return <MindAwakeningPhase onComplete={advance} allowSkip={false} />
       }
@@ -644,7 +656,7 @@ export function QuantumJourneySession({
 
   return (
     <div>
-      {level !== 'complete' && level !== 'briefing' && (
+      {level !== 'complete' && level !== 'briefing' && hasCompletedDetoxCheckin && (
         <div className="mx-auto max-w-2xl px-6 pt-8">
           <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
             <span className="min-w-0 flex-1 truncate">
@@ -801,6 +813,14 @@ export function QuantumJourneySession({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Distraction Parking Lot™ — fixed-positioned, deliberately outside
+          AnimatePresence so it never unmounts/remounts (and loses its
+          notes) between step transitions. Hidden during the briefing,
+          the detox check-in, and the completion screen — it's scratch
+          space for staying in flow mid-session, not needed before or
+          after it. */}
+      {level !== 'complete' && level !== 'briefing' && hasCompletedDetoxCheckin && <DistractionParkingLot />}
     </div>
   )
 }

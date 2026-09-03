@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, BookOpen, LayoutDashboard, Radio, type LucideIcon } from 'lucide-react'
+import { BarChart3, BookOpen, LayoutDashboard, Radio, Settings, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AppDomain } from '@/lib/domains/appDomain'
 
@@ -21,8 +21,17 @@ const SHARED_LEADING_NAV_ITEMS = [{ href: '/dashboard', label: 'Dashboard', icon
 
 // journey/analytics already existed (built for the dashboard-page journey
 // card's own "view analytics" link) but had no nav entry anywhere — the
-// habit domain's real "streak tracker" surface.
-const HABIT_NAV_ITEMS = [{ href: '/labs/quantum-speed-reading/journey/analytics', label: 'Streak & Progress', icon: BarChart3 }] as const
+// habit domain's real "streak tracker" surface. Labeled "History" per
+// explicit product request — same real page, just matching the simpler
+// 3-item mental model (Dashboard / History / Settings) the standalone
+// ₹99 product is sold on. Settings was already promised by this file's
+// own top comment but never actually included — added for real now,
+// pointing at the same /settings page the account dropdown already links
+// to, just also reachable from the main nav on this domain.
+const HABIT_NAV_ITEMS = [
+  { href: '/labs/quantum-speed-reading/journey/analytics', label: 'History', icon: BarChart3 },
+  { href: '/settings', label: 'Settings', icon: Settings },
+] as const
 
 // Two-Pillar Simplification™ — the app domain now stands on exactly two
 // pillars, not three. "Advanced Drills" (the standalone drill catalog:

@@ -5,6 +5,7 @@ import { Flame, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { generatePreSessionBriefing } from '../actions/generatePreSessionBriefing'
+import { PowerThreeGoalsLock } from './PowerThreeGoalsLock'
 import type { PreSessionBriefingContext } from '@/lib/ai/prompts/preSessionBriefingPrompt'
 
 type PreSessionBriefingScreenProps = PreSessionBriefingContext & {
@@ -21,6 +22,10 @@ type PreSessionBriefingScreenProps = PreSessionBriefingContext & {
 export function PreSessionBriefingScreen(props: PreSessionBriefingScreenProps): React.JSX.Element {
   const { onStart, ...context } = props
   const [message, setMessage] = useState<string | null>(null)
+  // Power-3 Daily Goals™ — gates "Start Today's Session" until the user
+  // has actually locked in 3 priorities (see PowerThreeGoalsLock's own
+  // doc comment on why this is session-local state, not persisted).
+  const [hasLockedGoals, setHasLockedGoals] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -83,7 +88,9 @@ export function PreSessionBriefingScreen(props: PreSessionBriefingScreenProps): 
         </div>
       )}
 
-      <Button type="button" size="lg" className="w-full max-w-xs rounded-full" onClick={onStart}>
+      <PowerThreeGoalsLock onLock={() => setHasLockedGoals(true)} />
+
+      <Button type="button" size="lg" className="w-full max-w-xs rounded-full" disabled={!hasLockedGoals} onClick={onStart}>
         Start Today&rsquo;s Session →
       </Button>
     </div>

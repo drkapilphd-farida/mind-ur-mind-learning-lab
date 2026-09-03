@@ -451,6 +451,27 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_detox_checkins: {
+        Row: {
+          id: string
+          kept_phone_away: boolean
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          kept_phone_away: boolean
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          kept_phone_away?: boolean
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       document_chunk_cache: {
         Row: {
           chunk_order: number
