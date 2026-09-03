@@ -3,6 +3,15 @@ import { getAppDomain } from '@/lib/domains/appDomain'
 import { HabitDashboard } from './HabitDashboard'
 import { QsrDashboard } from './QsrDashboard'
 
+// Belt-and-suspenders against edge/CDN caching serving the wrong
+// domain's render: getAppDomain() already calls headers() (a dynamic
+// API), which should opt this route out of static generation on its
+// own, but forcing it explicitly removes any doubt that a cached
+// response could be served across the habit/app domain split — the
+// exact failure mode appDomain.ts's own comment documents happening
+// once before with a dynamic import, now guarded against here too.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Transformation Dashboard',
 }
