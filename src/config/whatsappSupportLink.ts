@@ -56,6 +56,15 @@ export const WHATSAPP_RESIDENTIAL_INQUIRY_LINK =
 export const WHATSAPP_MENTORING_INQUIRY_LINK =
   'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20want%20to%20apply%20for%201-on-1%20Personal%20Class%20Mentoring'
 
+// Same number, Quantum Mindset & Habit Builder-specific message — for
+// the dedicated /programs/habit-builder landing page. The real
+// conversion path there is the "Start Free" signup CTA, not WhatsApp —
+// this is only for pre-signup questions (e.g. about the Day 8+ ₹99
+// one-time payment), same "inquiry, not primary checkout" role every
+// other WHATSAPP_*_INQUIRY_LINK on this page plays for its own program.
+export const WHATSAPP_HABIT_BUILDER_INQUIRY_LINK =
+  'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20have%20a%20question%20about%20the%20Quantum%20Mindset%20%26%20Habit%20Builder'
+
 // Same number, used by the Personal Class application form to hand off
 // the name/phone/city/situation the visitor already typed — so Dr.
 // Kapil's team has real context before the conversation starts, same

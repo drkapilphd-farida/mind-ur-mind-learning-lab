@@ -23,7 +23,7 @@ declare global {
 // razorpay_checkout_click but a different provider — kept distinct so
 // GA4 reports can tell the two apart). Extend this union, not ad-hoc
 // string literals, so every call site stays typo-proof and greppable.
-export type GaEventName = 'whatsapp_click' | 'razorpay_checkout_click' | 'video_testimonial_click' | 'classplus_click'
+export type GaEventName = 'whatsapp_click' | 'razorpay_checkout_click' | 'video_testimonial_click' | 'classplus_click' | 'signup_cta_click'
 
 // No-ops when GA isn't configured (NEXT_PUBLIC_GA_MEASUREMENT_ID unset)
 // or gtag.js hasn't loaded yet — never throws, since a tracking call

@@ -546,7 +546,10 @@ export const translations = {
       columns: {
         programs: {
           heading: "Programs",
-          links: [{ label: "Quantum Speed Reading", href: "/programs/quantum-speed-reading" }],
+          links: [
+            { label: "Quantum Speed Reading", href: "/programs/quantum-speed-reading" },
+            { label: "Quantum Mindset & Habit Builder", href: "/programs/habit-builder" },
+          ],
         },
         retreats: {
           heading: "Retreats",
@@ -810,10 +813,10 @@ export const translations = {
         ],
         habitAppCard: {
           eyebrow: "Pairs Well With QSR",
-          title: "Try the Habit Tracker App",
-          desc: "Pair QSR with our Habit Tracker App — build lasting screen-time and study habits alongside your reading practice.",
-          price: "First 7 days free, then just ₹99/month.",
-          cta: "Try the Habit App Free",
+          title: "Quantum Mindset & Habit Builder™",
+          desc: "A 21-day guided program pairing daily reading practice with focus, memory, and mindset exercises alongside your Quantum Speed Reading training.",
+          price: "Free for Days 1–7, then a one-time payment of ₹99 to continue through Day 21.",
+          cta: "Learn More",
         },
       },
       allRoundDevelopment: {
@@ -975,6 +978,111 @@ export const translations = {
         bubble: "Have questions about the QSR batch? Chat with Dr. Kapil's team instantly.",
         button: "Chat on WhatsApp",
         ariaLabel: "Chat with Dr. Kapil's team on WhatsApp about the Quantum Speed Reading Masterclass",
+      },
+    },
+    habitBuilderLanding: {
+      hero: {
+        eyebrow: "21-Day Guided Program",
+        headline: "Build a Real Reading Habit in 21 Days",
+        headlineEm: "A short daily practice — not a personality overhaul, not a subscription trap.",
+        sub: "A guided, day-by-day program that pairs your Quantum Speed Reading practice with focus and memory exercises — one short session a day, for 21 real days.",
+        ctaPrimary: "Start Free — 7 Days, No Payment Required",
+        navCta: "Start Free",
+        ctaPrimaryMeta: "No card required to start",
+        pricingLine: "Free for Days 1–7. Then a one-time payment of ₹99 to continue through Day 21 — never a subscription.",
+      },
+      benefits: {
+        eyebrow: "What's Inside",
+        title: "Built to actually keep you coming back",
+        items: [
+          {
+            title: "Daily Streak Tracking",
+            desc: "A real streak counter tracks the days you show up — visible on your dashboard from Day 1.",
+          },
+          {
+            title: "Day 1 Baseline Diagnostic",
+            desc: "A short reading assessment on Day 1 sets your real starting point, so every day after measures genuine growth against it.",
+          },
+          {
+            title: "AI Coach Briefings",
+            desc: "Every day opens with a short, personalized note referencing your own last session — not a generic reminder.",
+          },
+          {
+            title: "Day 21 Certificate & Celebration",
+            desc: "Finish all 21 real days and unlock a downloadable, personalized completion certificate showing your actual Day 1-to-Day 21 growth.",
+          },
+        ],
+      },
+      howItWorks: {
+        eyebrow: "How It Works",
+        title: "Three weeks, one real structure",
+        weeks: [
+          {
+            range: "Days 1–7",
+            title: "Foundation & Brain Gym",
+            desc: "Eye-movement and focus drills, plus a mandatory 2-minute breathing warm-up to build the habit.",
+          },
+          {
+            range: "Days 8–14",
+            title: "Expansion & Visualisation",
+            desc: "Memory and visualisation exercises build on the foundation from Week 1.",
+          },
+          {
+            range: "Days 15–21",
+            title: "Advanced Quantum Flow & Intuition",
+            desc: "The most advanced exercises in the program, building toward your Day 21 finale.",
+          },
+        ],
+        dayShapeTitle: "Every day follows the same real shape",
+        dayShapeSteps: [
+          "A short warm-up exercise",
+          "A second focus or memory exercise",
+          "A reading practice session",
+          "A quick retention check",
+        ],
+      },
+      pricing: {
+        eyebrow: "Pricing",
+        title: "Simple, honest pricing",
+        freeCard: {
+          label: "Days 1–7",
+          price: "Free",
+          desc: "The full first week, no payment required, no card on file.",
+        },
+        paidCard: {
+          label: "Days 8–21",
+          price: "₹99",
+          priceNote: "one-time payment — not a subscription",
+          desc: "Pay once to continue the remaining two weeks through your Day 21 finale.",
+        },
+        cta: "Start Free — Day 1",
+      },
+      faq: {
+        eyebrow: "Questions",
+        title: "Frequently Asked Questions",
+        items: [
+          {
+            question: "Is this a subscription?",
+            answer: "No. Days 1–7 are completely free. Day 8 onward is a single one-time payment of ₹99 — there is no recurring charge at any point.",
+          },
+          {
+            question: "What happens after the free 7 days?",
+            answer: "You'll be asked to make the one-time ₹99 payment to keep going. Nothing charges automatically — you choose when (or whether) to continue.",
+          },
+          {
+            question: "What if I miss a day — do I lose my progress?",
+            answer: "Your streak resets if you miss a full day, but your actual progress doesn't — you pick up on the next day, not back at Day 1.",
+          },
+          {
+            question: "Do I need any special app or equipment?",
+            answer: "No — just this website, from your phone or computer. A few minutes a day is all it takes.",
+          },
+          {
+            question: "What do I get at the end?",
+            answer: "Complete all 21 real days and you'll unlock a downloadable, personalized completion certificate showing your real Day 1-to-Day 21 growth.",
+          },
+        ],
+        ctaLabel: "Ask on WhatsApp",
       },
     },
     retreatLanding: {
@@ -2237,7 +2345,10 @@ export const translations = {
       columns: {
         programs: {
           heading: "प्रोग्राम्स",
-          links: [{ label: "क्वांटम स्पीड रीडिंग", href: "/programs/quantum-speed-reading" }],
+          links: [
+            { label: "क्वांटम स्पीड रीडिंग", href: "/programs/quantum-speed-reading" },
+            { label: "क्वांटम माइंडसेट एंड हैबिट बिल्डर", href: "/programs/habit-builder" },
+          ],
         },
         retreats: {
           heading: "रिट्रीट्स",
@@ -2501,10 +2612,10 @@ export const translations = {
         ],
         habitAppCard: {
           eyebrow: "QSR के साथ बेहतरीन जोड़ी",
-          title: "Habit Tracker App आज़माएं",
-          desc: "अपनी रीडिंग प्रैक्टिस के साथ-साथ लगातार screen-time और study habits बनाने के लिए QSR को हमारे Habit Tracker App के साथ जोड़ें।",
-          price: "पहले 7 दिन मुफ़्त, फिर सिर्फ ₹99/महीना।",
-          cta: "Habit App मुफ़्त में आज़माएं",
+          title: "Quantum Mindset & Habit Builder™",
+          desc: "एक 21-दिवसीय गाइडेड प्रोग्राम, जो आपकी Quantum Speed Reading ट्रेनिंग के साथ-साथ दैनिक रीडिंग प्रैक्टिस को फोकस, मेमोरी, और माइंडसेट अभ्यासों से जोड़ता है।",
+          price: "दिन 1–7 मुफ़्त, फिर Day 21 तक जारी रखने के लिए सिर्फ ₹99 का एक one-time payment।",
+          cta: "और जानें",
         },
       },
       allRoundDevelopment: {
@@ -2666,6 +2777,111 @@ export const translations = {
         bubble: "QSR बैच के बारे में सवाल हैं? डॉ. कपिल की टीम से तुरंत बात करें।",
         button: "WhatsApp पर चैट करें",
         ariaLabel: "क्वांटम स्पीड रीडिंग मास्टरक्लास के बारे में डॉ. कपिल की टीम से WhatsApp पर चैट करें",
+      },
+    },
+    habitBuilderLanding: {
+      hero: {
+        eyebrow: "21-दिवसीय गाइडेड प्रोग्राम",
+        headline: "21 दिनों में एक असली रीडिंग हैबिट बनाएं",
+        headlineEm: "एक छोटा दैनिक अभ्यास — कोई personality overhaul नहीं, कोई subscription trap नहीं।",
+        sub: "एक गाइडेड, दिन-दर-दिन प्रोग्राम, जो आपकी Quantum Speed Reading प्रैक्टिस को फोकस और मेमोरी अभ्यासों से जोड़ता है — एक दिन में एक छोटा सेशन, 21 असली दिनों तक।",
+        ctaPrimary: "मुफ़्त शुरू करें — 7 दिन, कोई भुगतान नहीं",
+        navCta: "मुफ़्त शुरू करें",
+        ctaPrimaryMeta: "शुरू करने के लिए कार्ड की ज़रूरत नहीं",
+        pricingLine: "दिन 1–7 मुफ़्त। फिर Day 21 तक जारी रखने के लिए सिर्फ ₹99 का एक one-time payment — कभी subscription नहीं।",
+      },
+      benefits: {
+        eyebrow: "इसमें क्या मिलता है",
+        title: "आपको वापस लौटते रहने के लिए बनाया गया",
+        items: [
+          {
+            title: "डेली स्ट्रीक ट्रैकिंग",
+            desc: "एक असली स्ट्रीक काउंटर आपके दिखने वाले दिनों को ट्रैक करता है — Day 1 से ही आपके डैशबोर्ड पर दिखता है।",
+          },
+          {
+            title: "Day 1 बेसलाइन डायग्नोस्टिक",
+            desc: "Day 1 पर एक छोटा रीडिंग असेसमेंट आपका असली स्टार्टिंग पॉइंट तय करता है, ताकि उसके बाद हर दिन असली growth को मापे।",
+          },
+          {
+            title: "AI कोच ब्रीफिंग",
+            desc: "हर दिन आपके पिछले सेशन के आधार पर एक छोटे, personalized नोट के साथ शुरू होता है — कोई generic reminder नहीं।",
+          },
+          {
+            title: "Day 21 सर्टिफिकेट और सेलिब्रेशन",
+            desc: "सभी 21 असली दिन पूरे करें और अपनी असली Day 1-से-Day 21 growth दिखाने वाला एक डाउनलोडेबल, personalized completion certificate अनलॉक करें।",
+          },
+        ],
+      },
+      howItWorks: {
+        eyebrow: "यह कैसे काम करता है",
+        title: "तीन हफ्ते, एक असली structure",
+        weeks: [
+          {
+            range: "दिन 1–7",
+            title: "फाउंडेशन एंड ब्रेन जिम",
+            desc: "आँखों की मूवमेंट और फोकस drills, साथ ही आदत बनाने के लिए एक mandatory 2-मिनट breathing warm-up।",
+          },
+          {
+            range: "दिन 8–14",
+            title: "एक्सपैंशन एंड विज़ुअलाइज़ेशन",
+            desc: "मेमोरी और visualisation अभ्यास, Week 1 की नींव पर आगे बढ़ते हैं।",
+          },
+          {
+            range: "दिन 15–21",
+            title: "एडवांस्ड क्वांटम फ्लो एंड इंट्यूशन",
+            desc: "प्रोग्राम के सबसे advanced अभ्यास, आपके Day 21 finale की ओर ले जाते हुए।",
+          },
+        ],
+        dayShapeTitle: "हर दिन एक जैसा असली ढांचा फॉलो करता है",
+        dayShapeSteps: [
+          "एक छोटा warm-up अभ्यास",
+          "एक दूसरा फोकस या मेमोरी अभ्यास",
+          "एक रीडिंग प्रैक्टिस सेशन",
+          "एक क्विक रिटेंशन चेक",
+        ],
+      },
+      pricing: {
+        eyebrow: "प्राइसिंग",
+        title: "सीधी, ईमानदार प्राइसिंग",
+        freeCard: {
+          label: "दिन 1–7",
+          price: "मुफ़्त",
+          desc: "पूरा पहला हफ्ता, कोई भुगतान नहीं, कोई कार्ड फ़ाइल पर नहीं।",
+        },
+        paidCard: {
+          label: "दिन 8–21",
+          price: "₹99",
+          priceNote: "एक one-time payment — subscription नहीं",
+          desc: "अपने Day 21 finale तक बाकी दो हफ्ते जारी रखने के लिए एक बार भुगतान करें।",
+        },
+        cta: "मुफ़्त शुरू करें — Day 1",
+      },
+      faq: {
+        eyebrow: "सवाल-जवाब",
+        title: "अक्सर पूछे जाने वाले सवाल",
+        items: [
+          {
+            question: "क्या यह एक subscription है?",
+            answer: "नहीं। दिन 1–7 पूरी तरह मुफ़्त हैं। Day 8 से आगे सिर्फ एक one-time payment of ₹99 है — किसी भी समय कोई recurring charge नहीं है।",
+          },
+          {
+            question: "मुफ़्त 7 दिनों के बाद क्या होता है?",
+            answer: "आगे जारी रखने के लिए आपसे एक बार का ₹99 भुगतान करने को कहा जाएगा। कुछ भी अपने आप charge नहीं होता — आप खुद तय करते हैं कि कब (या क्या) जारी रखना है।",
+          },
+          {
+            question: "अगर मैं एक दिन मिस कर दूं — क्या मेरी प्रोग्रेस चली जाएगी?",
+            answer: "अगर आप पूरा दिन मिस करते हैं तो आपकी स्ट्रीक रीसेट हो जाती है, लेकिन आपकी असली प्रोग्रेस नहीं जाती — आप अगले दिन से जारी रखते हैं, Day 1 से दोबारा शुरू नहीं करना पड़ता।",
+          },
+          {
+            question: "क्या मुझे कोई खास ऐप या equipment चाहिए?",
+            answer: "नहीं — बस यह वेबसाइट, अपने फ़ोन या कंप्यूटर से। दिन में बस कुछ मिनट काफी हैं।",
+          },
+          {
+            question: "आख़िर में मुझे क्या मिलता है?",
+            answer: "सभी 21 असली दिन पूरे करें और अपनी असली Day 1-से-Day 21 growth दिखाने वाला एक डाउनलोडेबल, personalized completion certificate अनलॉक करें।",
+          },
+        ],
+        ctaLabel: "WhatsApp पर पूछें",
       },
     },
     retreatLanding: {

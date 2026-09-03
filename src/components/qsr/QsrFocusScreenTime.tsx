@@ -7,9 +7,12 @@ import { Eyebrow } from "../ui";
 
 const TIP_ICONS = [Eye, Timer, PhoneOff] as const;
 
-// Habit App cross-sell — /programs/habit-app doesn't exist yet (to be
-// built separately, per the site owner's own instruction); this card
-// just plants the link now so it's ready the moment that page ships.
+// Quantum Mindset & Habit Builder™ cross-sell — links to its real,
+// public, logged-out-accessible landing page (/programs/habit-builder,
+// built separately). Previously text-only with no CTA, since that page
+// didn't exist yet and the product's real UI lived entirely behind
+// /labs/quantum-speed-reading/journey/*, which middleware.ts gates
+// behind login.
 export default function QsrFocusScreenTime(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.focusInDistractedWorld;
@@ -48,7 +51,7 @@ export default function QsrFocusScreenTime(): React.JSX.Element {
             <p className="mt-2 text-[13.5px] font-semibold text-teal">{section.habitAppCard.price}</p>
           </div>
           <Link
-            href="/programs/habit-app"
+            href="/programs/habit-builder"
             className="inline-flex flex-none items-center gap-2.5 whitespace-nowrap rounded-sm border border-teal/60 bg-panel px-7 py-[15px] text-[14.5px] font-semibold text-teal transition-colors hover:bg-teal hover:text-white"
           >
             {section.habitAppCard.cta}
