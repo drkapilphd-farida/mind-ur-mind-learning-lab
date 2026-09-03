@@ -179,3 +179,5 @@ The app is designed for deployment on Vercel:
 4. Run `npx supabase db push` against your production Supabase project
 
 Ensure `NEXT_PUBLIC_APP_URL` is set to your production domain — it is used for email redirect URLs and the sitemap.
+
+<!-- deploy-trigger-check: verifying Vercel auto-deploy fires after Git integration reconnect -->
