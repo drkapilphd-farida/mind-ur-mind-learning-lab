@@ -50,7 +50,13 @@ function portalHomeFor(pathname: string): string {
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl
-  const appDomain = resolveAppDomain(request.headers.get('host'))
+  // Behind Vercel's edge network (or any reverse proxy), the `Host`
+  // header on the request the middleware actually sees can be the
+  // proxy's own internal routing host, not what the visitor typed —
+  // `x-forwarded-host` preserves the original public-facing host.
+  // Mirrors the exact same fallback appDomain.ts's own getRequestOrigin()
+  // already uses, for the same reason.
+  const appDomain = resolveAppDomain(request.headers.get('x-forwarded-host') ?? request.headers.get('host'))
 
   const { response: sessionResponse, user } = await updateSession(request)
 

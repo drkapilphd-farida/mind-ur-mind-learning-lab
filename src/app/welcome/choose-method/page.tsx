@@ -3,6 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { getAppDomain } from '@/lib/domains/appDomain'
 import { ChooseLearningMethodExperience } from '@/components/welcome/ChooseLearningMethodExperience'
 
+// Belt-and-suspenders against edge/CDN caching serving the wrong
+// domain's card — same reasoning and same fix as
+// (dashboard)/dashboard/page.tsx's own `dynamic = 'force-dynamic'`.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Choose Learning Method',
 }
