@@ -56,7 +56,7 @@ export default async function QuantumJourneyDayPage({ params }: QuantumJourneyDa
   // not the general /pricing page — same "one real checkout URL" pattern
   // the 30-Day Masterclass's own paywall already uses.
   if (dayNumber > FREE_JOURNEY_DAYS && !isDevUnlockEnabled()) {
-    const hasAccess = user ? await hasHabitBuilderAccess(user.id) : false
+    const hasAccess = user ? await hasHabitBuilderAccess(user.id, user.email ?? null) : false
     if (!hasAccess) {
       redirect(RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK)
     }

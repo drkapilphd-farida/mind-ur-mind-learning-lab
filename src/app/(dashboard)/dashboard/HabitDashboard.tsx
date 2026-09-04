@@ -25,7 +25,7 @@ export async function HabitDashboard(): Promise<React.JSX.Element> {
   const [profile, dailyQuantumSessionHistory, isPaidUser] = await Promise.all([
     getCurrentUserProfile(user.id),
     getDailyQuantumSessionHistory(),
-    hasHabitBuilderAccess(user.id),
+    hasHabitBuilderAccess(user.id, user.email ?? null),
   ])
 
   // The next real 21-Day Journey day (1-21) — daily_quantum_sessions has
