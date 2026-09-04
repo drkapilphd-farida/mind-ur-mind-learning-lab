@@ -1,6 +1,7 @@
 'use client'
 
 import { Brain } from 'lucide-react'
+import { playClickChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
 
 type DynamicChunkingRecallCheckProps = {
   // The real Brain Challenge tally from the just-finished Dynamic
@@ -34,6 +35,17 @@ const CONFIDENCE_OPTIONS: readonly ConfidenceOption[] = [
 // second quiz, rather than either fabricating quiz content or silently
 // skipping the step.
 export function DynamicChunkingRecallCheck({ correctCount, totalCount, onComplete }: DynamicChunkingRecallCheckProps): React.JSX.Element {
+  // Confidence Tap Feedback™ — this self-report previously had zero
+  // audio/haptic feedback at all (the most audio/haptic-bare tappable
+  // moment in the journey); a light neutral tap (never correct/wrong,
+  // since there's no right answer here) now gives it parity with every
+  // other tappable moment in the app.
+  function handleSelect(): void {
+    playClickChime()
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(12)
+    onComplete()
+  }
+
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-5 px-6 py-16 text-center">
       <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true">
@@ -54,7 +66,7 @@ export function DynamicChunkingRecallCheck({ correctCount, totalCount, onComplet
           <button
             key={option.label}
             type="button"
-            onClick={onComplete}
+            onClick={handleSelect}
             className="flex items-center justify-center gap-2 rounded-full border border-border/60 bg-card/60 px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 active:scale-95"
           >
             <span aria-hidden="true">{option.emoji}</span>

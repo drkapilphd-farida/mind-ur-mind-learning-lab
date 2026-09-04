@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { playClickChime, playCorrectChime, playGentleMissChime } from '@/app/unified-quantum-session-preview/components/soundEngine'
 import { computeReadingPowerScore } from '@/app/unified-quantum-session-preview/components/quantumReadingSprintDataset'
 import { pickJourneyReadingSet, type JourneyReadingSet, type JourneyLengthTier } from '../readingContent'
@@ -121,6 +122,7 @@ export function JourneyReadingModePlayer({ mode, lengthTier, speedMultiplier, on
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [lastOutcome, setLastOutcome] = useState<{ isCorrect: boolean } | null>(null)
   const [correctCount, setCorrectCount] = useState(0)
+  const [comboCount, setComboCount] = useState(0)
 
   // The random anti-repeat pick must happen client-side only — unlike
   // QuantumReadingSprintPhase (whose countdown phase delays the passage
@@ -186,11 +188,20 @@ export function JourneyReadingModePlayer({ mode, lengthTier, speedMultiplier, on
     setSelectedOption(option)
     setLastOutcome({ isCorrect })
     setPhase('revealing')
+    // Differentiated Answer Haptics™ — same restrained pattern used by
+    // RetentionCheckPhase.tsx/ComprehensionQuestionFlow.tsx: a short
+    // single pulse for correct, a gentle double-pulse for wrong,
+    // inline-guarded, no shared wrapper.
+    const canVibrate = typeof navigator !== 'undefined' && 'vibrate' in navigator
     if (isCorrect) {
       setCorrectCount((count) => count + 1)
+      setComboCount((count) => count + 1)
       playCorrectChime()
+      if (canVibrate) navigator.vibrate(10)
     } else {
+      setComboCount(0)
       playGentleMissChime()
+      if (canVibrate) navigator.vibrate([10, 40, 10])
     }
 
     setTimeout(() => {
@@ -247,9 +258,20 @@ export function JourneyReadingModePlayer({ mode, lengthTier, speedMultiplier, on
 
       {(phase === 'question' || phase === 'revealing') && currentQuestion !== undefined && (
         <div className="flex w-full flex-1 flex-col items-center justify-center gap-6">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Question {questionIndex + 1} of {QUESTIONS_PER_SET}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Question {questionIndex + 1} of {QUESTIONS_PER_SET}
+            </p>
+            {comboCount >= 2 && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-600 dark:text-orange-400"
+              >
+                🔥 {comboCount} in a row
+              </motion.span>
+            )}
+          </div>
           <p className="font-heading text-xl font-bold tracking-tight text-foreground">{currentQuestion.question}</p>
 
           {phase === 'revealing' && lastOutcome !== null && (

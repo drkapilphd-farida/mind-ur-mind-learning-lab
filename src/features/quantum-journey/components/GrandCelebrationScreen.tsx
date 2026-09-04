@@ -43,6 +43,12 @@ export function GrandCelebrationScreen({
 
   useEffect(() => {
     playCertificateFanfare()
+    // Day 21 Finale Haptic™ — the biggest celebratory moment in the whole
+    // journey gets the single longest, most distinctive vibration pattern
+    // in the app (every other haptic elsewhere is a short single pulse or
+    // a breath-cadence flutter) — same inline guard convention used
+    // everywhere else, no shared wrapper.
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([20, 60, 20, 60, 40])
     let cancelled = false
     void generateJourneyCompletionSummary({
       studentName: studentFirstName,

@@ -45,6 +45,7 @@ export function RetentionCheckPhase({ readingSet, onComplete }: RetentionCheckPh
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [subPhase, setSubPhase] = useState<SubPhase>('question')
   const [correctCount, setCorrectCount] = useState(0)
+  const [comboCount, setComboCount] = useState(0)
   const [lastOutcome, setLastOutcome] = useState<{ isCorrect: boolean } | null>(null)
 
   const isMountedRef = useRef(true)
@@ -75,10 +76,19 @@ export function RetentionCheckPhase({ readingSet, onComplete }: RetentionCheckPh
     const isCorrect = option === correctOptionText
     setSelectedOption(option)
     setLastOutcome({ isCorrect })
+    // Differentiated Answer Haptics™ — correct is a short single pulse,
+    // wrong is a gentle double-pulse, still "encourage never shame"
+    // (never a harsh/long buzz) — same inline guard convention every
+    // other haptic call site in this app uses, no shared wrapper.
+    const canVibrate = typeof navigator !== 'undefined' && 'vibrate' in navigator
     if (isCorrect) {
       playCorrectChime()
+      setComboCount((count) => count + 1)
+      if (canVibrate) navigator.vibrate(10)
     } else {
       playGentleMissChime()
+      setComboCount(0)
+      if (canVibrate) navigator.vibrate([10, 40, 10])
     }
     setSubPhase('revealing')
 
@@ -108,6 +118,7 @@ export function RetentionCheckPhase({ readingSet, onComplete }: RetentionCheckPh
     playClickChime()
     setAttempt(2)
     setCorrectCount(0)
+    setComboCount(0)
     beginQuestion(0)
   }
 
@@ -153,9 +164,24 @@ export function RetentionCheckPhase({ readingSet, onComplete }: RetentionCheckPh
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="flex w-full max-w-md flex-col items-center gap-6"
           >
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Question {questionIndex + 1} of {totalQuestions}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Question {questionIndex + 1} of {totalQuestions}
+              </p>
+              {/* Combo Streak Badge™ — a restrained, honest signal (never
+                  a heavy scoring system): only ever appears once a
+                  question set's 2 questions are both answered correctly,
+                  right at the moment it becomes true. */}
+              {comboCount >= 2 && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-600 dark:text-orange-400"
+                >
+                  🔥 {comboCount} in a row
+                </motion.span>
+              )}
+            </div>
             <p className="font-heading text-xl font-bold tracking-tight text-foreground">{currentQuestion.question}</p>
 
             {subPhase === 'revealing' && lastOutcome !== null && (

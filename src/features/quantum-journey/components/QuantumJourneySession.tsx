@@ -8,7 +8,14 @@ import { Flame, SkipForward, Target, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LivingBrainLogo } from '@/components/brand/LivingBrainLogo'
 import { isDevUnlockEnabled } from '@/lib/dev/isDevUnlockEnabled'
-import { playClickChime, startAmbientDrone, stopAmbientDrone } from '@/app/unified-quantum-session-preview/components/soundEngine'
+import {
+  playClickChime,
+  playLevelCompleteChime,
+  playSessionCompleteChime,
+  startFocusAmbient,
+  stopFocusAmbient,
+} from '@/app/unified-quantum-session-preview/components/soundEngine'
+import { useSoundPreference } from '@/hooks/exercises/useSoundPreference'
 import { MindAwakeningPhase } from '@/app/unified-quantum-session-preview/components/MindAwakeningPhase'
 import { QuantumReadingSprintPhase, type QuantumReadingSprintResult } from '@/app/unified-quantum-session-preview/components/QuantumReadingSprintPhase'
 import { RetentionCheckPhase } from '@/app/unified-quantum-session-preview/components/RetentionCheckPhase'
@@ -29,6 +36,8 @@ import { JourneyReadingModePlayer, type JourneyReadingModeResult } from './Journ
 import { PreSessionBriefingScreen } from './PreSessionBriefingScreen'
 import { GrandCelebrationScreen } from './GrandCelebrationScreen'
 import { AppTwoMilestoneBanner } from './AppTwoMilestoneBanner'
+import { JourneySoundToggle } from './JourneySoundToggle'
+import { JourneyMilestoneCelebration } from './JourneyMilestoneCelebration'
 import { DynamicChunkingRecallCheck } from './DynamicChunkingRecallCheck'
 import { DigitalDetoxCheckIn } from '../digitalDetox/components/DigitalDetoxCheckIn'
 import { DistractionParkingLot } from './DistractionParkingLot'
@@ -291,20 +300,35 @@ export function QuantumJourneySession({
   const [dayReadingSummary, setDayReadingSummary] = useState<DayReadingSummary | null>(null)
   const [isSavingDay, setIsSavingDay] = useState(false)
   const [coachMessage, setCoachMessage] = useState<string | null>(null)
+  // Invisible-Reward Fix™ — XP was always computed (finalizeDay/
+  // finalizeChunkingDay) and saved, but never shown anywhere in this
+  // component's own UI. Captured here purely for display; the real
+  // number saved to daily_quantum_sessions is unchanged.
+  const [xpEarnedToday, setXpEarnedToday] = useState<number | null>(null)
+  const [soundEnabled] = useSoundPreference()
 
-  // Ambient Session Drone™ — one quiet, tuned background drone for the
-  // whole active session (Step 1 through the completion screen), the
-  // same tasteful recipe already proven on this app's reading-mode
-  // exercises. Started once per session (not per step, so the fade-in
-  // never restarts between Steps 1-4) and always faded out on unmount —
-  // e.g. the user navigating away mid-session — not just on a clean
-  // finish, so it can never keep humming after the page is gone.
+  // Focus Ambient™ — one quiet, tuned background drone for the whole
+  // active session (Step 1 through the completion screen), the same
+  // tasteful recipe already proven on this app's reading-mode exercises.
+  // Started once per session (not per step, so the fade-in never
+  // restarts between Steps 1-4) and always faded out on unmount — e.g.
+  // the user navigating away mid-session — not just on a clean finish,
+  // so it can never keep humming after the page is gone. `soundEnabled`
+  // in the dependency array means flipping the new JourneySoundToggle
+  // mid-session actually starts/stops audio live, not just on next
+  // mount — startFocusAmbient/stopFocusAmbient each re-check the real
+  // persisted preference at call time, so a stale value here only ever
+  // triggers a redundant no-op, never an incorrect one. On mandatory-
+  // breathing days, MindAwakeningPhase's OWN mount/unmount effect stops
+  // this and starts its Meditative Breath Drone instead, then restores
+  // this one on its own unmount — this effect doesn't need to know that
+  // handoff is happening, it just needs to keep running underneath it.
   useEffect(() => {
     if (level === 'briefing') return undefined
-    startAmbientDrone()
-    return () => stopAmbientDrone()
+    startFocusAmbient()
+    return () => stopFocusAmbient()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level === 'briefing'])
+  }, [level === 'briefing', soundEnabled])
 
   // Clean Step Haptics™ — one light, guarded vibrate at each real step
   // transition (never continuous, never on every tap) — the same inline
@@ -315,7 +339,7 @@ export function QuantumJourneySession({
   }
 
   function advance(): void {
-    playClickChime()
+    playLevelCompleteChime()
     triggerStepHaptic()
     setLevel((current) => (typeof current === 'number' ? ((current + 1) as LevelState) : current))
   }
@@ -395,18 +419,21 @@ export function QuantumJourneySession({
     setIsSavingDay(true)
     const trueWpm = computeTrueWpm(readingResult.wpm, readingResult.accuracyPercent)
     const readingXp = computeReadingXp(readingResult.score)
+    const totalXp = readingXp + retentionXp
     const [, coach] = await Promise.all([
       saveDailyQuantumSession({
         readingWpm: trueWpm,
         accuracyPercent: readingResult.accuracyPercent,
         readingScore: readingResult.score,
-        xpEarned: readingXp + retentionXp,
+        xpEarned: totalXp,
       }),
       requestCoachFeedback(trueWpm, readingResult.accuracyPercent),
     ])
     setIsSavingDay(false)
     setDayReadingSummary({ wpm: trueWpm, accuracyPercent: readingResult.accuracyPercent })
+    setXpEarnedToday(totalXp)
     setCoachMessage(coach)
+    playSessionCompleteChime()
     triggerStepHaptic()
     setLevel('complete')
   }
@@ -483,18 +510,21 @@ export function QuantumJourneySession({
     if (chunkingSummary === null) return
     setIsSavingDay(true)
     const readingXp = computeReadingXp(chunkingSummary.readingScore)
+    const totalXp = readingXp + recallXp
     const [, coach] = await Promise.all([
       saveDailyQuantumSession({
         readingWpm: chunkingSummary.trueWpm,
         accuracyPercent: chunkingSummary.accuracyPercent,
         readingScore: chunkingSummary.readingScore,
-        xpEarned: readingXp + recallXp,
+        xpEarned: totalXp,
       }),
       requestCoachFeedback(chunkingSummary.trueWpm, chunkingSummary.accuracyPercent),
     ])
     setIsSavingDay(false)
     setDayReadingSummary({ wpm: chunkingSummary.trueWpm, accuracyPercent: chunkingSummary.accuracyPercent })
+    setXpEarnedToday(totalXp)
     setCoachMessage(coach)
+    playSessionCompleteChime()
     triggerStepHaptic()
     setLevel('complete')
   }
@@ -663,6 +693,7 @@ export function QuantumJourneySession({
               Day {day} — Step {level} of {totalSteps}: {stepLabel}
             </span>
             <div className="flex shrink-0 items-center gap-3">
+              <JourneySoundToggle />
               {canSkipCurrentStep && (
                 <button
                   type="button"
@@ -787,7 +818,23 @@ export function QuantumJourneySession({
                 <Flame className="size-4 text-orange-500" aria-hidden="true" />
                 <span className="text-sm font-semibold text-foreground">{resultingStreak}-Day Streak</span>
               </div>
+              {/* Invisible-Reward Fix™ — XP was always computed and
+                  saved, never shown; this is its first real on-screen
+                  appearance. */}
+              {xpEarnedToday !== null && (
+                <div className="flex items-center justify-center gap-2 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3">
+                  <Zap className="size-4 text-indigo-500" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-foreground">+{xpEarnedToday} XP Earned</span>
+                </div>
+              )}
             </div>
+
+            {/* Streak Milestone Celebration™ — getMilestoneHitExactly is
+                already computed above (milestoneReachedToday); this is
+                its first real visual/audio/haptic treatment. No extra
+                day !== 21 guard needed — the surrounding ternary already
+                makes this branch unreachable on Day 21. */}
+            {milestoneReachedToday !== null && <JourneyMilestoneCelebration milestoneStreak={milestoneReachedToday} />}
 
             {/* App 1 → App 2 Soft Upsell™ — only the two real mid-journey
                 momentum days (see AppTwoMilestoneBanner's own comment);

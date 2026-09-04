@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { SkipForward } from 'lucide-react'
-import { playClickChime } from './soundEngine'
+import { useSoundPreference } from '@/hooks/exercises/useSoundPreference'
+import {
+  playClickChime,
+  startFocusAmbient,
+  stopFocusAmbient,
+  startMeditativeBreathDrone,
+  stopMeditativeBreathDrone,
+  updateMeditativeBreathSwell,
+} from './soundEngine'
 
 const PHASE_DURATION_MS = 120_000
 // Box Breathing (4-4-4-4)™ — 4 equal phases (inhale, hold, exhale, hold),
@@ -20,6 +28,27 @@ const BOX_BREATH_CYCLE_MS = BOX_BREATH_PHASE_MS * 4
 const BOX_BREATH_KEYFRAME_TIMES: number[] = [0, 0.25, 0.5, 0.75, 1]
 const BOX_BREATH_PHASE_LABELS = ['Breathe In', 'Hold', 'Breathe Out', 'Hold'] as const
 const TICK_MS = 1_000
+
+// Breath-Synced Haptics™ — Breathe In gets a dense pulse-rest flutter
+// sized to exactly span its 4s phase (same technique as
+// ThetaBreathingAnchor.tsx's own HAPTIC_PATTERN, computed locally here
+// since this is a 4-phase box breath, not that component's 2-phase
+// cycle — no shared haptics wrapper exists anywhere in this app, and
+// this file follows that same established convention). Breathe Out gets
+// a deliberately sparser, slower cadence — distinct enough to feel
+// different from Breathe In, and NOT silent (unlike ThetaBreathingAnchor's
+// 2-phase design where exhale is silent — this is a different exercise,
+// and the product spec explicitly asks for a felt cue on Breathe Out
+// too). Hold gets one short, firm single pulse.
+const HAPTIC_PULSE_ON_MS = 100
+const HAPTIC_PULSE_OFF_MS = 150
+const HAPTIC_BREATHE_IN_PULSE_COUNT = Math.floor(BOX_BREATH_PHASE_MS / (HAPTIC_PULSE_ON_MS + HAPTIC_PULSE_OFF_MS))
+const HAPTIC_BREATHE_IN_PATTERN: readonly number[] = Array.from({ length: HAPTIC_BREATHE_IN_PULSE_COUNT }, () => [
+  HAPTIC_PULSE_ON_MS,
+  HAPTIC_PULSE_OFF_MS,
+]).flat()
+const HAPTIC_BREATHE_OUT_PATTERN: readonly number[] = [150, 300, 150, 300, 150, 300, 150, 300]
+const HAPTIC_HOLD_PULSE_MS = 20
 
 type MindAwakeningPhaseProps = {
   onComplete: () => void
@@ -43,6 +72,8 @@ export function MindAwakeningPhase({ onComplete, allowSkip = true }: MindAwakeni
   const [elapsedMs, setElapsedMs] = useState(0)
   const isMountedRef = useRef(true)
   const hasCompletedRef = useRef(false)
+  const lastPhaseIndexRef = useRef<number | null>(null)
+  const [soundEnabled] = useSoundPreference()
 
   useEffect(() => {
     isMountedRef.current = true
@@ -66,6 +97,26 @@ export function MindAwakeningPhase({ onComplete, allowSkip = true }: MindAwakeni
     return () => clearTimeout(timeout)
   }, [elapsedMs, onComplete])
 
+  // Meditative Soundscape™ — swaps Focus Ambient (the flat drone the
+  // parent QuantumJourneySession started for the whole session) for a
+  // breath-reactive Meditative Breath Drone for exactly the duration of
+  // this exercise, restoring Focus Ambient on Skip, natural completion,
+  // or navigating away mid-breath. `soundEnabled` in the dependency array
+  // means flipping the in-session audio toggle mid-breathing actually
+  // starts/stops audio live rather than waiting for a remount — the
+  // underlying start*/stop* functions each re-check the real persisted
+  // preference at call time, so a stale `soundEnabled` value here only
+  // ever triggers a redundant no-op, never an incorrect one.
+  useEffect(() => {
+    stopFocusAmbient()
+    startMeditativeBreathDrone()
+    return () => {
+      stopMeditativeBreathDrone()
+      startFocusAmbient()
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(0)
+    }
+  }, [soundEnabled])
+
   function handleSkip(): void {
     if (hasCompletedRef.current) return
     hasCompletedRef.current = true
@@ -79,6 +130,30 @@ export function MindAwakeningPhase({ onComplete, allowSkip = true }: MindAwakeni
   const seconds = remainingSeconds % 60
   const boxBreathPhaseIndex = Math.floor((elapsedMs % BOX_BREATH_CYCLE_MS) / BOX_BREATH_PHASE_MS)
   const breathLabel = BOX_BREATH_PHASE_LABELS[boxBreathPhaseIndex]
+
+  // Breath-Synced Haptics + Swell™ — fires exactly once per phase index
+  // change (guarded by lastPhaseIndexRef, since elapsedMs itself ticks
+  // every second within the same phase). Breathe In/Out drive both a
+  // distinct vibration pattern and the meditative drone's swell/rest
+  // target; Hold gets a haptic pulse only (the drone holds its current
+  // gain through both Hold phases, matching the breath's own physical
+  // pause).
+  useEffect(() => {
+    if (lastPhaseIndexRef.current === boxBreathPhaseIndex) return
+    lastPhaseIndexRef.current = boxBreathPhaseIndex
+
+    const canVibrate = typeof navigator !== 'undefined' && 'vibrate' in navigator
+
+    if (boxBreathPhaseIndex === 0) {
+      if (canVibrate) navigator.vibrate([...HAPTIC_BREATHE_IN_PATTERN])
+      updateMeditativeBreathSwell('swell')
+    } else if (boxBreathPhaseIndex === 2) {
+      if (canVibrate) navigator.vibrate([...HAPTIC_BREATHE_OUT_PATTERN])
+      updateMeditativeBreathSwell('rest')
+    } else if (canVibrate) {
+      navigator.vibrate(HAPTIC_HOLD_PULSE_MS)
+    }
+  }, [boxBreathPhaseIndex])
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
