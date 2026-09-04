@@ -19,6 +19,8 @@ const DOMAIN_ROUTES: { prefix: string; domain: AppDomain }[] = [
   { prefix: '/parent-dashboard', domain: 'app' },
   { prefix: '/progress', domain: 'app' },
   { prefix: '/library', domain: 'app' },
+  { prefix: '/masterclasses', domain: 'app' },
+  { prefix: '/document-studio', domain: 'app' },
   { prefix: '/labs/visual-intelligence', domain: 'app' },
   { prefix: '/labs/quantum-speed-reading', domain: 'app' }, // catch-all, checked last
 ]

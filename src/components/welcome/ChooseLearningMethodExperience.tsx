@@ -12,18 +12,20 @@ import { GatewayAuthModal } from './GatewayAuthModal'
 
 // Domain Split™ — this is the universal front door for BOTH
 // habit.mindurmind.org.in and app.mindurmind.org.in (never gated by
-// src/middleware.ts's DOMAIN_ROUTES), so it picks exactly one card per
+// src/middleware.ts's DOMAIN_ROUTES), so it picks a distinct card set per
 // domain rather than a fixed set. Habit domain keeps the single "21-Day
 // Quantum Habit Journey" card (unchanged since the Quantum Mindset &
-// Habit Builder™ Rebrand). App domain gets its own "Quantum Speed
-// Reading" card, pointing at the 30-Day Masterclass rather than the
-// habit-only journey route (/labs/quantum-speed-reading/journey/* is
-// habit-only per middleware's DOMAIN_ROUTES — an app-domain visitor
-// clicking through to it would just get bounced straight back). A
-// separate "Upload & Learn" card is deliberately NOT restored here: per
-// this session's Upload & Learn Masterclass Integration™, it's now woven
-// into the 30-Day Masterclass itself (see ThirtyDayCurriculumDayDetail.tsx)
-// rather than offered as a second, competing top-level choice.
+// Habit Builder™ Rebrand) — habit stays strictly single-option by
+// product decision. App domain shows TWO cards: "Quantum Speed Reading"
+// (pointing at the 30-Day Masterclass, not the habit-only journey route —
+// /labs/quantum-speed-reading/journey/* is habit-only per middleware's
+// DOMAIN_ROUTES, an app-domain visitor clicking through would just get
+// bounced straight back) and "Upload & Learn" (→ /document-studio,
+// app-only per the same DOMAIN_ROUTES). A prior sprint (Upload & Learn
+// Masterclass Integration™) had removed this second card in favor of
+// folding upload into the masterclass curriculum; restored here as a
+// deliberate reversal for app.mindurmind.org.in only — habit still never
+// shows it.
 //
 // This screen deliberately does NOT reuse the shared HeroPromise
 // component (its own doc comment locks its 3 lines verbatim and it has
@@ -145,8 +147,8 @@ export function ChooseLearningMethodExperience({ isAuthenticated, appDomain }: C
         )}
 
         <div className="flex w-full justify-center">
-          <div className="w-full max-w-sm">
-            {appDomain === 'habit' ? (
+          {appDomain === 'habit' ? (
+            <div className="w-full max-w-sm">
               <PathCard
                 emoji="🎯"
                 title="21-Day Quantum Habit Journey"
@@ -155,21 +157,27 @@ export function ChooseLearningMethodExperience({ isAuthenticated, appDomain }: C
                 ctaLabel="Start Training →"
                 onSelect={() => handleSelect('/labs/quantum-speed-reading/journey/1')}
               />
-            ) : (
+            </div>
+          ) : (
+            <div className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
               <PathCard
                 emoji="⚡"
                 title="Quantum Speed Reading"
                 description="A real, structured 30-day mastery program — guided live by Dr. Kapil Dev Sharma."
-                points={[
-                  'Peripheral Vision Activator, Rapid Recognition Drill, Quantum Chunk Reading',
-                  'Upload Your Own Chapters to Practice On',
-                  '7 Live Masterclasses with Dr. Kapil Dev Sharma',
-                ]}
+                points={['Peripheral Vision Activator, Rapid Recognition Drill, Quantum Chunk Reading', '7 Live Masterclasses with Dr. Kapil Dev Sharma']}
                 ctaLabel="Start Training →"
                 onSelect={() => handleSelect('/labs/quantum-speed-reading/thirty-day-curriculum')}
               />
-            )}
-          </div>
+              <PathCard
+                emoji="📄"
+                title="Upload & Learn"
+                description="Turn any PDF or textbook into instant speed-reading drills, mind maps, and smart summaries."
+                points={['AI-Generated Speed Reading Drills', 'Neural Mind Maps & Smart Summaries', 'Works With Any PDF or Textbook']}
+                ctaLabel="Upload & Learn →"
+                onSelect={() => handleSelect('/document-studio')}
+              />
+            </div>
+          )}
         </div>
       </div>
 
