@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
-import { APP_DOMAIN_HEADER, resolveAppDomain, type AppDomain } from '@/lib/domains/appDomain'
+import { APP_DOMAIN_HEADER, resolveAppDomain, isAppSubdomain, type AppDomain } from '@/lib/domains/appDomain'
 
 const PROTECTED_PATHS = ['/dashboard', '/labs', '/practice', '/progress', '/settings', '/admin', '/preview', '/parent-dashboard', '/school-admin', '/partner-admin']
 const AUTH_PATHS = ['/login', '/signup']
@@ -58,7 +58,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // `x-forwarded-host` preserves the original public-facing host.
   // Mirrors the exact same fallback appDomain.ts's own getRequestOrigin()
   // already uses, for the same reason.
-  const appDomain = resolveAppDomain(request.headers.get('x-forwarded-host') ?? request.headers.get('host'))
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+  const appDomain = resolveAppDomain(host)
 
   const { response: sessionResponse, user } = await updateSession(request)
 
@@ -93,6 +94,24 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // — for signed-in AND signed-out visitors alike, same as app.* itself
   // never force-redirects a signed-in visitor away from its own root.
   if (appDomain === 'habit' && pathname === '/') {
+    return NextResponse.redirect(new URL('/welcome/choose-method', request.url))
+  }
+
+  // App Subdomain Entry Redirect™ — resolveAppDomain()'s 'app' bucket
+  // deliberately also covers the bare root/apex marketing domain (plain
+  // `mindurmind.org.in`, `www.`), local dev, and preview deployments —
+  // correct and unchanged for dashboard-content purposes (see
+  // appDomain.ts's own comment), but wrong for THIS decision: the real
+  // app.mindurmind.org.in subdomain is the actual product, not the
+  // marketing site, so its root must never fall through to
+  // (marketing)/page.tsx the way the apex domain intentionally still
+  // does. isAppSubdomain() checks the literal host label, independently
+  // of appDomain, specifically so this redirect can't accidentally fire
+  // for the apex/preview/localhost cases that should keep seeing the
+  // marketing homepage. Same destination and same signed-in-or-not
+  // posture as the habit redirect just above — ChooseLearningMethodExperience
+  // is already the universal, domain-branched front door for both.
+  if (isAppSubdomain(host) && pathname === '/') {
     return NextResponse.redirect(new URL('/welcome/choose-method', request.url))
   }
 

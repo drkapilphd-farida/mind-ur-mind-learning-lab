@@ -15,8 +15,12 @@ export const metadata: Metadata = {
   description: 'The 30-Day Quantum Speed Reading Live Masterclass, psychic & spiritual retreats, and 1-on-1 mentoring — under Dr. Kapil Dev Sharma.',
 }
 
-// New Homepage™ — app.mindurmind.org.in's root now renders this directly
-// (the old redirect() to /welcome/choose-method is gone). Fully
+// New Homepage™ — the marketing apex domain's (plain mindurmind.org.in,
+// www., local dev, preview deployments) root renders this directly.
+// app.mindurmind.org.in's root no longer does — src/middleware.ts's
+// isAppSubdomain() check now redirects that specific subdomain's root to
+// /welcome/choose-method instead (Domain Split™ requires the real app
+// subdomain to load the app itself, never the marketing site). Fully
 // self-contained chrome (its own Navbar/Footer, not the (legacy) route
 // group's simpler header/footer — see (legacy)/layout.tsx) wrapped in
 // .homepage-void (globals.css), the scoped dark/gold surface + font

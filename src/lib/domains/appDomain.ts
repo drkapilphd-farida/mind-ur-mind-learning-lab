@@ -24,6 +24,23 @@ export function resolveAppDomain(host: string | null): AppDomain {
   return firstLabel === 'habit' ? 'habit' : 'app'
 }
 
+// App Subdomain Check™ — a narrower, separate question from
+// resolveAppDomain() above: "is this literally the app.* host?", not
+// "should this request get the flagship dashboard content?". The two
+// used to be the same question (resolveAppDomain's own 'app' bucket
+// deliberately also covers the bare root/apex marketing domain, plain
+// localhost, and preview deployment URLs — that grouping stays correct
+// and unchanged for dashboard-content purposes, e.g. which
+// HabitDashboard/QsrDashboard renders). This function exists only for
+// src/middleware.ts's root-path ('/') redirect, which DOES need to tell
+// the real app.mindurmind.org.in subdomain apart from the marketing
+// apex — see that call site for why.
+export function isAppSubdomain(host: string | null): boolean {
+  if (!host) return false
+  const firstLabel = host.split(':')[0]?.split('.')[0]
+  return firstLabel === 'app'
+}
+
 // Server-only — reads the header middleware forwards. Call from a Server
 // Component/layout, never from a Client Component (use a passed-down
 // prop there instead, see AppSidebar.tsx/Topbar.tsx/NavLinks.tsx).
