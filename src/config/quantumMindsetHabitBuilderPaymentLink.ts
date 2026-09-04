@@ -5,4 +5,4 @@
 // Completing this checkout takes real payment; it does not automatically
 // grant any in-app access (no entitlement is wired to it) — same
 // disclosed limitation as RAZORPAY_MASTERCLASS_PAYMENT_LINK.
-export const RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK = 'https://rzp.io/rzp/I9GEc2uc'
+export const RAZORPAY_QUANTUM_MINDSET_HABIT_BUILDER_PAYMENT_LINK = 'https://rzp.io/rzp/vecVC7sx'

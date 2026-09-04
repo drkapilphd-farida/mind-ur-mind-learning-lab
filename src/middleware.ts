@@ -83,6 +83,19 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(new URL(portalHomeFor(pathname), request.url))
   }
 
+  // Habit Landing Redirect™ — habit.mindurmind.org.in has no marketing
+  // homepage of its own; (marketing)/page.tsx (the shared root route) is
+  // app.mindurmind.org.in's flagship Dr. Kapil Dev Sharma / 30-Day
+  // Masterclass homepage, the wrong positioning entirely for this domain.
+  // Send the root straight to the domain-branched Choose Learning
+  // Method™ front door instead, which already renders the single 21-Day
+  // Habit Journey card for 'habit' (see ChooseLearningMethodExperience.tsx)
+  // — for signed-in AND signed-out visitors alike, same as app.* itself
+  // never force-redirects a signed-in visitor away from its own root.
+  if (appDomain === 'habit' && pathname === '/') {
+    return NextResponse.redirect(new URL('/welcome/choose-method', request.url))
+  }
+
   const domainRedirect = domainGuardRedirect(appDomain, pathname, request)
   if (domainRedirect) return domainRedirect
 
