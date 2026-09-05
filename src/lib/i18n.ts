@@ -821,6 +821,8 @@ export const translations = {
       allRoundDevelopment: {
         eyebrow: "All-Round Development",
         title: "Complete Development, Not Just Speed Reading",
+        desc: "Designed to build more than reading speed — real focus, better habits, and a more intentional relationship with learning, developed together across the four areas below.",
+        progressCaption: "Example preview — your own numbers build from your first real session.",
         items: [
           {
             title: "Reading & Memory",
@@ -2646,6 +2648,8 @@ export const translations = {
       allRoundDevelopment: {
         eyebrow: "सर्वांगीण विकास",
         title: "सिर्फ स्पीड रीडिंग नहीं, संपूर्ण विकास",
+        desc: "सिर्फ तेज़ रीडिंग नहीं — असली फोकस, बेहतर आदतें, और सीखने के प्रति एक ज़्यादा सोच-समझकर बना रिश्ता, नीचे दिए गए चारों क्षेत्रों में एक साथ विकसित होता है।",
+        progressCaption: "उदाहरण के तौर पर पूर्वावलोकन — आपके असली आंकड़े आपके पहले असली सेशन से बनना शुरू होंगे।",
         items: [
           {
             title: "रीडिंग और मेमोरी",
