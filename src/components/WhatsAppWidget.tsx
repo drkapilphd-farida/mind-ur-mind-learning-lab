@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { WHATSAPP_GENERAL_INQUIRY_LINK } from "@/config/whatsappSupportLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
@@ -17,6 +17,17 @@ type WhatsAppWidgetProps = {
   // WhatsApp CTAs on the same page (FAQ, founder video). Left undefined
   // on the homepage's default (unbranded) usage.
   analyticsLocation?: string;
+  // Compact-Button-First™ — the explanatory bubble is genuinely useful on
+  // first sight, but left open indefinitely it can end up parked over
+  // real content lower on a long page (confirmed happening on the QSR
+  // landing page, right over its screenshots) since this widget is fixed
+  // to the viewport, not the document. Undefined (the default) preserves
+  // today's exact behavior everywhere this widget is already used —
+  // manual dismiss only. Pass a duration to also auto-dismiss after that
+  // long, leaving just the compact round button (still fully available,
+  // never removed) — see QsrWhatsAppWidget.tsx for the one page that
+  // opts into this.
+  autoDismissBubbleMs?: number;
 };
 
 // Floating WhatsApp Widget™ — fixed to the viewport (outside <main>'s
@@ -41,9 +52,16 @@ export default function WhatsAppWidget({
   // doesn't run this close to the fold.
   bottomClassName = "bottom-16 sm:bottom-7",
   analyticsLocation,
+  autoDismissBubbleMs,
 }: WhatsAppWidgetProps): React.JSX.Element {
   const { t } = useLanguage();
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
+
+  useEffect(() => {
+    if (autoDismissBubbleMs === undefined) return undefined;
+    const timeout = setTimeout(() => setBubbleDismissed(true), autoDismissBubbleMs);
+    return () => clearTimeout(timeout);
+  }, [autoDismissBubbleMs]);
 
   return (
     <div className={`fixed right-5 z-50 flex flex-col items-end gap-3 sm:right-7 ${bottomClassName}`}>
