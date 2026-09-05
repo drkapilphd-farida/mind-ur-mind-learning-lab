@@ -188,6 +188,19 @@ export default function FranchisePageContent(): React.JSX.Element {
                 {page.hero.ctaSecondary}
               </a>
             </div>
+
+            {/* First-Screen Trust Strip™ — reuses the same verified
+                credentials already stated in the Founder section below
+                (no new claim introduced), surfaced here too so a visitor
+                sees "why trust this" without needing to scroll first. */}
+            <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-faint">
+              {page.about.credentials.map((credential, index) => (
+                <span key={credential} className="flex items-center gap-3">
+                  {index > 0 && <span aria-hidden="true">•</span>}
+                  {credential}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -215,8 +228,12 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 3. Meet the Founder */}
-        <section id="founder" className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
+        {/* 3. Meet the Founder — this page's primary trust anchor, given
+            more room (py-20 sm:py-24, one step more than every sibling
+            section's sm:py-20) and a framed, near-full-width video so it
+            reads as the visual high point of the top half of the page,
+            not just another equal-weight section. */}
+        <section id="founder" className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <div className="flex justify-center">
               <Eyebrow color="text-teal">{page.about.eyebrow}</Eyebrow>
@@ -236,17 +253,21 @@ export default function FranchisePageContent(): React.JSX.Element {
             {/* Real per-language intro video — key={lang} forces a full
                 iframe remount on language switch (same technique as
                 QsrFounderVideo.tsx), so only one video is ever mounted and
-                the previous language's video is never left stale. */}
-            <div className="mx-auto mt-9 aspect-video w-full max-w-2xl overflow-hidden rounded-sm border border-line-strong shadow-[0_12px_30px_rgba(34,31,29,0.1)]">
-              <iframe
-                key={lang}
-                src={`https://www.youtube-nocookie.com/embed/${introVideoId}`}
-                title={page.about.videoTitle}
-                loading="lazy"
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+                the previous language's video is never left stale. Framed
+                in an outer padded panel (not just a plain inset box) so it
+                reads as the section's centerpiece. */}
+            <div className="mx-auto mt-10 max-w-3xl rounded-sm border border-line-strong bg-panel p-2.5 shadow-[0_20px_50px_rgba(34,31,29,0.14)] sm:p-3">
+              <div className="aspect-video w-full overflow-hidden rounded-sm">
+                <iframe
+                  key={lang}
+                  src={`https://www.youtube-nocookie.com/embed/${introVideoId}`}
+                  title={page.about.videoTitle}
+                  loading="lazy"
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
             </div>
 
             <SectionCta label={page.applyCta} />
@@ -274,7 +295,6 @@ export default function FranchisePageContent(): React.JSX.Element {
                 );
               })}
             </div>
-            <SectionCta label={page.applyCta} />
           </div>
         </section>
 
@@ -292,7 +312,10 @@ export default function FranchisePageContent(): React.JSX.Element {
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {page.trainerTestimonials.items.map((trainer) => (
-                <div key={trainer.id} className="mx-auto w-full max-w-[300px] overflow-hidden rounded-sm border border-line-strong bg-panel2">
+                <div
+                  key={trainer.id}
+                  className="mx-auto w-full max-w-[300px] overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_10px_30px_rgba(34,31,29,0.08)] transition-transform duration-200 hover:-translate-y-1"
+                >
                   <div className="relative aspect-[591/1280] w-full">
                     <Image
                       src={TRAINER_TESTIMONIAL_IMAGES[trainer.id] ?? ""}
@@ -305,6 +328,10 @@ export default function FranchisePageContent(): React.JSX.Element {
                   <div className="border-t border-line-strong px-4 py-3 text-center">
                     <div className="text-[13.5px] font-bold text-ink">{trainer.name}</div>
                     <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">{trainer.city}</div>
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-teal/30 bg-teal-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.04em] text-teal">
+                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                      {page.trainerTestimonials.verifiedLabel}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -325,13 +352,18 @@ export default function FranchisePageContent(): React.JSX.Element {
               <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.studentTestimonials.title}</h2>
               <p className="mt-3 text-[14.5px] leading-relaxed text-ink-dim">{page.studentTestimonials.desc}</p>
             </div>
-            {/* Component default (1/2/3 columns at mobile/tablet/desktop)
+            {/* Framed in a bordered panel (same treatment as the founder
+                video and business-model cards) so this reads as a
+                deliberate proof gallery, not a bare embedded grid.
+                Component default (1/2/3 columns at mobile/tablet/desktop)
                 already matches this section's required layout exactly. */}
-            <VideoReviewGrid
-              videos={STUDENT_TESTIMONIAL_VIDEOS}
-              aspectRatioClassName="aspect-[9/16]"
-              cardLabel={page.studentTestimonials.videoLabel}
-            />
+            <div className="rounded-sm border border-line-strong bg-panel2 p-5 sm:p-8">
+              <VideoReviewGrid
+                videos={STUDENT_TESTIMONIAL_VIDEOS}
+                aspectRatioClassName="aspect-[9/16]"
+                cardLabel={page.studentTestimonials.videoLabel}
+              />
+            </div>
           </div>
         </section>
 
@@ -448,7 +480,7 @@ export default function FranchisePageContent(): React.JSX.Element {
         </section>
 
         {/* 10. FAQ */}
-        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
+        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
               <Eyebrow color="text-teal">{page.faq.eyebrow}</Eyebrow>

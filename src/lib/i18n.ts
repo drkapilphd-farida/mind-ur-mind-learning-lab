@@ -266,6 +266,7 @@ export const translations = {
         eyebrow: "Real Trainers, Real Experiences",
         title: "Real Trainers. Real Experiences.",
         desc: "See what trainers have experienced while learning and preparing to deliver the methodology.",
+        verifiedLabel: "Verified via WhatsApp",
         items: [
           { id: "dev-prakash", name: "Dev Prakash", city: "Mumbai" },
           { id: "saloni-shah", name: "Saloni Shah", city: "Delhi" },
@@ -2136,6 +2137,7 @@ export const translations = {
         eyebrow: "असली ट्रेनर्स, असली अनुभव",
         title: "असली ट्रेनर्स। असली अनुभव।",
         desc: "देखें कि मेथडोलॉजी सीखने और उसे पढ़ाने की तैयारी के दौरान ट्रेनर्स ने क्या अनुभव किया।",
+        verifiedLabel: "WhatsApp के ज़रिए सत्यापित",
         items: [
           { id: "dev-prakash", name: "देव प्रकाश", city: "मुंबई" },
           { id: "saloni-shah", name: "सलोनी शाह", city: "दिल्ली" },
