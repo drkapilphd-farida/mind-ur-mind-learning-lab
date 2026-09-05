@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Video } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
@@ -36,6 +37,30 @@ export default function QsrLiveIntroSession(): React.JSX.Element {
             <Eyebrow color="text-teal">{section.eyebrow}</Eyebrow>
             <h2 className="text-[26px] font-extrabold leading-tight text-ink sm:text-[32px]">{section.title}</h2>
             <p className="text-[15px] leading-relaxed text-ink-dim">{section.desc}</p>
+
+            {/* Learning Journey — Step 4: Human Guidance™ (Phase 5) — the
+                one prominent visual for this whole beat, answering "am I
+                learning completely alone?" right before the free-session
+                CTA below. Reuses the existing real app screenshot at
+                public/images/quantum-mind/18-live-masterclasses-mentorship.png
+                (already a small teaser card in QsrFounderVideo.tsx — shown
+                here, much later on the page, at its fuller, proper size as
+                the payoff of that earlier teaser). Kept within this box's
+                own existing max-w-2xl column rather than breaking out to
+                full section width, matching this component's established,
+                unchanged layout. `object-contain` inside a container
+                matching the source's exact 2442x1317 aspect ratio
+                guarantees no cropping. */}
+            <div className="relative aspect-[2442/1317] w-full overflow-hidden rounded-sm border border-teal/30">
+              <Image
+                src="/images/quantum-mind/18-live-masterclasses-mentorship.png"
+                alt="Live Masterclasses & Mentorship inside the app: upcoming sessions, recorded replays, and direct mentor guidance"
+                fill
+                sizes="(min-width: 672px) 672px, 100vw"
+                className="object-contain"
+              />
+            </div>
+
             <a
               href={WHATSAPP_FREE_INTRO_SESSION_LINK}
               target="_blank"
