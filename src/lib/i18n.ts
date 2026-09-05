@@ -735,6 +735,7 @@ export const translations = {
         desc: "A short introduction from Dr. Kapil Dev Sharma — an English Professor with 15+ years of teaching experience, and India's first QSR pioneer, who introduced Quantum Speed Reading to the country in 2015. You're learning directly from the originator of the method, not a licensed instructor teaching someone else's system.",
         placeholderLabel: "Video coming soon",
         ctaLabel: "Ask a Question Instead",
+        videoTitle: "Quantum Speed Reading Introduction",
       },
       liveIntroSession: {
         eyebrow: "Free · 45 Minutes",
@@ -2566,6 +2567,7 @@ export const translations = {
         desc: "डॉ. कपिल देव शर्मा की ओर से एक संक्षिप्त परिचय — एक इंग्लिश प्रोफेसर, जिनके पास 15+ वर्षों का शिक्षण अनुभव है, और भारत में QSR के प्रणेता, जिन्होंने 2015 में देश में क्वांटम स्पीड रीडिंग की शुरुआत की। आप सीधे इस विधि के प्रणेता से सीख रहे हैं, किसी और की प्रणाली सिखाने वाले लाइसेंस-प्राप्त प्रशिक्षक से नहीं।",
         placeholderLabel: "वीडियो जल्द आ रहा है",
         ctaLabel: "इसके बजाय सवाल पूछें",
+        videoTitle: "क्वांटम स्पीड रीडिंग परिचय",
       },
       liveIntroSession: {
         eyebrow: "मुफ़्त · 45 मिनट",
