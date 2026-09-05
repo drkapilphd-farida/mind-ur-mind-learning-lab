@@ -678,7 +678,7 @@ export const translations = {
           { label: "Current WPM", value: "412" },
           { label: "Comprehension", value: "91%" },
         ],
-        caption: "Illustrative preview — your real numbers start from your own Day 1 baseline.",
+        caption: "Example preview — your real numbers start from your own Day 1 baseline.",
       },
       ageGroups: {
         eyebrow: "Built For Every Age",
