@@ -749,6 +749,10 @@ export const translations = {
         ctaLabel: "Watch All 200+ Stories",
         moreLabel: "More Real Quantum Speed Reading Students",
         watchLabel: "Watch Video",
+        adultsLabel: "Adults",
+        youngLearnersLabel: "Young Learners",
+        watchMoreVideosLabel: "Watch More Student Stories",
+        watchFewerVideosLabel: "Show Fewer",
       },
       mechanics: {
         eyebrow: "How It Works",
@@ -2576,6 +2580,10 @@ export const translations = {
         ctaLabel: "सभी 200+ कहानियां देखें",
         moreLabel: "क्वांटम स्पीड रीडिंग के और असली विद्यार्थी",
         watchLabel: "वीडियो देखें",
+        adultsLabel: "वयस्क",
+        youngLearnersLabel: "युवा शिक्षार्थी",
+        watchMoreVideosLabel: "और विद्यार्थी कहानियां देखें",
+        watchFewerVideosLabel: "कम दिखाएं",
       },
       mechanics: {
         eyebrow: "यह कैसे काम करता है",

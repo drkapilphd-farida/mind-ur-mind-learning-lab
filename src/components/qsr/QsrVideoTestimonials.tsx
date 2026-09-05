@@ -1,31 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
+import VideoReviewGrid from "../VideoReviewGrid";
 import {
-  SUCCESS_STORIES_PLAYLIST_EMBED_URL,
+  QSR_ADULT_VIDEO_REVIEWS,
+  QSR_YOUNG_LEARNER_VIDEO_REVIEWS,
+  QSR_MORE_VIDEO_REVIEWS,
+} from "@/config/qsrVideoReviews";
+import {
   SUCCESS_STORIES_PLAYLIST_WATCH_URL,
 } from "@/config/reviewsPlaylist";
 import { isRealUrl } from "@/lib/isRealUrl";
 
-// Replaces the plain text-only <Testimonials /> section on this page.
-// No per-video thumbnails/names are fabricated: without a YouTube Data
-// API key wired up, there's no real way to know which specific video in
-// the 200+ playlist belongs to which named quote below, so the real
-// playlist is embedded directly (same approach as /reviews).
+// Real Video Testimonial Showcase™ (Phase 6A) — replaces the previous
+// single eagerly-loaded playlist <iframe> with 6 hand-selected, real
+// individual videos (3 Adults + 3 Young Learners), rendered through the
+// same VideoReviewGrid gallery+lightbox component already used on the
+// Retreat pages — real thumbnail, no YouTube iframe loaded until a card
+// is clicked. The remaining 7 of the 13 supplied videos stay reachable
+// (never hidden) behind the "Watch More Student Stories" toggle below,
+// and the original 200+ video playlist link is preserved as-is.
 //
-// Testimonial Pool Separation™ — filters t.testimonials.items by the
-// stable, untranslated `programKey` field (not array position, and not
-// the translated `program` label — both of those broke or were fragile
-// once more than one QSR-specific quote existed). Ananya R. is featured
-// prominently; the remaining `qsr` entries (currently placeholders
-// pending real quotes — see the bracketed text) fill the grid below,
-// instead of padding it with genuinely off-topic quotes from other
-// programs the way this section used to.
+// Testimonial Pool Separation™ (unchanged from earlier phases) — still
+// filters t.testimonials.items by the stable, untranslated `programKey`
+// field. None of the 13 newly supplied video URLs could be confidently
+// mapped to a specific named quote below (no name/quote-to-video
+// correspondence was supplied), so the `[VIDEO URL NEEDED]` placeholders
+// on those quotes are left untouched rather than guessed at.
 export default function QsrVideoTestimonials(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.videoTestimonials;
   const [featured, ...others] = t.testimonials.items.filter((item) => item.programKey === "qsr");
+  const [showMoreVideos, setShowMoreVideos] = useState(false);
 
   // Visual Rhythm™ — lg:py-20 trims desktop-only vertical padding (base
   // py-24 unchanged, so mobile/tablet render identically to before).
@@ -38,15 +46,38 @@ export default function QsrVideoTestimonials(): React.JSX.Element {
           <p className="mt-3 text-[15.5px] text-ink-dim">{section.desc}</p>
         </div>
 
-        <div className="mb-10 aspect-video w-full overflow-hidden rounded-sm border border-line-strong">
-          <iframe
-            src={SUCCESS_STORIES_PLAYLIST_EMBED_URL}
-            title={section.title}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+        <div className="mb-10">
+          <p className="mb-4 font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-gold">
+            {section.adultsLabel}
+          </p>
+          <VideoReviewGrid videos={QSR_ADULT_VIDEO_REVIEWS} />
         </div>
+
+        <div className="mb-10">
+          <p className="mb-4 font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-gold">
+            {section.youngLearnersLabel}
+          </p>
+          <VideoReviewGrid videos={QSR_YOUNG_LEARNER_VIDEO_REVIEWS} />
+        </div>
+
+        <div className="mb-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShowMoreVideos((value) => !value)}
+            aria-expanded={showMoreVideos}
+            className="group inline-flex items-center gap-2.5 rounded-sm border border-gold/50 px-7 py-[15px] text-[14.5px] font-semibold text-gold transition-colors hover:bg-gold-soft"
+          >
+            {showMoreVideos ? section.watchFewerVideosLabel : section.watchMoreVideosLabel}
+            <span
+              className={`transition-transform duration-200 ${showMoreVideos ? "-rotate-90" : "rotate-90"}`}
+              aria-hidden="true"
+            >
+              →
+            </span>
+          </button>
+        </div>
+
+        {showMoreVideos && <VideoReviewGrid videos={QSR_MORE_VIDEO_REVIEWS} className="mb-10" />}
 
         {featured !== undefined && (
           <div className="mb-10 rounded-sm border border-gold/40 bg-gold-soft/30 p-8">
