@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
 
@@ -21,6 +22,34 @@ export default function QsrMechanics(): React.JSX.Element {
           <Eyebrow>{section.eyebrow}</Eyebrow>
           <h2 className="mt-4 text-[28px] font-extrabold leading-tight sm:text-[34px]">{section.title}</h2>
           <p className="mt-3 text-[15.5px] text-ink-dim">{section.desc}</p>
+        </div>
+
+        {/* Mechanism Visual Storytelling™ (Phase 4, path corrected 4A) —
+            the section's own intro line above ("a daily app streak that
+            trains the skill...") already sets up exactly what this image
+            shows concretely: the real asset at
+            public/images/quantum-mind/05-how-quantum-speed-reading-works.png,
+            visually walking through word-by-word reading → phrase
+            recognition → wider visual span → visualization → understanding.
+            Placed before the two practice-structure cards below, so the
+            page shows WHAT is being trained before HOW practice is
+            structured around it. Kept full-width and prominent (unlike
+            Image 04 in QsrBrainScience.tsx, this one has no redundant real
+            HTML cards duplicating its content elsewhere on the page, so
+            there's no "second copy" concern to correct here). No new
+            heading added — the image already carries its own, and the two
+            cards below keep their existing real copy untouched.
+            `object-contain` inside a container matching the source's exact
+            1774x887 (2:1) aspect ratio guarantees the full graphic is
+            never cropped. */}
+        <div className="relative mb-10 aspect-[2/1] w-full overflow-hidden rounded-sm border border-line-strong lg:mb-12">
+          <Image
+            src="/images/quantum-mind/05-how-quantum-speed-reading-works.png"
+            alt="How Quantum Speed Reading works: word-by-word reading progresses to phrase recognition, a wider visual span, visualization and connection, then understanding and memory"
+            fill
+            sizes="(min-width: 1024px) 1180px, 100vw"
+            className="object-contain"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
