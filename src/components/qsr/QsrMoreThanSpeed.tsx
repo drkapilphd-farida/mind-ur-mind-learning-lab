@@ -12,8 +12,10 @@ export default function QsrMoreThanSpeed(): React.JSX.Element {
     { data: section.memoryTechniques, accent: "teal" as const },
   ];
 
+  // Visual Rhythm™ — lg:py-16 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section className="border-b border-line bg-panel px-6 py-24 sm:px-8">
+    <section className="border-b border-line bg-panel px-6 py-24 sm:px-8 lg:py-16">
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
           <Eyebrow>{section.eyebrow}</Eyebrow>

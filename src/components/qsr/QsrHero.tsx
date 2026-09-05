@@ -105,13 +105,13 @@ export default function QsrHero(): React.JSX.Element {
               proof before scrolling further. `object-contain` inside an
               exact-aspect-ratio container guarantees the full app UI is
               never cropped. */}
-          <div className="mt-8 w-full max-w-md overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_12px_30px_rgba(34,31,29,0.1)]">
+          <div className="mt-8 w-full max-w-md overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_12px_30px_rgba(34,31,29,0.1)] lg:max-w-xl">
             <div className="relative aspect-[2442/1317] w-full">
               <Image
                 src="/images/quantum-mind/17-30-day-quantum-speed-reading-mastery.png"
                 alt="Inside the 30-Day Quantum Speed Reading app streak"
                 fill
-                sizes="(min-width: 448px) 448px, 90vw"
+                sizes="(min-width: 1024px) 576px, (min-width: 448px) 448px, 90vw"
                 className="object-contain"
               />
             </div>

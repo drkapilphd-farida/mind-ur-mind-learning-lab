@@ -23,8 +23,10 @@ export default function QsrLiveIntroSession(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.liveIntroSession;
 
+  // Visual Rhythm™ — lg:py-20 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section className="border-b border-line px-6 py-24 sm:px-8">
+    <section className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-content">
         <div className="rounded-sm border border-teal/40 bg-teal-soft px-7 py-10 sm:px-10 sm:py-12">
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">

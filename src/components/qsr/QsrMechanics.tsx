@@ -12,8 +12,10 @@ export default function QsrMechanics(): React.JSX.Element {
     { data: section.live, accent: "teal" as const },
   ];
 
+  // Visual Rhythm™ — lg:py-20 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section id="how-it-works" className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="how-it-works" className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
           <Eyebrow>{section.eyebrow}</Eyebrow>

@@ -10,16 +10,20 @@ import { Eyebrow } from "../ui";
 // `aspect-[2442/1317]` exactly matches the source PNG's real dimensions
 // guarantees the full app UI is always visible, never cropped, even if
 // either value is ever touched independently in the future. Grid tilted
-// 0.8/1.2 (was 0.9/1.1) to give the screenshot more room to read as the
-// section's primary visual — same two-column architecture, just a wider
-// share for the image column, not a restructure.
+// 0.7/1.3 (Phase 2; was 0.9/1.1 pre-Phase-1, then 0.8/1.2 in Phase 1) to
+// give the screenshot more room to read as the section's primary visual
+// on desktop — same two-column architecture (this class is already
+// inert below `lg`, so tablet/mobile are unaffected), just a wider share
+// for the image column, not a restructure. `lg:py-20` trims a little
+// desktop-only vertical rhythm (base `py-24` unchanged, so mobile/tablet
+// render identically to before).
 export default function QsrAppPreview(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.appPreview;
 
   return (
-    <section id="app-preview" className="border-b border-line px-6 py-24 sm:px-8">
-      <div className="mx-auto grid max-w-content grid-cols-1 items-center gap-14 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="app-preview" className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
+      <div className="mx-auto grid max-w-content grid-cols-1 items-center gap-14 lg:grid-cols-[0.7fr_1.3fr]">
         <div className="max-w-xl">
           <Eyebrow color="text-teal">{section.eyebrow}</Eyebrow>
           <h2 className="mt-4 text-[28px] font-extrabold leading-tight sm:text-[34px]">{section.title}</h2>
@@ -32,7 +36,7 @@ export default function QsrAppPreview(): React.JSX.Element {
               src="/images/quantum-mind/01-reading-intelligence-dashboard.png"
               alt={section.title}
               fill
-              sizes="(min-width: 1024px) 720px, 90vw"
+              sizes="(min-width: 1024px) 760px, 90vw"
               className="object-contain"
             />
           </div>

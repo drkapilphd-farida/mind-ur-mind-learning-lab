@@ -46,8 +46,10 @@ export default function QsrBatchNotice(): React.JSX.Element {
       ? nextBatch.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })
       : "";
 
+  // Visual Rhythm™ — lg:py-20 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section id="pricing" className="border-b border-line bg-panel px-6 py-24 sm:px-8">
+    <section id="pricing" className="border-b border-line bg-panel px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-2xl text-center">
         <div className="flex justify-center">
           <Eyebrow color="text-gold">{qsr.finalCta.eyebrow}</Eyebrow>

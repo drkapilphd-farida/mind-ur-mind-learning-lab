@@ -31,12 +31,19 @@ type QsrCredibilityStripProps = {
 //   3. neither supplied   → an explicit placeholder statement, never a
 //      fabricated number or a row of empty "[LOGO]" tiles standing in
 //      for institutions we don't have permission to name.
+//
+// Visual Rhythm™ — deliberately NOT `bg-panel`: QsrAuthority (just
+// above) and QsrFounderVideo (just below) both use it, and this strip
+// used to as well — three identical-background sections in a row read
+// as one long undifferentiated white zone with no visible boundary.
+// This section's own transparent background restores proper
+// white/cream alternation between its two panel-toned neighbors.
 export default function QsrCredibilityStrip({ logos = [], cities = [] }: QsrCredibilityStripProps): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.credibilityStrip;
 
   return (
-    <section className="border-b border-line bg-panel px-6 py-14 sm:px-8">
+    <section className="border-b border-line px-6 py-14 sm:px-8">
       <div className="mx-auto max-w-content text-center">
         {logos.length > 0 ? (
           <>

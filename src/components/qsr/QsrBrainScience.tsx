@@ -10,8 +10,10 @@ export default function QsrBrainScience(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.brainScience;
 
+  // Visual Rhythm™ — lg:py-16 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section id="the-science" className="border-b border-line bg-panel px-6 py-24 sm:px-8">
+    <section id="the-science" className="border-b border-line bg-panel px-6 py-24 sm:px-8 lg:py-16">
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
           <Eyebrow color="text-gold">{section.eyebrow}</Eyebrow>

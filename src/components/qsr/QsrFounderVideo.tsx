@@ -23,8 +23,10 @@ export default function QsrFounderVideo({ youtubeVideoId }: QsrFounderVideoProps
   const { t } = useLanguage();
   const section = t.qsrLanding.founderVideo;
 
+  // Visual Rhythm™ — lg:py-20 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section id="founder" className="border-b border-line bg-panel px-6 py-24 sm:px-8">
+    <section id="founder" className="border-b border-line bg-panel px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto grid max-w-content grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="max-w-xl">
           <Eyebrow color="text-gold">{section.eyebrow}</Eyebrow>
@@ -47,13 +49,13 @@ export default function QsrFounderVideo({ youtubeVideoId }: QsrFounderVideoProps
               what a live masterclass session actually looks like.
               `object-contain` inside an exact-aspect-ratio container
               guarantees the full app UI is never cropped. */}
-          <div className="mt-8 w-full max-w-md overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_12px_30px_rgba(34,31,29,0.1)]">
+          <div className="mt-8 w-full max-w-md overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_12px_30px_rgba(34,31,29,0.1)] lg:max-w-xl">
             <div className="relative aspect-[2442/1317] w-full">
               <Image
                 src="/images/quantum-mind/18-live-masterclasses-mentorship.png"
                 alt="Inside a live Quantum Speed Reading masterclass session"
                 fill
-                sizes="(min-width: 448px) 448px, 90vw"
+                sizes="(min-width: 1024px) 576px, (min-width: 448px) 448px, 90vw"
                 className="object-contain"
               />
             </div>

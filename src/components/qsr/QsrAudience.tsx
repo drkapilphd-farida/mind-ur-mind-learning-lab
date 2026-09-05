@@ -18,8 +18,10 @@ export default function QsrAudience(): React.JSX.Element {
   const qsrTestimonials = t.testimonials.items.filter((item) => item.programKey === "qsr");
   const trustQuote = qsrTestimonials.find((item) => item.id === "karan-mehra") ?? qsrTestimonials[0];
 
+  // Visual Rhythm™ — lg:py-16 trims desktop-only vertical padding (base
+  // py-24 unchanged, so mobile/tablet render identically to before).
   return (
-    <section id="who-its-for" className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="who-its-for" className="border-b border-line px-6 py-24 sm:px-8 lg:py-16">
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
           <Eyebrow color="text-teal">{section.eyebrow}</Eyebrow>
