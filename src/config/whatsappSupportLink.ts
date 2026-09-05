@@ -65,6 +65,13 @@ export const WHATSAPP_MENTORING_INQUIRY_LINK =
 export const WHATSAPP_HABIT_BUILDER_INQUIRY_LINK =
   'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20have%20a%20question%20about%20the%20Quantum%20Mindset%20%26%20Habit%20Builder'
 
+// Same number, pre-application "Talk to Our Team" message — for a visitor
+// on /franchise-individual who wants to ask a question before filling out
+// the application form itself (buildFranchiseApplicationWhatsAppLink
+// below), not a substitute for that form.
+export const WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK =
+  'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20have%20a%20question%20about%20the%20Trainer%20Partner%20Program'
+
 // Same number, used by the Franchise/Individual Trainer application form
 // (/franchise-individual) to hand off every submitted field — this is the
 // real, primary submission path for that form (WhatsApp-first, per

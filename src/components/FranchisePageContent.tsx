@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   BookOpen,
-  HeartPulse,
   Megaphone,
   Presentation,
   LayoutDashboard,
@@ -11,26 +11,65 @@ import {
   Blocks,
   IndianRupee,
   TrendingDown,
-  Clock,
-  TrendingUp,
-  Rocket,
   GraduationCap,
   Building2,
   CheckCircle2,
-  Info,
+  Percent,
+  Wallet,
+  RefreshCw,
+  User,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "./ui";
 import SimplePageNav from "./SimplePageNav";
 import Footer from "./Footer";
 import WhatsAppWidget from "./WhatsAppWidget";
+import VideoReviewGrid from "./VideoReviewGrid";
 import { submitFranchiseLead } from "@/app/franchise-individual/actions/submitFranchiseLead";
-import { buildFranchiseApplicationWhatsAppLink } from "@/config/whatsappSupportLink";
+import {
+  buildFranchiseApplicationWhatsAppLink,
+  WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK,
+} from "@/config/whatsappSupportLink";
+import type { Lang } from "@/lib/i18n";
 
 const PROBLEM_ICONS = [Blocks, IndianRupee, TrendingDown] as const;
-const INCLUDED_ICONS = [BookOpen, HeartPulse, Megaphone, Presentation, LayoutDashboard, LifeBuoy] as const;
-const EARNING_ICONS = [Clock, TrendingUp, Rocket] as const;
+const INCLUDED_ICONS = [GraduationCap, Blocks, LayoutDashboard, Megaphone, BookOpen, LifeBuoy] as const;
+const BUSINESS_MODEL_ICONS = [IndianRupee, Percent, Wallet, RefreshCw] as const;
 const WHO_FOR_ICONS = [GraduationCap, Building2, Presentation] as const;
+
+// Real founder intro video, one per site language — same two verified
+// videos already wired up on the QSR landing page (QsrFounderVideo.tsx),
+// reused here via the same useLanguage()-driven lang map rather than a
+// second, independent language system.
+const INTRO_VIDEO_ID: Record<Lang, string> = {
+  en: "Zsz0eUQ3t0o",
+  hi: "64UmqM5_mEM",
+};
+
+// Real trainer WhatsApp-testimonial screenshots — genuine messages, used
+// with permission. Photos aren't available for these trainers, so the
+// screenshot itself is the proof; name/city come from t.franchisePage
+// .trainerTestimonials.items (translated), matched here by stable id.
+const TRAINER_TESTIMONIAL_IMAGES: Record<string, string> = {
+  "dev-prakash": "/trainer_testimonial_dev_prakash_whatsapp.jpg.jpeg",
+  "saloni-shah": "/trainer_testimonial_saloni_shah_whatsapp.jpg.jpeg",
+  "sandeep-gupta": "/trainer_testimonial_sandeep_gupta_whatsapp.jpg.jpeg",
+};
+
+// Real student testimonial YouTube Shorts — the same 6 verified video IDs
+// supplied for this page, with thumbnails already downloaded locally
+// (public/qsr-videos/) from the QSR video-testimonial work. No names/
+// cities are attached — none were confidently verified for these specific
+// videos, so each card is labeled generically via studentTestimonials
+// .videoLabel rather than guessed.
+const STUDENT_TESTIMONIAL_VIDEOS: ReadonlyArray<{ videoId: string; thumbnailSrc: string | undefined }> = [
+  { videoId: "WCt_kzlmdj8", thumbnailSrc: "/qsr-videos/WCt_kzlmdj8-thumb.jpg" },
+  { videoId: "1pvc5yHgJGU", thumbnailSrc: "/qsr-videos/1pvc5yHgJGU-thumb.jpg" },
+  { videoId: "VHgzVzVr-B8", thumbnailSrc: "/qsr-videos/VHgzVzVr-B8-thumb.jpg" },
+  { videoId: "UM9LBm0hh0Y", thumbnailSrc: "/qsr-videos/UM9LBm0hh0Y-thumb.jpg" },
+  { videoId: "RX7t26jYNUg", thumbnailSrc: "/qsr-videos/RX7t26jYNUg-thumb.jpg" },
+  { videoId: "R2icA1-gbTY", thumbnailSrc: "/qsr-videos/R2icA1-gbTY-thumb.jpg" },
+];
 
 type FormStatus = "idle" | "success";
 
@@ -50,18 +89,24 @@ function SectionCta({ label }: { label: string }): React.JSX.Element {
   );
 }
 
-// Franchise/Individual Trainer Application™ — rebuilt with a full
-// application-funnel structure (problem → what's included → pricing →
-// earning potential → process → credibility → audience fit → FAQ →
-// form), not just a 3-card teaser. Copy is a first draft grounded only
-// in what the site owner has explicitly confirmed (26 years in
-// education, QSR training since 2015, 10,000+ students — the same
-// figures already used on the homepage hero) — no numbers or claims
-// invented beyond that, per the owner's own "honest framing, no
-// overclaiming" instruction for the About section.
+// Franchise/Individual Trainer Application™ — a full application-funnel
+// structure (hero → problem → founder → what's included → real trainer
+// proof → real student proof → process → business model → audience fit →
+// FAQ → apply), not just a 3-card teaser. Copy is grounded only in what
+// the site owner has explicitly confirmed (26 years in education, QSR
+// training since 2015, 10,000+ students, and the verified partner-program
+// terms in businessModel/faq below) — no numbers or claims invented
+// beyond that, per the owner's own repeated "honest framing, no
+// overclaiming" instruction. The old "Earning Potential" section (three
+// illustrative rupee-range scenarios computed off an unstated example
+// course fee) has been removed rather than kept alongside the new
+// Business Model section — showing concrete earnings estimates next to
+// an explicitly "we don't guarantee income" transparency section worked
+// against the very trust this page is trying to build.
 export default function FranchisePageContent(): React.JSX.Element {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const page = t.franchisePage;
+  const introVideoId = INTRO_VIDEO_ID[lang];
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -125,6 +170,24 @@ export default function FranchisePageContent(): React.JSX.Element {
             </div>
             <h1 className="mt-5 text-[30px] font-extrabold leading-tight sm:text-[42px]">{page.hero.headline}</h1>
             <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-ink-dim sm:text-[16px]">{page.hero.sub}</p>
+
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+              <a
+                href="#apply"
+                className="group inline-flex items-center gap-2.5 rounded-sm bg-teal px-7 py-[15px] text-[14.5px] font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-teal-light"
+              >
+                {page.hero.ctaPrimary}
+                <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">
+                  →
+                </span>
+              </a>
+              <a
+                href="#founder"
+                className="inline-flex items-center gap-2 rounded-sm border border-line-strong px-7 py-[15px] text-[14.5px] font-semibold text-ink transition-colors hover:bg-panel2"
+              >
+                {page.hero.ctaSecondary}
+              </a>
+            </div>
           </div>
         </section>
 
@@ -152,8 +215,46 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 3. What's Included */}
-        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
+        {/* 3. Meet the Founder */}
+        <section id="founder" className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="flex justify-center">
+              <Eyebrow color="text-teal">{page.about.eyebrow}</Eyebrow>
+            </div>
+            <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.about.headline}</h2>
+            <p className="mx-auto mt-5 max-w-2xl text-[14.5px] leading-relaxed text-ink-dim">{page.about.bio}</p>
+
+            <div className="mx-auto mt-7 flex max-w-2xl flex-wrap items-center justify-center gap-x-3 gap-y-2 font-mono text-[12px] uppercase tracking-[0.05em] text-ink-faint">
+              {page.about.credentials.map((credential, index) => (
+                <span key={credential} className="flex items-center gap-3">
+                  {index > 0 && <span aria-hidden="true">•</span>}
+                  {credential}
+                </span>
+              ))}
+            </div>
+
+            {/* Real per-language intro video — key={lang} forces a full
+                iframe remount on language switch (same technique as
+                QsrFounderVideo.tsx), so only one video is ever mounted and
+                the previous language's video is never left stale. */}
+            <div className="mx-auto mt-9 aspect-video w-full max-w-2xl overflow-hidden rounded-sm border border-line-strong shadow-[0_12px_30px_rgba(34,31,29,0.1)]">
+              <iframe
+                key={lang}
+                src={`https://www.youtube-nocookie.com/embed/${introVideoId}`}
+                title={page.about.videoTitle}
+                loading="lazy"
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+
+            <SectionCta label={page.applyCta} />
+          </div>
+        </section>
+
+        {/* 4. What's Included */}
+        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
               <Eyebrow color="text-teal">{page.included.eyebrow}</Eyebrow>
@@ -177,76 +278,65 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 4. Investment & Fee */}
-        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
+        {/* 5. Real Trainer Experiences — genuine WhatsApp-testimonial
+            screenshots, used with the trainers' permission. No photos
+            exist for these trainers, so the screenshot itself is the
+            proof; shown close to its original crop (name/timestamp bar
+            intact), not treated as a marketing graphic. */}
+        <section id="trainer-testimonials" className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
-              <Eyebrow color="text-teal">{page.investment.eyebrow}</Eyebrow>
-              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.investment.headline}</h2>
+              <Eyebrow color="text-teal">{page.trainerTestimonials.eyebrow}</Eyebrow>
+              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.trainerTestimonials.title}</h2>
+              <p className="mt-3 text-[14.5px] leading-relaxed text-ink-dim">{page.trainerTestimonials.desc}</p>
             </div>
-
-            <div className="mx-auto max-w-2xl rounded-sm border border-line-strong bg-panel2 p-7 sm:p-9">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8">
-                <div>
-                  <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-ink-faint">{page.investment.feeLabel}</p>
-                  <p className="mt-2 text-[26px] font-extrabold tabular-nums text-ink sm:text-[30px]">{page.investment.feeValue}</p>
-                </div>
-                <div>
-                  <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-ink-faint">{page.investment.revenueLabel}</p>
-                  <p className="mt-2 text-[26px] font-extrabold tabular-nums text-teal sm:text-[30px]">{page.investment.revenueValue}</p>
-                  <p className="mt-1 text-[13px] text-ink-dim">{page.investment.revenueUnit}</p>
-                </div>
-              </div>
-              <p className="mt-4 border-t border-line pt-4 text-[13px] leading-relaxed text-ink-dim">{page.investment.revenueNote}</p>
-
-              <h3 className="mt-7 text-[14px] font-bold text-ink">{page.investment.includesTitle}</h3>
-              <ul className="mt-3 space-y-2.5">
-                {page.investment.includesItems.map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink-dim">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-teal" aria-hidden="true" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Earning Potential */}
-        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
-          <div className="mx-auto max-w-content">
-            <div className="mb-10 max-w-xl sm:mb-12">
-              <Eyebrow color="text-teal">{page.earning.eyebrow}</Eyebrow>
-              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.earning.headline}</h2>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              {page.earning.scenarios.map((scenario, index) => {
-                const Icon = EARNING_ICONS[index % EARNING_ICONS.length] ?? Clock;
-                return (
-                  <div key={scenario.label} className="rounded-sm border border-line-strong bg-panel2 p-6 text-center">
-                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-teal/40 bg-teal-soft">
-                      <Icon className="h-5 w-5 text-teal" aria-hidden="true" />
-                    </div>
-                    <h3 className="mt-4 text-[15.5px] font-bold text-ink">{scenario.label}</h3>
-                    <p className="mt-1 text-[12.5px] text-ink-faint">{scenario.desc}</p>
-                    <p className="mt-3 text-[21px] font-extrabold tabular-nums text-teal">{scenario.range}</p>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {page.trainerTestimonials.items.map((trainer) => (
+                <div key={trainer.id} className="mx-auto w-full max-w-[300px] overflow-hidden rounded-sm border border-line-strong bg-panel2">
+                  <div className="relative aspect-[591/1280] w-full">
+                    <Image
+                      src={TRAINER_TESTIMONIAL_IMAGES[trainer.id] ?? ""}
+                      alt={`WhatsApp testimonial from ${trainer.name}, ${trainer.city}`}
+                      fill
+                      sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
+                      className="object-cover object-top"
+                    />
                   </div>
-                );
-              })}
+                  <div className="border-t border-line-strong px-4 py-3 text-center">
+                    <div className="text-[13.5px] font-bold text-ink">{trainer.name}</div>
+                    <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">{trainer.city}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="mx-auto mt-7 flex max-w-2xl items-start gap-3 rounded-sm border border-gold/40 bg-gold-soft px-5 py-4">
-              <Info className="mt-0.5 h-4 w-4 flex-none text-gold-dim" aria-hidden="true" />
-              <p className="text-[13px] leading-relaxed text-ink-dim">{page.earning.disclaimer}</p>
-            </div>
-
-            <SectionCta label={page.applyCta} />
           </div>
         </section>
 
-        {/* 6. How It Works */}
-        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
+        {/* 6. What Students Say — 6 real YouTube Shorts, lazy-loaded via
+            VideoReviewGrid's existing thumbnail-then-iframe-on-click
+            pattern (no new video component). aspectRatioClassName keeps
+            the true 9:16 Shorts frame instead of the component's default
+            16:9 crop. No names/cities are attached — none were confidently
+            verified for these specific videos. */}
+        <section id="student-testimonials" className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-content">
+            <div className="mb-10 max-w-xl sm:mb-12">
+              <Eyebrow color="text-teal">{page.studentTestimonials.eyebrow}</Eyebrow>
+              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.studentTestimonials.title}</h2>
+              <p className="mt-3 text-[14.5px] leading-relaxed text-ink-dim">{page.studentTestimonials.desc}</p>
+            </div>
+            {/* Component default (1/2/3 columns at mobile/tablet/desktop)
+                already matches this section's required layout exactly. */}
+            <VideoReviewGrid
+              videos={STUDENT_TESTIMONIAL_VIDEOS}
+              aspectRatioClassName="aspect-[9/16]"
+              cardLabel={page.studentTestimonials.videoLabel}
+            />
+          </div>
+        </section>
+
+        {/* 7. How It Works */}
+        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
               <Eyebrow color="text-teal">{page.howItWorks.eyebrow}</Eyebrow>
@@ -254,8 +344,8 @@ export default function FranchisePageContent(): React.JSX.Element {
             </div>
 
             <div className="relative">
-              <div className="absolute left-0 right-0 top-5 hidden h-px bg-line-strong sm:block" aria-hidden="true" />
-              <div className="relative grid grid-cols-1 gap-8 sm:grid-cols-5 sm:gap-4">
+              <div className="absolute left-0 right-0 top-5 hidden h-px bg-line-strong lg:block" aria-hidden="true" />
+              <div className="relative grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-6 lg:grid-cols-7 lg:gap-4">
                 {page.howItWorks.steps.map((step, index) => (
                   <div key={step.title} className="flex flex-col items-center text-center">
                     <div className="z-10 flex h-10 w-10 flex-none items-center justify-center rounded-full border border-teal/50 bg-panel font-mono text-[13px] font-bold text-teal">
@@ -270,30 +360,71 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 7. About Dr. Kapil */}
-        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="flex justify-center">
-              <Eyebrow color="text-teal">{page.about.eyebrow}</Eyebrow>
+        {/* 8. Business Model — every fee visible at once, including the
+            ₹5,000 renewal fee (previously not mentioned anywhere on this
+            page), plus an explicit "We Provide / You Bring" split so the
+            page never implies students are provided or income is
+            guaranteed. */}
+        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-content">
+            <div className="mb-10 max-w-xl sm:mb-12">
+              <Eyebrow color="text-teal">{page.businessModel.eyebrow}</Eyebrow>
+              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.businessModel.headline}</h2>
+              <p className="mt-3 text-[14.5px] leading-relaxed text-ink-dim">{page.businessModel.explanation}</p>
             </div>
-            <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.about.headline}</h2>
-            <p className="mx-auto mt-5 max-w-2xl text-[14.5px] leading-relaxed text-ink-dim">{page.about.bio}</p>
 
-            <div className="mx-auto mt-7 flex max-w-2xl flex-wrap items-center justify-center gap-x-3 gap-y-2 font-mono text-[12px] uppercase tracking-[0.05em] text-ink-faint">
-              {page.about.credentials.map((credential, index) => (
-                <span key={credential} className="flex items-center gap-3">
-                  {index > 0 && <span aria-hidden="true">•</span>}
-                  {credential}
-                </span>
-              ))}
+            <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                { label: page.businessModel.onboardingLabel, value: page.businessModel.onboardingValue, sub: undefined },
+                { label: page.businessModel.revenueLabel, value: page.businessModel.revenueValue, sub: page.businessModel.revenueUnit },
+                { label: page.businessModel.monthlyLabel, value: page.businessModel.monthlyValue, sub: undefined },
+                { label: page.businessModel.renewalLabel, value: page.businessModel.renewalValue, sub: undefined },
+              ].map((stat, index) => {
+                const Icon = BUSINESS_MODEL_ICONS[index % BUSINESS_MODEL_ICONS.length] ?? IndianRupee;
+                return (
+                  <div key={stat.label} className="rounded-sm border border-line-strong bg-panel2 p-5 text-center">
+                    <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full border border-teal/40 bg-teal-soft">
+                      <Icon className="h-4.5 w-4.5 text-teal" aria-hidden="true" />
+                    </div>
+                    <p className="mt-3 text-[19px] font-extrabold tabular-nums text-ink sm:text-[21px]">{stat.value}</p>
+                    <p className="mt-1 font-mono text-[10px] uppercase leading-tight tracking-[0.05em] text-ink-faint">{stat.label}</p>
+                    {stat.sub !== undefined && <p className="mt-1 text-[11px] text-ink-faint">{stat.sub}</p>}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mx-auto mt-10 grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="rounded-sm border border-teal/30 bg-panel2 p-6">
+                <h3 className="text-[14px] font-bold text-ink">{page.businessModel.weProvideTitle}</h3>
+                <ul className="mt-3 space-y-2.5">
+                  {page.businessModel.weProvideItems.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink-dim">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-teal" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-sm border border-line-strong bg-panel2 p-6">
+                <h3 className="text-[14px] font-bold text-ink">{page.businessModel.youBringTitle}</h3>
+                <ul className="mt-3 space-y-2.5">
+                  {page.businessModel.youBringItems.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-ink-dim">
+                      <User className="mt-0.5 h-4 w-4 flex-none text-ink-faint" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             <SectionCta label={page.applyCta} />
           </div>
         </section>
 
-        {/* 8. Who Is This For */}
-        <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
+        {/* 9. Who Is This For */}
+        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
               <Eyebrow color="text-teal">{page.whoFor.eyebrow}</Eyebrow>
@@ -316,7 +447,7 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 9. FAQ */}
+        {/* 10. FAQ */}
         <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
@@ -340,7 +471,7 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 10. Application Form */}
+        {/* 11. Application Form */}
         <section id="apply" className="px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-xl">
             <div className="mb-8 text-center sm:mb-10">
@@ -349,6 +480,14 @@ export default function FranchisePageContent(): React.JSX.Element {
               </div>
               <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.apply.title}</h2>
               <p className="mt-3 text-[14px] leading-relaxed text-ink-dim">{page.apply.sub}</p>
+              <a
+                href={WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-teal hover:underline"
+              >
+                {page.apply.talkToTeamLabel}
+              </a>
             </div>
 
             {status === "success" ? (
@@ -460,7 +599,21 @@ export default function FranchisePageContent(): React.JSX.Element {
         </section>
       </main>
       <Footer />
-      <WhatsAppWidget />
+      {/* Compact-Button-First™ (same pattern as QsrWhatsAppWidget.tsx) —
+          this page now has screenshot- and video-heavy proof sections
+          below the fold; auto-dismissing the explanatory bubble after 6s
+          keeps the compact round button available everywhere without it
+          parking over that content indefinitely. Copy/link overridden to
+          this page's own trainer-partner context instead of the generic
+          homepage default. */}
+      <WhatsAppWidget
+        href={WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK}
+        bubble={page.whatsapp.bubble}
+        buttonLabel={page.whatsapp.button}
+        ariaLabel={page.whatsapp.ariaLabel}
+        analyticsLocation="franchise_widget"
+        autoDismissBubbleMs={6000}
+      />
     </div>
   );
 }

@@ -9,9 +9,6 @@ import {
   QSR_YOUNG_LEARNER_VIDEO_REVIEWS,
   QSR_MORE_VIDEO_REVIEWS,
 } from "@/config/qsrVideoReviews";
-import {
-  SUCCESS_STORIES_PLAYLIST_WATCH_URL,
-} from "@/config/reviewsPlaylist";
 import { isRealUrl } from "@/lib/isRealUrl";
 
 // Real Video Testimonial Showcase™ (Phase 6A) — replaces the previous
@@ -20,8 +17,9 @@ import { isRealUrl } from "@/lib/isRealUrl";
 // same VideoReviewGrid gallery+lightbox component already used on the
 // Retreat pages — real thumbnail, no YouTube iframe loaded until a card
 // is clicked. The remaining 7 of the 13 supplied videos stay reachable
-// (never hidden) behind the "Watch More Student Stories" toggle below,
-// and the original 200+ video playlist link is preserved as-is.
+// (never hidden) behind the "Watch More Student Stories" toggle below.
+// The old external 200+ video playlist CTA has been removed in favor of
+// this in-page showcase.
 //
 // Testimonial Pool Separation™ (unchanged from earlier phases) — still
 // filters t.testimonials.items by the stable, untranslated `programKey`
@@ -131,18 +129,6 @@ export default function QsrVideoTestimonials(): React.JSX.Element {
             </div>
           </>
         )}
-
-        <div className="mt-10 flex justify-center">
-          <a
-            href={SUCCESS_STORIES_PLAYLIST_WATCH_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2.5 rounded-sm border border-gold/50 px-7 py-[15px] text-[14.5px] font-semibold text-gold transition-colors hover:bg-gold-soft"
-          >
-            {section.ctaLabel}
-            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
-          </a>
-        </div>
       </div>
     </section>
   );
