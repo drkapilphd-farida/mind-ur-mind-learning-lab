@@ -841,6 +841,33 @@ export const translations = {
         ],
         disclaimer: "These are program design elements based on practice, not guaranteed outcomes.",
       },
+      documentMastery: {
+        eyebrow: "Beyond The 30-Day Program",
+        title: "Turn Any Book Into Speed-Reading Drills",
+        desc: "The same AI-powered Document Studio available inside the Quantum Mind app — upload any PDF, textbook, or research paper and instantly get speed-reading drills, mind maps, and revision notes built from it.",
+        items: [
+          {
+            title: "Upload & Learn",
+            desc: "Drop in any PDF or textbook — no manual formatting or setup needed.",
+          },
+          {
+            title: "AI-Generated Drills",
+            desc: "Your own material becomes real Quantum Speed Reading practice, not generic sample text.",
+          },
+          {
+            title: "Visual Knowledge Maps",
+            desc: "See how the ideas in your document actually connect, at a glance.",
+          },
+          {
+            title: "Key Concept Extraction",
+            desc: "The core ideas pulled out automatically, so you know what actually matters.",
+          },
+          {
+            title: "Memory & Revision Notes",
+            desc: "Built-in notes designed for review later — not just a one-time read.",
+          },
+        ],
+      },
       curriculum: {
         eyebrow: "The Curriculum",
         title: "What the 30 days actually look like",
@@ -2638,6 +2665,33 @@ export const translations = {
           },
         ],
         disclaimer: "ये practice पर आधारित program design elements हैं, गारंटीड परिणाम नहीं।",
+      },
+      documentMastery: {
+        eyebrow: "30-दिन प्रोग्राम से आगे",
+        title: "किसी भी किताब को स्पीड-रीडिंग ड्रिल्स में बदलें",
+        desc: "Quantum Mind app के अंदर मौजूद वही AI-पावर्ड Document Studio — कोई भी PDF, टेक्स्टबुक या रिसर्च पेपर अपलोड करें और उससे तुरंत स्पीड-रीडिंग ड्रिल्स, माइंड मैप्स, और रिवीज़न नोट्स पाएं।",
+        items: [
+          {
+            title: "अपलोड करें और सीखें",
+            desc: "कोई भी PDF या टेक्स्टबुक डालें — किसी मैनुअल फॉर्मेटिंग या सेटअप की ज़रूरत नहीं।",
+          },
+          {
+            title: "AI-जनरेटेड ड्रिल्स",
+            desc: "आपकी अपनी सामग्री असली Quantum Speed Reading प्रैक्टिस बन जाती है, कोई जेनेरिक सैंपल टेक्स्ट नहीं।",
+          },
+          {
+            title: "विज़ुअल नॉलेज मैप्स",
+            desc: "देखें कि आपके डॉक्यूमेंट के विचार असल में एक-दूसरे से कैसे जुड़े हैं, एक नज़र में।",
+          },
+          {
+            title: "मुख्य अवधारणाएं निकालना",
+            desc: "मुख्य विचार अपने आप निकाले जाते हैं, ताकि आपको पता चले कि असल में क्या मायने रखता है।",
+          },
+          {
+            title: "मेमोरी और रिवीज़न नोट्स",
+            desc: "बाद में रिवीजन के लिए बने नोट्स — सिर्फ एक बार पढ़ने के लिए नहीं।",
+          },
+        ],
       },
       curriculum: {
         eyebrow: "पाठ्यक्रम",

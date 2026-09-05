@@ -96,6 +96,24 @@ export default function QsrHero(): React.JSX.Element {
               </span>
             ))}
           </div>
+
+          {/* App Proof Visual™ — additive only, per explicit product
+              decision: the founder photo in the portrait card stays
+              exactly as-is (Founder Trust™ below still matters most on
+              this page) — this is a small supporting glimpse of the real
+              30-day app streak itself, for a visitor who wants concrete
+              proof before scrolling further. */}
+          <div className="mt-8 w-full max-w-xs overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_12px_30px_rgba(34,31,29,0.1)]">
+            <div className="relative aspect-[2442/1317] w-full">
+              <Image
+                src="/images/quantum-mind/17-30-day-quantum-speed-reading-mastery.png"
+                alt="Inside the 30-Day Quantum Speed Reading app streak"
+                fill
+                sizes="320px"
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Founder Trust™ — same treatment as the homepage hero

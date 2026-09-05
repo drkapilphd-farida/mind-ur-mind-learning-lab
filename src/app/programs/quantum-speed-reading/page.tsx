@@ -10,6 +10,7 @@ import QsrMechanics from '@/components/qsr/QsrMechanics'
 import QsrMoreThanSpeed from '@/components/qsr/QsrMoreThanSpeed'
 import QsrFocusScreenTime from '@/components/qsr/QsrFocusScreenTime'
 import QsrAllRoundDevelopment from '@/components/qsr/QsrAllRoundDevelopment'
+import QsrDocumentMastery from '@/components/qsr/QsrDocumentMastery'
 import QsrCurriculum from '@/components/qsr/QsrCurriculum'
 import QsrExamBenefits from '@/components/qsr/QsrExamBenefits'
 import QsrAuthority from '@/components/qsr/QsrAuthority'
@@ -47,8 +48,10 @@ export const metadata: Metadata = {
 // differently (AgeGroups) → what daily practice feels like (AppPreview)
 // → how the program is structured (Mechanics) → what it covers beyond
 // raw reading speed (MoreThanSpeed, FocusScreenTime, AllRoundDevelopment
-// — the latter cross-sells the standalone Habit App) → the week-by-week
-// breakdown (Curriculum) → who is actually teaching it (Authority,
+// — the latter cross-sells the standalone Habit App) → a real, separate
+// AI-powered bonus feature (DocumentMastery — Upload & Learn, five real
+// product screenshots) → the week-by-week breakdown (Curriculum) → who
+// is actually teaching it (Authority,
 // CredibilityStrip, FounderVideo) → fit
 // (Audience) → the same free test again, now as a lower-commitment
 // alternative right where a hesitant visitor is deciding whether to
@@ -74,6 +77,7 @@ export default function QuantumSpeedReadingLandingPage(): React.JSX.Element {
         <QsrMoreThanSpeed />
         <QsrFocusScreenTime />
         <QsrAllRoundDevelopment />
+        <QsrDocumentMastery />
         <QsrCurriculum />
         <QsrExamBenefits />
         <QsrAuthority />

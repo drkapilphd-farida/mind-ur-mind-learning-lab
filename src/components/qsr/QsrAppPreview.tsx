@@ -1,12 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "../ui";
 
-// Illustrative Mockup™ — built from plain CSS shapes, not a real
-// screenshot, so nothing here can drift out of sync with the actual app
-// UI or misrepresent it. The caption under the stat tiles says so
-// explicitly rather than leaving it ambiguous.
+// Real Product Screenshot™ — replaces the previous CSS-only "Illustrative
+// Mockup" placeholder with the real Reading Intelligence Dashboard
+// (public/images/quantum-mind/01-reading-intelligence-dashboard.png), now
+// that one exists. `section.caption` below still reads correctly with a
+// real screenshot ("your real numbers start from your own Day 1
+// baseline") — it was never claiming the mockup itself was fake, only
+// that the specific numbers shown are an example, which stays true here.
 export default function QsrAppPreview(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.qsrLanding.appPreview;
@@ -20,43 +24,16 @@ export default function QsrAppPreview(): React.JSX.Element {
           <p className="mt-3 text-[15.5px] text-ink-dim">{section.desc}</p>
         </div>
 
-        <div className="mx-auto w-full max-w-[440px] rounded-lg border border-line-strong bg-panel2 p-1.5 shadow-[0_20px_50px_rgba(34,31,29,0.12)]">
-          <div className="flex items-center gap-1.5 px-3 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
-            <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
-            <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
+        <div className="mx-auto w-full">
+          <div className="relative aspect-[2442/1317] w-full overflow-hidden rounded-lg border border-line-strong shadow-[0_20px_50px_rgba(34,31,29,0.12)]">
+            <Image
+              src="/images/quantum-mind/01-reading-intelligence-dashboard.png"
+              alt={section.title}
+              fill
+              sizes="(min-width: 1024px) 640px, 90vw"
+              className="object-cover"
+            />
           </div>
-
-          <div className="rounded-md border border-line bg-panel p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint">
-                  {section.drillLabel}
-                </p>
-                <p className="mt-1 text-[17px] font-bold text-ink">{section.drillValue}</p>
-              </div>
-              <div className="flex w-[126px] flex-wrap justify-end gap-1" aria-hidden="true">
-                {Array.from({ length: 30 }).map((_, i) => (
-                  <span
-                    key={i}
-                    className={`h-[9px] w-[9px] rounded-[2px] ${i < 12 ? "bg-teal" : "bg-line-strong"}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {section.stats.map((stat) => (
-                <div key={stat.label} className="rounded-sm border border-line bg-panel2 px-3 py-3 text-center">
-                  <p className="text-[16px] font-bold text-ink">{stat.value}</p>
-                  <p className="mt-1 font-mono text-[9.5px] uppercase leading-tight tracking-[0.05em] text-ink-faint">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <p className="px-3 py-3 text-center text-[11px] leading-relaxed text-ink-faint">{section.caption}</p>
         </div>
       </div>
