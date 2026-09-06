@@ -11,6 +11,10 @@ type GuideProfileCardProps = {
   stats: readonly { value: string; label: string }[];
   quote: string;
   accent?: "rose" | "gold" | "teal";
+  // Optional CTA rendered below the quote — undefined (the default)
+  // preserves every existing caller's exact current behavior (no CTA).
+  ctaLabel?: string;
+  ctaHref?: string;
 };
 
 const ACCENT_CLASSES = {
@@ -25,7 +29,17 @@ const ACCENT_CLASSES = {
 // bio, stats, and quote are the same real facts regardless of which
 // offer is being sold. Only the accent color and section eyebrow/title
 // vary per page's own i18n copy.
-export default function GuideProfileCard({ eyebrow, title, credential, bio, stats, quote, accent = "rose" }: GuideProfileCardProps): React.JSX.Element {
+export default function GuideProfileCard({
+  eyebrow,
+  title,
+  credential,
+  bio,
+  stats,
+  quote,
+  accent = "rose",
+  ctaLabel,
+  ctaHref,
+}: GuideProfileCardProps): React.JSX.Element {
   const accentClasses = ACCENT_CLASSES[accent];
 
   return (
@@ -57,6 +71,16 @@ export default function GuideProfileCard({ eyebrow, title, credential, bio, stat
             <p className={`mt-7 border-l-2 pl-4 text-[15px] italic leading-relaxed text-ink ${accentClasses.quote}`}>
               &ldquo;{quote}&rdquo;
             </p>
+
+            {ctaLabel !== undefined && ctaHref !== undefined && (
+              <a
+                href={ctaHref}
+                className="group mt-7 inline-flex items-center gap-2 text-[13.5px] font-semibold text-ink"
+              >
+                {ctaLabel}
+                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

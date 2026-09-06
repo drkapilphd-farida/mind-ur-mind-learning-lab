@@ -1,8 +1,10 @@
 "use client";
 
-import { BookOpen, Sparkles, UserRound, RefreshCw, Gauge, MessageCircle, type LucideIcon } from "lucide-react";
+import { BookOpen, Sparkles, UserRound, RefreshCw, MessageCircle, type LucideIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { Eyebrow } from "./ui";
 import { WHATSAPP_GENERAL_INQUIRY_LINK } from "@/config/whatsappSupportLink";
+import { HABIT_BUILDER_APP_URL } from "@/config/habitBuilderSignupLink";
 import { trackGaEvent } from "@/lib/analytics/ga4";
 
 type Accent = "gold" | "teal" | "rose";
@@ -17,6 +19,7 @@ type SecondaryCard = {
   key: string;
   icon: LucideIcon;
   accent: Accent;
+  number: string;
   eyebrowLabel: string;
   title: string;
   desc: string;
@@ -25,25 +28,19 @@ type SecondaryCard = {
   anchorId?: string;
 };
 
-// Program Cards™ — replaces the three separate, visually-identical
-// TierRetreats/TierSpecialized card grids (plus a new Free Speed Test
-// card) with one grid built for variety instead of one repeated
-// template: a dark featured card for QSR (this business's real flagship,
-// per its existing "Tier 01 · Prime Flagship" position), and four
-// light cards each with their own icon, colored eyebrow, and specific
-// CTA copy tied to that program rather than a generic "Learn More."
-// TierFlagship.tsx's rich standalone content (AccessModelStrip, the
-// 30-day streak visual, the full feature list) stays on the real QSR
-// page where it already lives in full — this card is a teaser, not a
-// duplicate of that page.
-//
-// #tier-1/#tier-2/#tier-3 anchors are preserved on the featured card and
-// the Retreat/Mentoring cards specifically, since Navbar.tsx's nav links
-// still jump to those ids.
-//
-// Residential Retreats deliberately has no card here (this grid is
-// scoped to the 5 broader-appeal, more scalable offers) — it stays fully
-// reachable via the Retreat card's page and the footer.
+// Explore Our Programs™ — five real offers, deliberately unequal in
+// visual weight per explicit instruction: Habit Builder (01) gets a
+// full-width, light, gold-bordered banner — the easiest, free entry
+// point, already featured in its own dedicated section above, so it
+// doesn't need a second dark/dominant treatment here, just a clear,
+// consistent presence at the top of the list. Quantum Speed Reading (02)
+// stays the dark, 2-of-3-column flagship card it already was — this
+// business's real flagship program. Retreats (03), Overthinking Mastery
+// (04), and Mentoring (05) fill the remaining three secondary slots, each
+// keeping its own icon/accent color. The Free Reading Speed Test no
+// longer has a card here — it now has its own dedicated section
+// (HomeSpeedTestCta.tsx) so it never competes with these five paid
+// programs for the same visual priority.
 export default function ProgramCardsGrid(): React.JSX.Element {
   const { t } = useLanguage();
   const home = t.homeProgramCards;
@@ -53,6 +50,7 @@ export default function ProgramCardsGrid(): React.JSX.Element {
       key: "retreat",
       icon: Sparkles,
       accent: "teal",
+      number: home.retreat.number,
       eyebrowLabel: home.retreat.eyebrowLabel,
       title: t.tier2.online.title,
       desc: t.tier2.online.desc,
@@ -61,20 +59,10 @@ export default function ProgramCardsGrid(): React.JSX.Element {
       anchorId: "tier-2",
     },
     {
-      key: "mentoring",
-      icon: UserRound,
-      accent: "rose",
-      eyebrowLabel: home.mentoring.eyebrowLabel,
-      title: t.tier3.mentoring.title,
-      desc: t.tier3.mentoring.desc,
-      cta: home.mentoring.cta,
-      href: "/mentoring/personal-class",
-      anchorId: "tier-3",
-    },
-    {
       key: "course",
       icon: RefreshCw,
       accent: "rose",
+      number: home.course.number,
       eyebrowLabel: home.course.eyebrowLabel,
       title: t.tier3.course.title,
       desc: t.tier3.course.desc,
@@ -83,29 +71,60 @@ export default function ProgramCardsGrid(): React.JSX.Element {
       anchorId: "course-card",
     },
     {
-      key: "speedTest",
-      icon: Gauge,
-      accent: "gold",
-      eyebrowLabel: home.speedTest.eyebrowLabel,
-      title: home.speedTest.title,
-      desc: home.speedTest.desc,
-      cta: home.speedTest.cta,
-      href: "/programs/quantum-speed-reading/speed-test",
+      key: "mentoring",
+      icon: UserRound,
+      accent: "rose",
+      number: home.mentoring.number,
+      eyebrowLabel: home.mentoring.eyebrowLabel,
+      title: t.tier3.mentoring.title,
+      desc: t.tier3.mentoring.desc,
+      cta: home.mentoring.cta,
+      href: "/mentoring/personal-class",
+      anchorId: "tier-3",
     },
   ];
 
   return (
-    <section className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="explore-programs" className="border-b border-line px-6 py-24 sm:px-8">
       <div className="mx-auto max-w-content">
+        <div className="mb-12 max-w-xl">
+          <Eyebrow color="text-teal">{home.eyebrow}</Eyebrow>
+          <h2 className="mt-4 text-[26px] font-extrabold leading-tight sm:text-[32px]">{home.title}</h2>
+        </div>
+
+        {/* 01 — Habit Builder banner, full width, light + gold */}
+        <a
+          href={HABIT_BUILDER_APP_URL}
+          onClick={() => trackGaEvent("signup_cta_click", { location: "explore_programs_habit_banner" })}
+          className="group mb-6 flex flex-col gap-5 rounded-sm border border-gold/50 bg-gold-soft/20 p-7 transition-colors hover:border-gold sm:flex-row sm:items-center sm:justify-between sm:p-8"
+        >
+          <div className="flex items-start gap-4">
+            <span className="font-mono text-[13px] font-bold text-gold">{home.habitBuilder.number}</span>
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-gold">{home.habitBuilder.eyebrowLabel}</p>
+              <h3 className="mt-2 text-[19px] font-bold leading-snug text-ink">{home.habitBuilder.title}</h3>
+              <p className="mt-1.5 max-w-md text-[13.5px] leading-relaxed text-ink-dim">{home.habitBuilder.desc}</p>
+              <p className="mt-2 font-mono text-[11.5px] uppercase tracking-[0.05em] text-gold">{home.habitBuilder.priceLine}</p>
+            </div>
+          </div>
+          <span className="inline-flex flex-none items-center gap-2 rounded-sm bg-gold px-6 py-3 text-[13.5px] font-semibold text-[#1B1508] transition-transform duration-200 group-hover:-translate-y-0.5">
+            {home.habitBuilder.cta}
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </span>
+        </a>
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Featured card — QSR, dark, spans 2 of 3 columns on desktop */}
+          {/* 02 — QSR flagship card, dark, spans 2 of 3 columns on desktop */}
           <div
             id="tier-1"
             className="flex flex-col justify-between rounded-sm border border-line-strong bg-[#12162a] p-8 sm:p-10 lg:col-span-2"
           >
             <div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-gold-soft/20">
-                <BookOpen className="h-5 w-5 text-gold" aria-hidden="true" />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[13px] font-bold text-gold">{home.featured.number}</span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-gold-soft/20">
+                  <BookOpen className="h-5 w-5 text-gold" aria-hidden="true" />
+                </div>
               </div>
               <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.08em] text-gold">
                 {home.featured.eyebrowLabel}
@@ -137,8 +156,11 @@ export default function ProgramCardsGrid(): React.JSX.Element {
                 id={card.anchorId}
                 className="flex flex-col rounded-sm border border-line bg-panel p-7"
               >
-                <div className={`flex h-11 w-11 items-center justify-center rounded-full border ${accentClasses.iconBg}`}>
-                  <Icon className={`h-5 w-5 ${accentClasses.icon}`} aria-hidden="true" />
+                <div className="flex items-center gap-3">
+                  <span className={`font-mono text-[13px] font-bold ${accentClasses.text}`}>{card.number}</span>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-full border ${accentClasses.iconBg}`}>
+                    <Icon className={`h-5 w-5 ${accentClasses.icon}`} aria-hidden="true" />
+                  </div>
                 </div>
                 <p className={`mt-4 font-mono text-[11px] uppercase tracking-[0.08em] ${accentClasses.text}`}>
                   {card.eyebrowLabel}

@@ -5,6 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow, CtaButton } from "./ui";
 import FrequencyDial from "./FrequencyDial";
 import HeroTestimonialBadge from "./HeroTestimonialBadge";
+import { HABIT_BUILDER_APP_URL } from "@/config/habitBuilderSignupLink";
+import { trackGaEvent } from "@/lib/analytics/ga4";
 
 export default function HeroSection(): React.JSX.Element {
   const { t } = useLanguage();
@@ -53,10 +55,15 @@ export default function HeroSection(): React.JSX.Element {
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">
-            <CtaButton href="#tier-1" variant="primary" accent="gold">
+            <CtaButton
+              href={HABIT_BUILDER_APP_URL}
+              variant="primary"
+              accent="gold"
+              onClick={() => trackGaEvent("signup_cta_click", { location: "home_hero" })}
+            >
               {t.hero.ctaPrimary}
             </CtaButton>
-            <CtaButton href="/programs/quantum-speed-reading/speed-test" variant="ghost" accent="teal">
+            <CtaButton href="#begin" variant="ghost" accent="teal">
               {t.hero.ctaSecondary}
             </CtaButton>
           </div>

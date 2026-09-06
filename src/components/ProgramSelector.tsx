@@ -1,36 +1,82 @@
 "use client";
 
+import { BookOpen, Gauge, Sparkles, UserRound, type LucideIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { Eyebrow } from "./ui";
+import { HABIT_BUILDER_APP_URL } from "@/config/habitBuilderSignupLink";
 
-// Choice Architecture™ — a single-click router for undecided visitors,
-// not a multi-step quiz. Each option is a plain anchor into the section
-// below (ProgramCardsGrid) that matches that pain point — #tier-1 (QSR,
-// the featured card), #tier-2 (Retreat card), #tier-3 (Mentoring card),
-// and #course-card (added to the Course card specifically for this).
-// Doesn't hide or reorder the full grid — it sits directly above it so
-// undecided visitors get a shortcut while everyone else just scrolls
-// past to browse all five cards themselves.
+const PATH_ICONS: Record<string, LucideIcon> = {
+  habit: Gauge,
+  reading: BookOpen,
+  retreats: Sparkles,
+  mentoring: UserRound,
+};
+
+const PATH_HREFS: Record<string, string> = {
+  habit: HABIT_BUILDER_APP_URL,
+  reading: "/programs/quantum-speed-reading",
+  retreats: "/retreats/online-11-day",
+  mentoring: "/mentoring/personal-class",
+};
+
+// Choice Architecture™ — four real pathways, not five competing products.
+// Each card answers "which reason brought you here," not "which course
+// should I buy" — one icon, one eyebrow naming the reason, one program
+// name, one line, and (only for Habit Builder, the free entry point) the
+// price line, so the free path visibly stands apart from the rest without
+// a louder visual treatment than the others need. The Habit Builder path
+// links straight to the live app subdomain (HABIT_BUILDER_APP_URL); the
+// other three link to their own real landing pages on this site.
 export default function ProgramSelector(): React.JSX.Element {
   const { t } = useLanguage();
   const section = t.programSelector;
 
   return (
-    <section className="border-b border-line bg-panel px-6 py-14 sm:px-8">
+    <section id="begin" className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-content">
-        <p className="text-center text-[15px] font-semibold text-ink sm:text-[16px]">{section.prompt}</p>
-        <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
-          {section.options.map((option) => (
-            <a
-              key={option.text}
-              href={option.anchor}
-              className="group flex items-center justify-between gap-3 rounded-sm border border-line-strong bg-panel2 px-5 py-4 text-left text-[13.5px] text-ink transition-colors hover:border-gold/50 hover:bg-gold-soft/40"
-            >
-              {option.text}
-              <span className="flex-none text-ink-faint transition-transform duration-200 group-hover:translate-x-1 group-hover:text-gold">
-                →
-              </span>
-            </a>
-          ))}
+        <div className="mx-auto mb-12 max-w-xl text-center">
+          <h2 className="text-[26px] font-extrabold leading-tight sm:text-[32px]">{section.title}</h2>
+          <p className="mt-3 text-[15px] text-ink-dim">{section.subtitle}</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {section.paths.map((path) => {
+            const Icon = PATH_ICONS[path.key] ?? BookOpen;
+            const isHabit = path.key === "habit";
+            return (
+              <a
+                key={path.key}
+                href={PATH_HREFS[path.key] ?? "#"}
+                className={`group flex flex-col rounded-sm border p-6 transition-colors ${
+                  isHabit
+                    ? "border-gold/50 bg-gold-soft/20 hover:border-gold"
+                    : "border-line-strong bg-panel2 hover:border-ink-dim"
+                }`}
+              >
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border ${
+                    isHabit ? "border-gold/50 bg-gold-soft" : "border-teal/40 bg-teal-soft"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 ${isHabit ? "text-gold" : "text-teal"}`} aria-hidden="true" />
+                </div>
+                <Eyebrow color={isHabit ? "text-gold" : "text-ink-faint"}>{path.eyebrowLabel}</Eyebrow>
+                <h3 className="mt-3 text-[17px] font-bold leading-snug text-ink">{path.title}</h3>
+                <p className="mt-2 flex-1 text-[13.5px] leading-relaxed text-ink-dim">{path.desc}</p>
+                {path.priceLine !== undefined && (
+                  <p className="mt-3 font-mono text-[11.5px] uppercase tracking-[0.05em] text-gold">{path.priceLine}</p>
+                )}
+                <span
+                  className={`mt-4 inline-flex items-center gap-2 text-[13.5px] font-semibold ${
+                    isHabit ? "text-gold" : "text-ink"
+                  }`}
+                >
+                  {path.cta}
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                </span>
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>

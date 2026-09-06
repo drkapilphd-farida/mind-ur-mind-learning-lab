@@ -4,13 +4,13 @@ export const translations = {
   en: {
     nav: {
       links: [
-        { label: "Quantum Reading", href: "#tier-1" },
-        { label: "Retreats", href: "#tier-2" },
-        { label: "Mentoring", href: "#tier-3" },
+        { label: "Programs", href: "#explore-programs" },
+        { label: "Retreats", href: "/retreats/online-11-day" },
+        { label: "Mentoring", href: "/mentoring/personal-class" },
+        { label: "About", href: "/about" },
         { label: "FAQ", href: "#faq" },
-        { label: "Partner With Us", href: "/franchise-individual" },
       ],
-      ctaPrimary: "Explore Speed Reading",
+      ctaPrimary: "Start 7 Days Free",
     },
     // Shared, not nested under qsrLanding/retreatLanding — the exact same
     // trust line and policy link appear next to every primary Razorpay
@@ -51,11 +51,11 @@ export const translations = {
         "India's First QSR Pioneer (Since 2015)",
         "10,000+ Students Guided",
       ],
-      headline: "Drowning in information. Starving for meaning.",
-      headlineEm: "Read at the speed of thought — then go beyond thought entirely.",
-      sub: "If your mind feels foggy, overloaded, and stuck in the same loops, you don't need more information — you need a different mind. In 30 days, Quantum Speed Reading rebuilds how you read, think, and retain. For those ready to go further, advanced Psychic & Spiritual Mastery training waits beyond it.",
-      ctaPrimary: "Unlock Quantum Speed Reading",
-      ctaSecondary: "Take the Free 2-Min Speed Test",
+      headline: "Train Your Mind.",
+      headlineEm: "Transform Your Life.",
+      sub: "Build better habits, learn faster, think clearer and explore deeper dimensions of your mind — through guided programs designed around the way you learn and grow.",
+      ctaPrimary: "Start 7 Days Free",
+      ctaSecondary: "Explore Your Path",
       portraitName: "Dr. Kapil Dev Sharma",
       portraitTitle: "Founder, Mind Ur Mind",
       stats: [
@@ -147,42 +147,129 @@ export const translations = {
       },
     },
     programSelector: {
-      prompt: "Not sure where to start? Tell us what's going on.",
-      options: [
-        { text: "I read too slowly for everything I need to get through", anchor: "#tier-1" },
-        { text: "My mind won't stop overthinking", anchor: "#course-card" },
-        { text: "I want deep, guided personal/spiritual work", anchor: "#tier-2" },
-        { text: "I need focused 1-on-1 support", anchor: "#tier-3" },
+      title: "Where Would You Like to Begin?",
+      subtitle: "Choose the path that matches your goal.",
+      paths: [
+        {
+          key: "habit",
+          eyebrowLabel: "Build Better Habits",
+          title: "Quantum Mind & Habit Builder",
+          desc: "A 21-day streak-based journey to train your mindset, focus and daily habits.",
+          priceLine: "7 Days Free · ₹99 one-time",
+          cta: "Start Free",
+        },
+        {
+          key: "reading",
+          eyebrowLabel: "Learn Faster",
+          title: "Quantum Speed Reading",
+          desc: "Transform the way you read, learn and process information — with greater speed and clarity.",
+          priceLine: undefined,
+          cta: "Explore Program",
+        },
+        {
+          key: "retreats",
+          eyebrowLabel: "Go Deeper Within",
+          title: "Retreats",
+          desc: "Immersive experiences in meditation, awareness, inner exploration and personal transformation.",
+          priceLine: undefined,
+          cta: "Explore Retreats",
+        },
+        {
+          key: "mentoring",
+          eyebrowLabel: "Get Personal Guidance",
+          title: "1-on-1 Mentoring",
+          desc: "Work directly with Dr. Kapil on your individual goals, challenges and transformation.",
+          priceLine: undefined,
+          cta: "Apply for Mentoring",
+        },
       ],
     },
     homeProgramCards: {
+      eyebrow: "The Catalog",
+      title: "Explore Our Programs",
+      habitBuilder: {
+        number: "01",
+        eyebrowLabel: "21-Day Streak Journey · Easiest Way to Begin",
+        title: "Quantum Mind & Habit Builder",
+        desc: "Train your mindset. Build better habits. Practice daily.",
+        priceLine: "7 Days Free · ₹99 one-time",
+        cta: "Start Free",
+      },
       featured: {
-        eyebrowLabel: "Flagship · 30 Days",
-        cta: "Explore Speed Reading",
+        number: "02",
+        eyebrowLabel: "30-Day Masterclass · Flagship",
+        cta: "Explore Program",
       },
       retreat: {
-        eyebrowLabel: "Retreat · Online",
+        number: "03",
+        eyebrowLabel: "11-Day Immersive Experience",
         cta: "Explore Retreat",
       },
-      mentoring: {
-        eyebrowLabel: "Private · 1-on-1",
-        cta: "Apply Now",
-      },
       course: {
-        eyebrowLabel: "Self-Paced · 21 Days",
-        cta: "Start the Reset",
+        number: "04",
+        eyebrowLabel: "21-Day Self-Paced Program",
+        cta: "Explore Program",
       },
-      speedTest: {
-        eyebrowLabel: "Always Free",
-        title: "Free Reading Speed Test",
-        desc: "See your real reading speed in under 2 minutes — no signup, no cost.",
-        cta: "Take the Free Test",
+      mentoring: {
+        number: "05",
+        eyebrowLabel: "Personalised Guidance",
+        cta: "Apply for Mentoring",
       },
       whatsappCard: {
         title: "Have Questions?",
         desc: "Not sure which program fits? Message us directly — a real person replies, not a bot.",
         cta: "Chat on WhatsApp",
       },
+    },
+    homeHabitFeature: {
+      eyebrow: "Meet the Quantum Mind & Habit Builder",
+      title: "Your Mind. Your Habits. 21 Days.",
+      lead: "Just 10 minutes a day can become the beginning of a powerful new routine.",
+      desc: "A 21-day streak-based journey combining mindset practices, focus exercises, visualization, breathing and progressive habit-building challenges.",
+      freeLabel: "7 DAYS FREE",
+      priceLabel: "₹99 ONE-TIME",
+      noSubscriptionLabel: "No monthly subscription.",
+      cta: "Start Your 7-Day Free Journey",
+      streakVisualLabel: "Day 7 of 21",
+      streakVisualCaption: "Real streak tracking, from Day 1.",
+    },
+    homeOverviewVideo: {
+      eyebrow: "Watch",
+      title: "Discover the Mind Ur Mind Journey",
+      subtitle: "One mind. Different paths. One journey of transformation.",
+      closingMessage: "Find the path that's right for you.",
+      cta: "Explore Your Path",
+      videoTitle: "Discover the Mind Ur Mind Journey",
+    },
+    homeSpeedTest: {
+      eyebrow: "Always Free",
+      title: "How Fast Do You Really Read?",
+      lead: "Most people have never measured their actual reading speed.",
+      desc: "Take our free reading speed test and discover your current reading speed and potential.",
+      cta: "Take the Free Reading Speed Test",
+    },
+    homeWhy: {
+      eyebrow: "More Than Courses",
+      title: "More Than Courses.",
+      subtitle: "A Different Approach to Learning & Transformation.",
+      lead: "We don't believe everyone should learn the same way.",
+      concepts: [
+        { title: "Learn", desc: "Knowledge and learning systems", programLabel: "Quantum Speed Reading" },
+        { title: "Practice", desc: "Daily exercises and structured challenges", programLabel: "Quantum Mind & Habit Builder" },
+        { title: "Experience", desc: "Retreats and immersive learning", programLabel: "Retreats" },
+        { title: "Personalise", desc: "Individual mentoring and guidance", programLabel: "1-on-1 Mentoring" },
+      ],
+    },
+    homeGuide: {
+      eyebrow: "The Teacher Behind the Method",
+      title: "Meet Dr. Kapil Sharma",
+      cta: "Discover Dr. Kapil's Journey",
+    },
+    homeFinalCta: {
+      title: "Your Transformation Can Start Small.",
+      desc: "You don't need to change everything today. Just take the first step.",
+      ctaPrimary: "Start Your 7-Day Free Habit Journey",
+      ctaSecondary: "Explore All Programs",
     },
     galleryGlimpse: {
       eyebrow: "A Glimpse Inside",
@@ -554,6 +641,30 @@ export const translations = {
       desc: "Straight answers to the things most people hesitate on. Still unsure? Message us directly below.",
       items: [
         {
+          question: "Is Quantum Mind & Habit Builder really free?",
+          answer:
+            "Yes — Days 1–7 are completely free, no card required to start. Day 8 onward is a single one-time payment of ₹99 to continue through Day 21.",
+        },
+        {
+          question: "What happens after the 7-day free period?",
+          answer:
+            "You'll be asked to make the one-time ₹99 payment to keep going. Nothing charges automatically — you choose when, or whether, to continue.",
+        },
+        {
+          question: "Is ₹99 a subscription?",
+          answer: "No. ₹99 is a one-time payment to continue the full journey — there is no recurring charge at any point.",
+        },
+        {
+          question: "Which program should I start with?",
+          answer:
+            "If you want the easiest, lowest-commitment way in, start with the free 7 days of Quantum Mind & Habit Builder. If you specifically want to read and learn faster, start with Quantum Speed Reading. If you're looking for deeper inner work, explore the Retreats or apply for 1-on-1 Mentoring.",
+        },
+        {
+          question: "Who is Quantum Speed Reading for?",
+          answer:
+            "Students, working professionals, and lifelong learners of every age who want to read, learn, and retain information faster — no prior speed-reading experience needed.",
+        },
+        {
           question: "I'm completely new to speed reading or meditation — is this really for beginners?",
           answer:
             "Yes. Every program starts from zero. Quantum Speed Reading assumes no prior skill, and the Psychic & Spiritual Retreats build up gradually — Dr. Sharma has guided 10,000+ students from complete beginners to advanced practitioners since 2014.",
@@ -569,9 +680,14 @@ export const translations = {
             "The 30-Day Quantum Speed Reading Live Masterclass is ₹4,999, one-time — the full curriculum, 7 live sessions with Dr. Sharma, and app access throughout, backed by our 7-Day Result Guarantee. We don't offer free access to the program itself, but you can try our free 2-minute Reading Speed Test or join a free live intro session first. Graduates who want continued app practice afterward can continue for ₹499/month. The Retreats and 1-on-1 Mentoring are priced by program; message us on WhatsApp for exact pricing and current batch availability.",
         },
         {
-          question: "When is the next online retreat or residential batch?",
+          question: "Are the retreats online or residential?",
           answer:
-            "The 11-Day Online Retreat runs monthly; Residential Retreats in Rishikesh and Lonavala run 3–4 times a year in small groups. Chat with us on WhatsApp for the next confirmed date and remaining seats.",
+            "Both. The 11-Day Online Psychic & Spiritual Retreat runs monthly from wherever you are; Residential Retreats in Rishikesh and Lonavala run 3–4 times a year in small groups for those who want the fully in-person format.",
+        },
+        {
+          question: "How does 1-on-1 mentoring work?",
+          answer:
+            "Personal Class is private, custom-paced mentoring directly with Dr. Sharma — sessions are built entirely around your own goals and challenges, not a fixed curriculum. Apply to discuss fit and scheduling.",
         },
         {
           question: "Do I need to believe in anything specific — is this religious?",
@@ -616,7 +732,7 @@ export const translations = {
         },
         habitApp: {
           heading: "Quantum Mind App",
-          links: [{ label: "₹4,999 Masterclass, ₹499/mo After", href: "/programs/quantum-speed-reading" }],
+          links: [{ label: "Habit Builder — 7 Days Free, ₹99 One-Time", href: "/programs/habit-builder" }],
         },
         philosophy: {
           heading: "Dr. Kapil's Philosophy",
@@ -1904,13 +2020,13 @@ export const translations = {
   hi: {
     nav: {
       links: [
-        { label: "क्वांटम रीडिंग", href: "#tier-1" },
-        { label: "रिट्रीट्स", href: "#tier-2" },
-        { label: "मेंटरिंग", href: "#tier-3" },
+        { label: "प्रोग्राम्स", href: "#explore-programs" },
+        { label: "रिट्रीट्स", href: "/retreats/online-11-day" },
+        { label: "मेंटरिंग", href: "/mentoring/personal-class" },
+        { label: "परिचय", href: "/about" },
         { label: "सवाल-जवाब", href: "#faq" },
-        { label: "पार्टनर बनें", href: "/franchise-individual" },
       ],
-      ctaPrimary: "स्पीड रीडिंग एक्सप्लोर करें",
+      ctaPrimary: "7 दिन मुफ़्त शुरू करें",
     },
     checkoutTrust: {
       line: "भुगतान Razorpay द्वारा सुरक्षित। 100% सुरक्षित और एन्क्रिप्टेड — हम कभी आपके कार्ड की जानकारी संग्रहीत नहीं करते।",
@@ -1932,11 +2048,11 @@ export const translations = {
         "भारत में QSR के प्रणेता (2015 से)",
         "10,000+ विद्यार्थियों का मार्गदर्शन",
       ],
-      headline: "जानकारी की बाढ़ में डूबते हुए। अर्थ के लिए तरसते हुए।",
-      headlineEm: "विचार की गति से पढ़ें — फिर विचार से भी आगे निकल जाएं।",
-      sub: "अगर आपका मन धुंधला, अत्यधिक बोझिल, और वही पुराने चक्रों में फंसा हुआ महसूस होता है — तो आपको और जानकारी नहीं, एक अलग मन चाहिए। 30 दिनों में, क्वांटम स्पीड रीडिंग आपके पढ़ने, सोचने और याद रखने के तरीके का पुनर्निर्माण करती है। और जो आगे जाने के लिए तैयार हैं, उनके लिए इससे परे उन्नत साइकिक और स्पिरिचुअल मास्टरी प्रशिक्षण प्रतीक्षा में है।",
-      ctaPrimary: "क्वांटम स्पीड रीडिंग अनलॉक करें",
-      ctaSecondary: "मुफ़्त 2-मिनट स्पीड टेस्ट लें",
+      headline: "अपने मन को प्रशिक्षित करें।",
+      headlineEm: "अपना जीवन बदलें।",
+      sub: "बेहतर आदतें बनाएं, तेज़ी से सीखें, स्पष्ट रूप से सोचें और अपने मन के गहरे आयामों का अन्वेषण करें — ऐसे guided प्रोग्राम्स के ज़रिए जो आपके सीखने और बढ़ने के तरीके के हिसाब से बनाए गए हैं।",
+      ctaPrimary: "7 दिन मुफ़्त शुरू करें",
+      ctaSecondary: "अपना रास्ता एक्सप्लोर करें",
       portraitName: "डॉ. कपिल देव शर्मा",
       portraitTitle: "संस्थापक, माइंड उर माइंड",
       stats: [
@@ -2028,42 +2144,129 @@ export const translations = {
       },
     },
     programSelector: {
-      prompt: "पक्का नहीं कि कहां से शुरू करें? हमें बताएं क्या चल रहा है।",
-      options: [
-        { text: "मुझे जो कुछ पढ़ना है उसके लिए मैं बहुत धीमा/धीमी हूं", anchor: "#tier-1" },
-        { text: "मेरा मन ओवरथिंकिंग करना बंद नहीं करता", anchor: "#course-card" },
-        { text: "मुझे गहरा, गाइडेड व्यक्तिगत/आध्यात्मिक काम चाहिए", anchor: "#tier-2" },
-        { text: "मुझे केंद्रित 1-ऑन-1 सहयोग चाहिए", anchor: "#tier-3" },
+      title: "आप कहां से शुरू करना चाहेंगे?",
+      subtitle: "वह रास्ता चुनें जो आपके लक्ष्य से मेल खाता हो।",
+      paths: [
+        {
+          key: "habit",
+          eyebrowLabel: "बेहतर आदतें बनाएं",
+          title: "Quantum Mind & Habit Builder",
+          desc: "अपनी सोच, फोकस और रोज़ की आदतों को प्रशिक्षित करने के लिए एक 21-दिवसीय स्ट्रीक-आधारित यात्रा।",
+          priceLine: "7 दिन मुफ़्त · ₹99 एकमुश्त",
+          cta: "मुफ़्त शुरू करें",
+        },
+        {
+          key: "reading",
+          eyebrowLabel: "तेज़ी से सीखें",
+          title: "क्वांटम स्पीड रीडिंग",
+          desc: "अधिक गति और स्पष्टता के साथ — आपके पढ़ने, सीखने और जानकारी प्रोसेस करने के तरीके को बदल दें।",
+          priceLine: undefined,
+          cta: "प्रोग्राम एक्सप्लोर करें",
+        },
+        {
+          key: "retreats",
+          eyebrowLabel: "भीतर और गहराई में जाएं",
+          title: "रिट्रीट्स",
+          desc: "ध्यान, जागरूकता, आंतरिक अन्वेषण और व्यक्तिगत परिवर्तन में इमर्सिव अनुभव।",
+          priceLine: undefined,
+          cta: "रिट्रीट एक्सप्लोर करें",
+        },
+        {
+          key: "mentoring",
+          eyebrowLabel: "व्यक्तिगत मार्गदर्शन पाएं",
+          title: "1-ऑन-1 मेंटरिंग",
+          desc: "अपने व्यक्तिगत लक्ष्यों, चुनौतियों और परिवर्तन पर डॉ. कपिल के साथ सीधे काम करें।",
+          priceLine: undefined,
+          cta: "मेंटरिंग के लिए आवेदन करें",
+        },
       ],
     },
     homeProgramCards: {
+      eyebrow: "कैटलॉग",
+      title: "हमारे प्रोग्राम्स एक्सप्लोर करें",
+      habitBuilder: {
+        number: "01",
+        eyebrowLabel: "21-दिवसीय स्ट्रीक यात्रा · शुरू करने का सबसे आसान तरीका",
+        title: "Quantum Mind & Habit Builder",
+        desc: "अपनी सोच को प्रशिक्षित करें। बेहतर आदतें बनाएं। रोज़ अभ्यास करें।",
+        priceLine: "7 दिन मुफ़्त · ₹99 एकमुश्त",
+        cta: "मुफ़्त शुरू करें",
+      },
       featured: {
-        eyebrowLabel: "फ्लैगशिप · 30 दिन",
-        cta: "स्पीड रीडिंग एक्सप्लोर करें",
+        number: "02",
+        eyebrowLabel: "30-दिवसीय मास्टरक्लास · फ्लैगशिप",
+        cta: "प्रोग्राम एक्सप्लोर करें",
       },
       retreat: {
-        eyebrowLabel: "रिट्रीट · ऑनलाइन",
+        number: "03",
+        eyebrowLabel: "11-दिवसीय इमर्सिव अनुभव",
         cta: "रिट्रीट एक्सप्लोर करें",
       },
-      mentoring: {
-        eyebrowLabel: "निजी · 1-ऑन-1",
-        cta: "अभी आवेदन करें",
-      },
       course: {
-        eyebrowLabel: "सेल्फ-पेस्ड · 21 दिन",
-        cta: "रीसेट शुरू करें",
+        number: "04",
+        eyebrowLabel: "21-दिवसीय सेल्फ-पेस्ड प्रोग्राम",
+        cta: "प्रोग्राम एक्सप्लोर करें",
       },
-      speedTest: {
-        eyebrowLabel: "हमेशा मुफ़्त",
-        title: "मुफ़्त रीडिंग स्पीड टेस्ट",
-        desc: "2 मिनट से भी कम समय में अपनी असली रीडिंग स्पीड देखें — कोई साइनअप नहीं, कोई शुल्क नहीं।",
-        cta: "मुफ़्त टेस्ट लें",
+      mentoring: {
+        number: "05",
+        eyebrowLabel: "व्यक्तिगत मार्गदर्शन",
+        cta: "मेंटरिंग के लिए आवेदन करें",
       },
       whatsappCard: {
         title: "सवाल हैं?",
         desc: "पक्का नहीं कि कौन सा प्रोग्राम सही है? सीधे हमें मैसेज करें — एक असली व्यक्ति जवाब देगा, कोई बॉट नहीं।",
         cta: "WhatsApp पर चैट करें",
       },
+    },
+    homeHabitFeature: {
+      eyebrow: "Quantum Mind & Habit Builder से मिलें",
+      title: "आपका मन। आपकी आदतें। 21 दिन।",
+      lead: "दिन के सिर्फ़ 10 मिनट एक शक्तिशाली नई दिनचर्या की शुरुआत बन सकते हैं।",
+      desc: "मानसिकता अभ्यास, फोकस एक्सरसाइज़, विज़ुअलाइज़ेशन, ब्रीदिंग और प्रगतिशील habit-building चैलेंजेस को जोड़ने वाली एक 21-दिवसीय स्ट्रीक-आधारित यात्रा।",
+      freeLabel: "7 दिन मुफ़्त",
+      priceLabel: "₹99 एकमुश्त",
+      noSubscriptionLabel: "कोई मंथली सब्सक्रिप्शन नहीं।",
+      cta: "अपनी 7-दिन की मुफ़्त यात्रा शुरू करें",
+      streakVisualLabel: "21 में से दिन 7",
+      streakVisualCaption: "दिन 1 से असली स्ट्रीक ट्रैकिंग।",
+    },
+    homeOverviewVideo: {
+      eyebrow: "देखें",
+      title: "माइंड उर माइंड की यात्रा को जानें",
+      subtitle: "एक मन। अलग-अलग रास्ते। बदलाव की एक यात्रा।",
+      closingMessage: "वह रास्ता खोजें जो आपके लिए सही है।",
+      cta: "अपना रास्ता एक्सप्लोर करें",
+      videoTitle: "माइंड उर माइंड की यात्रा को जानें",
+    },
+    homeSpeedTest: {
+      eyebrow: "हमेशा मुफ़्त",
+      title: "आप असल में कितनी तेज़ी से पढ़ते हैं?",
+      lead: "ज़्यादातर लोगों ने कभी अपनी असली रीडिंग स्पीड नहीं मापी।",
+      desc: "हमारा मुफ़्त रीडिंग स्पीड टेस्ट लें और अपनी मौजूदा रीडिंग स्पीड और क्षमता जानें।",
+      cta: "मुफ़्त रीडिंग स्पीड टेस्ट लें",
+    },
+    homeWhy: {
+      eyebrow: "सिर्फ़ कोर्सेज़ से कहीं ज़्यादा",
+      title: "सिर्फ़ कोर्सेज़ से कहीं ज़्यादा।",
+      subtitle: "सीखने और बदलाव के लिए एक अलग तरीका।",
+      lead: "हम यह नहीं मानते कि सभी को एक ही तरीके से सीखना चाहिए।",
+      concepts: [
+        { title: "सीखें", desc: "ज्ञान और सीखने के सिस्टम", programLabel: "क्वांटम स्पीड रीडिंग" },
+        { title: "अभ्यास करें", desc: "रोज़ की एक्सरसाइज़ और संरचित चैलेंजेस", programLabel: "Quantum Mind & Habit Builder" },
+        { title: "अनुभव करें", desc: "रिट्रीट्स और इमर्सिव लर्निंग", programLabel: "रिट्रीट्स" },
+        { title: "व्यक्तिगत बनाएं", desc: "व्यक्तिगत मेंटरिंग और मार्गदर्शन", programLabel: "1-ऑन-1 मेंटरिंग" },
+      ],
+    },
+    homeGuide: {
+      eyebrow: "मेथड के पीछे के शिक्षक",
+      title: "डॉ. कपिल शर्मा से मिलें",
+      cta: "डॉ. कपिल की यात्रा जानें",
+    },
+    homeFinalCta: {
+      title: "आपका बदलाव छोटे से शुरू हो सकता है।",
+      desc: "आपको आज सब कुछ नहीं बदलना है। बस पहला कदम उठाएं।",
+      ctaPrimary: "अपनी 7-दिन की मुफ़्त Habit Journey शुरू करें",
+      ctaSecondary: "सभी प्रोग्राम्स एक्सप्लोर करें",
     },
     galleryGlimpse: {
       eyebrow: "एक झलक",
@@ -2435,6 +2638,30 @@ export const translations = {
       desc: "ज़्यादातर लोग जिन बातों पर हिचकिचाते हैं, उनके सीधे जवाब। फिर भी असमंजस में हैं? नीचे सीधे हमसे संपर्क करें।",
       items: [
         {
+          question: "क्या Quantum Mind & Habit Builder वाकई मुफ़्त है?",
+          answer:
+            "हां — दिन 1 से 7 पूरी तरह मुफ़्त हैं, शुरू करने के लिए कोई कार्ड ज़रूरी नहीं। दिन 8 से आगे जारी रखने के लिए ₹99 की एक-बार की पेमेंट है।",
+        },
+        {
+          question: "7 दिन के मुफ़्त पीरियड के बाद क्या होता है?",
+          answer:
+            "आगे जारी रखने के लिए आपसे एक-बार ₹99 की पेमेंट करने को कहा जाएगा। कुछ भी अपने आप चार्ज नहीं होता — जारी रखना है या नहीं, यह आप तय करते हैं।",
+        },
+        {
+          question: "क्या ₹99 एक सब्सक्रिप्शन है?",
+          answer: "नहीं। ₹99 पूरी यात्रा जारी रखने के लिए एक-बार की पेमेंट है — किसी भी समय कोई रिकरिंग चार्ज नहीं है।",
+        },
+        {
+          question: "मुझे किस प्रोग्राम से शुरुआत करनी चाहिए?",
+          answer:
+            "अगर आप सबसे आसान, सबसे कम कमिटमेंट वाला रास्ता चाहते हैं, तो Quantum Mind & Habit Builder के मुफ़्त 7 दिनों से शुरू करें। अगर आप खासतौर पर तेज़ी से पढ़ना और सीखना चाहते हैं, तो क्वांटम स्पीड रीडिंग से शुरू करें। अगर आप गहरे आंतरिक कार्य की तलाश में हैं, तो रिट्रीट्स एक्सप्लोर करें या 1-ऑन-1 मेंटरिंग के लिए आवेदन करें।",
+        },
+        {
+          question: "क्वांटम स्पीड रीडिंग किनके लिए है?",
+          answer:
+            "हर उम्र के विद्यार्थी, कामकाजी पेशेवर, और जीवन-पर्यंत सीखने वाले जो जानकारी को तेज़ी से पढ़ना, सीखना और याद रखना चाहते हैं — पहले से किसी स्पीड-रीडिंग अनुभव की ज़रूरत नहीं।",
+        },
+        {
           question: "मुझे स्पीड रीडिंग या ध्यान का कोई अनुभव नहीं है — क्या यह वाकई शुरुआती लोगों के लिए है?",
           answer:
             "हां, बिल्कुल। हर कार्यक्रम शून्य से शुरू होता है। क्वांटम स्पीड रीडिंग में किसी पूर्व कौशल की ज़रूरत नहीं, और साइकिक एंड स्पिरिचुअल रिट्रीट धीरे-धीरे आगे बढ़ते हैं — डॉ. शर्मा ने 2014 से अब तक 10,000+ विद्यार्थियों को पूर्ण शुरुआती से उन्नत अभ्यासी तक मार्गदर्शन दिया है।",
@@ -2453,6 +2680,16 @@ export const translations = {
           question: "अगला ऑनलाइन रिट्रीट या रेजिडेंशियल बैच कब है?",
           answer:
             "11-दिवसीय ऑनलाइन रिट्रीट हर महीने चलता है; ऋषिकेश और लोनावला में रेजिडेंशियल रिट्रीट वर्ष में 3–4 बार छोटे समूहों में आयोजित होते हैं। अगली पक्की तारीख और बची हुई सीटों के लिए हमसे WhatsApp पर बात करें।",
+        },
+        {
+          question: "क्या रिट्रीट्स ऑनलाइन हैं या रेजिडेंशियल?",
+          answer:
+            "दोनों। 11-दिवसीय ऑनलाइन साइकिक एंड स्पिरिचुअल रिट्रीट हर महीने चलता है, जहां से भी आप हों; ऋषिकेश और लोनावला में रेजिडेंशियल रिट्रीट वर्ष में 3–4 बार छोटे समूहों में उन लोगों के लिए होते हैं जो पूरी तरह व्यक्तिगत उपस्थिति वाला प्रारूप चाहते हैं।",
+        },
+        {
+          question: "1-ऑन-1 मेंटरिंग कैसे काम करती है?",
+          answer:
+            "पर्सनल क्लास डॉ. शर्मा के साथ सीधे, निजी, कस्टम-पेस्ड मेंटरिंग है — सेशन पूरी तरह आपके अपने लक्ष्यों और चुनौतियों के आसपास बनाए जाते हैं, किसी फिक्स्ड कर्रिकुलम पर नहीं। फिट और शेड्यूलिंग पर चर्चा के लिए आवेदन करें।",
         },
         {
           question: "क्या मुझे किसी विशेष चीज़ में विश्वास रखना ज़रूरी है — क्या यह धार्मिक है?",
@@ -2497,7 +2734,7 @@ export const translations = {
         },
         habitApp: {
           heading: "क्वांटम माइंड ऐप",
-          links: [{ label: "₹4,999 मास्टरक्लास, बाद में ₹499/माह", href: "/programs/quantum-speed-reading" }],
+          links: [{ label: "Habit Builder — 7 दिन मुफ़्त, ₹99 एकमुश्त", href: "/programs/habit-builder" }],
         },
         philosophy: {
           heading: "डॉ. कपिल का दर्शन",

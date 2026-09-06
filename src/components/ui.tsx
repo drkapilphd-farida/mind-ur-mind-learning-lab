@@ -23,6 +23,7 @@ type ButtonProps = {
   variant?: "primary" | "ghost";
   accent?: "gold" | "teal";
   className?: string;
+  onClick?: () => void;
 };
 
 export function CtaButton({
@@ -31,6 +32,7 @@ export function CtaButton({
   variant = "primary",
   accent = "gold",
   className = "",
+  onClick,
 }: ButtonProps): React.JSX.Element {
   const base =
     "group inline-flex items-center gap-2.5 rounded-sm px-7 py-[15px] text-[14.5px] font-semibold tracking-tight transition-transform duration-200 hover:-translate-y-0.5";
@@ -47,7 +49,7 @@ export function CtaButton({
   };
 
   return (
-    <a href={href} className={`${base} ${styles[variant]} ${className}`}>
+    <a href={href} onClick={onClick} className={`${base} ${styles[variant]} ${className}`}>
       {children}
       <span className="transition-transform duration-200 group-hover:translate-x-1">
         →
