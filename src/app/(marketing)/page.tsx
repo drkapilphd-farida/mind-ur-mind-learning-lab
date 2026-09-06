@@ -59,8 +59,15 @@ export default function HomePage(): React.JSX.Element {
           widget's own pre-tuned bottom-16 default (see WhatsAppWidget.tsx's
           own doc comment on why that default exists). A little more
           bottom clearance on mobile only, same technique already used on
-          the QSR/Franchise pages. */}
-      <WhatsAppWidget bottomClassName="bottom-24 sm:bottom-7" />
+          the QSR/Franchise pages. autoDismissBubbleMs closes the large
+          explanatory bubble after 6s (it was previously left open
+          indefinitely on this page only, unlike every other page using
+          this widget) — confirmed via user report to be the main source
+          of it persistently covering hero/testimonial content while
+          scrolling; the compact button alone remains available. Footer's
+          own bottom padding (see Footer.tsx) is what keeps the button
+          clear of the footer's copyright/link row at max scroll. */}
+      <WhatsAppWidget bottomClassName="bottom-24 sm:bottom-7" autoDismissBubbleMs={6000} />
     </div>
   )
 }

@@ -39,7 +39,7 @@ export default function ProgramSelector(): React.JSX.Element {
           <p className="mt-3 text-[15px] text-ink-dim">{section.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {section.paths.map((path) => {
             const Icon = PATH_ICONS[path.key] ?? BookOpen;
             const isHabit = path.key === "habit";
@@ -47,10 +47,10 @@ export default function ProgramSelector(): React.JSX.Element {
               <a
                 key={path.key}
                 href={PATH_HREFS[path.key] ?? "#"}
-                className={`group flex flex-col rounded-sm border p-6 transition-colors ${
+                className={`group flex flex-col rounded-sm border p-7 transition-all duration-200 hover:-translate-y-1 sm:p-8 ${
                   isHabit
-                    ? "border-gold/50 bg-gold-soft/20 hover:border-gold"
-                    : "border-line-strong bg-panel2 hover:border-ink-dim"
+                    ? "border-gold/50 bg-gold-soft/20 hover:border-gold hover:shadow-[0_16px_36px_rgba(184,134,46,0.16)]"
+                    : "border-line-strong bg-panel2 hover:border-ink-dim hover:shadow-[0_16px_36px_rgba(34,31,29,0.08)]"
                 }`}
               >
                 <div
@@ -61,13 +61,13 @@ export default function ProgramSelector(): React.JSX.Element {
                   <Icon className={`h-5 w-5 ${isHabit ? "text-gold" : "text-teal"}`} aria-hidden="true" />
                 </div>
                 <Eyebrow color={isHabit ? "text-gold" : "text-ink-faint"}>{path.eyebrowLabel}</Eyebrow>
-                <h3 className="mt-3 text-[17px] font-bold leading-snug text-ink">{path.title}</h3>
-                <p className="mt-2 flex-1 text-[13.5px] leading-relaxed text-ink-dim">{path.desc}</p>
+                <h3 className="mt-4 text-[18px] font-bold leading-snug text-ink">{path.title}</h3>
+                <p className="mt-2.5 flex-1 text-[13.5px] leading-relaxed text-ink-dim">{path.desc}</p>
                 {path.priceLine !== undefined && (
-                  <p className="mt-3 font-mono text-[11.5px] uppercase tracking-[0.05em] text-gold">{path.priceLine}</p>
+                  <p className="mt-4 font-mono text-[11.5px] uppercase tracking-[0.05em] text-gold">{path.priceLine}</p>
                 )}
                 <span
-                  className={`mt-4 inline-flex items-center gap-2 text-[13.5px] font-semibold ${
+                  className={`mt-5 inline-flex items-center gap-2 text-[13.5px] font-semibold ${
                     isHabit ? "text-gold" : "text-ink"
                   }`}
                 >

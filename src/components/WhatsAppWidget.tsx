@@ -63,6 +63,21 @@ export default function WhatsAppWidget({
     return () => clearTimeout(timeout);
   }, [autoDismissBubbleMs]);
 
+  // Scroll-Aware Dismiss™ — the timer above only covers "the bubble has
+  // been open this long"; a visitor who scrolls straight to the footer
+  // within that window would still see it sitting over footer content
+  // (confirmed happening). Dismissing on the first real scroll covers
+  // that regardless of how fast the visitor scrolls, on every page that
+  // opts into autoDismissBubbleMs.
+  useEffect(() => {
+    if (autoDismissBubbleMs === undefined) return undefined;
+    function handleScroll(): void {
+      setBubbleDismissed(true);
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true, once: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [autoDismissBubbleMs]);
+
   return (
     <div className={`fixed right-5 z-50 flex flex-col items-end gap-3 sm:right-7 ${bottomClassName}`}>
       {!bubbleDismissed && (

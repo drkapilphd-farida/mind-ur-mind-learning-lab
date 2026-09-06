@@ -16,7 +16,7 @@ export default function Testimonials(): React.JSX.Element {
   const items = section.items.filter((item) => !item.qsrPageOnly);
 
   return (
-    <section id="proof" className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="proof" className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-content">
         <div className="mb-14 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">

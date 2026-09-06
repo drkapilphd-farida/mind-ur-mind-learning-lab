@@ -230,8 +230,13 @@ export const translations = {
       priceLabel: "₹99 ONE-TIME",
       noSubscriptionLabel: "No monthly subscription.",
       cta: "Start Your 7-Day Free Journey",
-      streakVisualLabel: "Day 7 of 21",
-      streakVisualCaption: "Real streak tracking, from Day 1.",
+      mainScreenshotAlt: "The Quantum Mind & Habit Builder dashboard — a real streak and daily continue screen",
+      screenshotLabels: {
+        programIntro: "Program Intro",
+        day1Complete: "Day 1 Complete",
+        boxBreathing: "Box Breathing",
+        readingMode: "Reading Mode",
+      },
     },
     homeOverviewVideo: {
       eyebrow: "Watch",
@@ -2227,8 +2232,13 @@ export const translations = {
       priceLabel: "₹99 एकमुश्त",
       noSubscriptionLabel: "कोई मंथली सब्सक्रिप्शन नहीं।",
       cta: "अपनी 7-दिन की मुफ़्त यात्रा शुरू करें",
-      streakVisualLabel: "21 में से दिन 7",
-      streakVisualCaption: "दिन 1 से असली स्ट्रीक ट्रैकिंग।",
+      mainScreenshotAlt: "Quantum Mind & Habit Builder डैशबोर्ड — असली स्ट्रीक और डेली continue स्क्रीन",
+      screenshotLabels: {
+        programIntro: "प्रोग्राम इंट्रो",
+        day1Complete: "दिन 1 पूरा",
+        boxBreathing: "बॉक्स ब्रीदिंग",
+        readingMode: "रीडिंग मोड",
+      },
     },
     homeOverviewVideo: {
       eyebrow: "देखें",

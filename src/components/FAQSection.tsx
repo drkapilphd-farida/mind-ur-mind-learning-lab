@@ -13,7 +13,7 @@ export default function FAQSection(): React.JSX.Element {
   const section = t.faq;
 
   return (
-    <section id="faq" className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="faq" className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-content">
         <div className="mb-14 max-w-xl">
           <Eyebrow>{section.eyebrow}</Eyebrow>

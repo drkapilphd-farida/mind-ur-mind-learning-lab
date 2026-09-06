@@ -85,7 +85,7 @@ export default function ProgramCardsGrid(): React.JSX.Element {
   ];
 
   return (
-    <section id="explore-programs" className="border-b border-line px-6 py-24 sm:px-8">
+    <section id="explore-programs" className="border-b border-line px-6 py-24 sm:px-8 lg:py-20">
       <div className="mx-auto max-w-content">
         <div className="mb-12 max-w-xl">
           <Eyebrow color="text-teal">{home.eyebrow}</Eyebrow>

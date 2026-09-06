@@ -92,23 +92,28 @@ export default function HeroSection(): React.JSX.Element {
         {/* portrait card */}
         <div className="relative mx-auto w-full max-w-[340px] lg:mx-0 lg:ml-auto">
           <div className="relative overflow-hidden rounded-sm border border-line-strong bg-transparent">
-            <div className="relative aspect-[4/5] w-full">
-              {/* Approved Founder Asset™ — dr-kapil-home-hero.png.png (the
-                  real supplied file; note the doubled .png.png extension
-                  on disk, kept exactly as delivered per explicit "do not
-                  rename" instruction). The source file is a full 1672x941
-                  marketing composition with its own baked-in logo/headline/
-                  buttons on the left half — object-right + object-cover
-                  crops to just the photographed founder on the right side
-                  of the frame (plain CSS cropping only, no pixel of the
-                  photo itself touched), so it doesn't visually duplicate
-                  this section's own real headline/CTAs. */}
+            <div className="relative aspect-[753/811] w-full">
+              {/* Approved Founder Asset™ — dr-kapil-home-hero-portrait.png
+                  is a plain rectangular crop of the real supplied file
+                  (dr-kapil-home-hero.png.png, untouched, unchanged, still
+                  on disk exactly as delivered). That source is a full
+                  1672x941 marketing composition with its own baked-in
+                  logo/headline/CTA on the left half and a "More Within
+                  You" signature bottom-right — this crop (x:919-1672,
+                  y:0-811) keeps only the photographed founder, his whole
+                  gesturing hand with clean margin, and excludes both the
+                  left-side text/CTA and the bottom-right signature. No
+                  AI involved — a single mechanical crop, same category as
+                  the object-position cropping already used elsewhere on
+                  this site; the aspect-ratio here matches the crop's exact
+                  pixel dimensions 1:1, so object-cover performs no further
+                  cropping at all. */}
               <Image
-                src="/dr-kapil-home-hero.png.png"
+                src="/dr-kapil-home-hero-portrait.png"
                 alt={t.hero.portraitName}
                 fill
                 sizes="(min-width: 1024px) 340px, 80vw"
-                className="object-cover object-right"
+                className="object-cover"
                 priority
               />
             </div>
