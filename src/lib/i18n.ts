@@ -238,7 +238,7 @@ export const translations = {
         items: [
           {
             title: "Training & Certification",
-            desc: "A structured 7-day trainer certification program covering the complete Quantum Speed Reading methodology.",
+            desc: "A structured 7-day trainer certification program that equips you to launch and run your own Quantum Speed Reading training practice immediately — not just learn a skill.",
           },
           {
             title: "Branded Software",
@@ -278,6 +278,28 @@ export const translations = {
         title: "What Students Say",
         desc: "Real experiences from learners who have experienced Quantum Speed Reading.",
         videoLabel: "Student Testimonial",
+      },
+      earning: {
+        eyebrow: "Earning Potential",
+        headline: "What You Could Earn",
+        scenarios: [
+          {
+            label: "Part-Time",
+            desc: "3–5 students / month",
+            range: "₹21,600 – ₹36,000",
+          },
+          {
+            label: "Established",
+            desc: "8–10 students / month",
+            range: "₹57,600 – ₹72,000",
+          },
+          {
+            label: "Full-Time",
+            desc: "15+ students / month",
+            range: "₹1,08,000+",
+          },
+        ],
+        disclaimer: "These are illustrative estimates based on an example course fee, not guaranteed outcomes. Actual earnings depend on your effort, local market, and enrollment numbers.",
       },
       businessModel: {
         eyebrow: "Business Model",
@@ -402,21 +424,9 @@ export const translations = {
       apply: {
         eyebrow: "Apply",
         title: "Ready to Build Your Quantum Speed Reading Training Practice?",
-        sub: "Apply to become a certified trainer and explore whether this partnership is right for you — you'll finish your application on WhatsApp.",
+        sub: "Apply to become a certified trainer and explore whether this partnership is right for you.",
+        instantApplyCta: "Apply Instantly via WhatsApp",
         talkToTeamLabel: "Talk to Our Team",
-        nameLabel: "Name",
-        phoneLabel: "Phone",
-        cityLabel: "City",
-        backgroundLabel: "Background / Experience",
-        backgroundOptionalTag: "Optional",
-        backgroundPlaceholder: "Select one",
-        backgroundOptions: ["Teacher", "Coaching Center Owner", "Recent Graduate", "Other"],
-        whyInterestedLabel: "Why Are You Interested?",
-        whyInterestedOptionalTag: "Optional",
-        whyInterestedPlaceholder: "What made you want to become a Mind Ur Mind partner?",
-        submitLabel: "Continue on WhatsApp",
-        successTitle: "Almost there!",
-        successDesc: "We've opened WhatsApp with your application filled in — complete sending the message there to finish.",
       },
       whatsapp: {
         bubble: "Have questions about becoming a certified trainer? Chat with our team instantly.",
@@ -2109,7 +2119,7 @@ export const translations = {
         items: [
           {
             title: "ट्रेनिंग और सर्टिफिकेशन",
-            desc: "पूरी Quantum Speed Reading मेथडोलॉजी को कवर करने वाला एक structured 7-दिन का trainer certification प्रोग्राम।",
+            desc: "एक structured 7-दिन का trainer certification प्रोग्राम, जो आपको सिर्फ एक स्किल सिखाने के बजाय अपनी खुद की Quantum Speed Reading training practice तुरंत शुरू करने और चलाने के लिए तैयार करता है।",
           },
           {
             title: "ब्रांडेड सॉफ्टवेयर",
@@ -2149,6 +2159,28 @@ export const translations = {
         title: "विद्यार्थी क्या कहते हैं",
         desc: "Quantum Speed Reading का अनुभव करने वाले विद्यार्थियों के असली अनुभव।",
         videoLabel: "विद्यार्थी की प्रतिक्रिया",
+      },
+      earning: {
+        eyebrow: "कमाई की संभावना",
+        headline: "आप कितना कमा सकते हैं",
+        scenarios: [
+          {
+            label: "पार्ट-टाइम",
+            desc: "3–5 स्टूडेंट / महीना",
+            range: "₹21,600 – ₹36,000",
+          },
+          {
+            label: "एस्टैब्लिश्ड",
+            desc: "8–10 स्टूडेंट / महीना",
+            range: "₹57,600 – ₹72,000",
+          },
+          {
+            label: "फुल-टाइम",
+            desc: "15+ स्टूडेंट / महीना",
+            range: "₹1,08,000+",
+          },
+        ],
+        disclaimer: "यह estimate है, गारंटी नहीं — एक उदाहरण कोर्स फ़ीस पर आधारित है। आपकी असली कमाई आपकी मेहनत, local market, और एनरोलमेंट संख्या पर निर्भर करती है।",
       },
       businessModel: {
         eyebrow: "बिज़नेस मॉडल",
@@ -2273,21 +2305,9 @@ export const translations = {
       apply: {
         eyebrow: "आवेदन करें",
         title: "अपनी Quantum Speed Reading Training Practice बनाने के लिए तैयार हैं?",
-        sub: "Certified trainer बनने के लिए आवेदन करें और जानें कि यह पार्टनरशिप आपके लिए सही है या नहीं — अपना आवेदन आप WhatsApp पर पूरा करेंगे।",
+        sub: "Certified trainer बनने के लिए आवेदन करें और जानें कि यह पार्टनरशिप आपके लिए सही है या नहीं।",
+        instantApplyCta: "WhatsApp पर तुरंत आवेदन करें",
         talkToTeamLabel: "हमारी टीम से बात करें",
-        nameLabel: "नाम",
-        phoneLabel: "फ़ोन",
-        cityLabel: "शहर",
-        backgroundLabel: "पृष्ठभूमि / अनुभव",
-        backgroundOptionalTag: "वैकल्पिक",
-        backgroundPlaceholder: "एक चुनें",
-        backgroundOptions: ["टीचर", "कोचिंग सेंटर ओनर", "हाल के ग्रेजुएट", "अन्य"],
-        whyInterestedLabel: "आप इसमें रुचि क्यों रखते हैं?",
-        whyInterestedOptionalTag: "वैकल्पिक",
-        whyInterestedPlaceholder: "आप माइंड उर माइंड पार्टनर क्यों बनना चाहते हैं?",
-        submitLabel: "WhatsApp पर जारी रखें",
-        successTitle: "बस थोड़ा और!",
-        successDesc: "हमने आपका आवेदन भरकर WhatsApp खोल दिया है — इसे पूरा करने के लिए वहां मैसेज भेजें।",
       },
       whatsapp: {
         bubble: "Certified trainer बनने के बारे में सवाल हैं? हमारी टीम से तुरंत चैट करें।",

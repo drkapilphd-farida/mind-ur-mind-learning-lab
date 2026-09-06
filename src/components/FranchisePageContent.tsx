@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import {
   BookOpen,
@@ -11,9 +10,13 @@ import {
   Blocks,
   IndianRupee,
   TrendingDown,
+  Clock,
+  TrendingUp,
+  Rocket,
   GraduationCap,
   Building2,
   CheckCircle2,
+  Info,
   Percent,
   Wallet,
   RefreshCw,
@@ -25,15 +28,16 @@ import SimplePageNav from "./SimplePageNav";
 import Footer from "./Footer";
 import WhatsAppWidget from "./WhatsAppWidget";
 import VideoReviewGrid from "./VideoReviewGrid";
-import { submitFranchiseLead } from "@/app/franchise-individual/actions/submitFranchiseLead";
 import {
-  buildFranchiseApplicationWhatsAppLink,
   WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK,
+  WHATSAPP_FRANCHISE_INSTANT_APPLY_LINK,
 } from "@/config/whatsappSupportLink";
+import { trackGaEvent } from "@/lib/analytics/ga4";
 import type { Lang } from "@/lib/i18n";
 
 const PROBLEM_ICONS = [Blocks, IndianRupee, TrendingDown] as const;
 const INCLUDED_ICONS = [GraduationCap, Blocks, LayoutDashboard, Megaphone, BookOpen, LifeBuoy] as const;
+const EARNING_ICONS = [Clock, TrendingUp, Rocket] as const;
 const BUSINESS_MODEL_ICONS = [IndianRupee, Percent, Wallet, RefreshCw] as const;
 const WHO_FOR_ICONS = [GraduationCap, Building2, Presentation] as const;
 
@@ -71,8 +75,6 @@ const STUDENT_TESTIMONIAL_VIDEOS: ReadonlyArray<{ videoId: string; thumbnailSrc:
   { videoId: "R2icA1-gbTY", thumbnailSrc: "/qsr-videos/R2icA1-gbTY-thumb.jpg" },
 ];
 
-type FormStatus = "idle" | "success";
-
 function SectionCta({ label }: { label: string }): React.JSX.Element {
   return (
     <div className="mt-10 flex justify-center sm:mt-12">
@@ -91,72 +93,34 @@ function SectionCta({ label }: { label: string }): React.JSX.Element {
 
 // Franchise/Individual Trainer Application™ — a full application-funnel
 // structure (hero → problem → founder → what's included → real trainer
-// proof → real student proof → process → business model → audience fit →
-// FAQ → apply), not just a 3-card teaser. Copy is grounded only in what
-// the site owner has explicitly confirmed (26 years in education, QSR
-// training since 2015, 10,000+ students, and the verified partner-program
-// terms in businessModel/faq below) — no numbers or claims invented
-// beyond that, per the owner's own repeated "honest framing, no
-// overclaiming" instruction. The old "Earning Potential" section (three
-// illustrative rupee-range scenarios computed off an unstated example
-// course fee) has been removed rather than kept alongside the new
-// Business Model section — showing concrete earnings estimates next to
-// an explicitly "we don't guarantee income" transparency section worked
-// against the very trust this page is trying to build.
+// proof → real student proof → earning potential → process → business
+// model → audience fit → FAQ → apply), not just a 3-card teaser. Copy is
+// grounded only in what the site owner has explicitly confirmed (26 years
+// in education, QSR training since 2015, 10,000+ students, and the
+// verified partner-program terms in businessModel/faq below) — no numbers
+// or claims invented beyond that, per the owner's own repeated "honest
+// framing, no overclaiming" instruction.
+//
+// The "Earning Potential" section (three illustrative rupee-range
+// scenarios computed off an unstated example course fee) was removed in
+// an earlier pass, then explicitly reinstated by the site owner — with
+// the "illustrative, not guaranteed" disclaimer kept exactly as-is — to
+// surface financial upside earlier in the funnel, right after the real
+// trainer/student proof and before the process/FAQ detail.
+//
+// WhatsApp-First, No-Form™ — the old name/phone/city application form
+// (and its franchise_leads DB backup save) has been removed per explicit
+// instruction: it added drop-off friction a single-tap WhatsApp CTA
+// doesn't need. The visitor's details are simply given inside the
+// WhatsApp conversation that opens, same as every other WhatsApp-only
+// conversion path already used elsewhere on this site (QSR live intro
+// session, retreats, mentoring). submitFranchiseLead.ts /
+// franchiseLeadSchema.ts are left untouched — the admin dashboard at
+// /admin/franchise-leads still reads whatever rows already exist there.
 export default function FranchisePageContent(): React.JSX.Element {
   const { t, lang } = useLanguage();
   const page = t.franchisePage;
   const introVideoId = INTRO_VIDEO_ID[lang];
-
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [background, setBackground] = useState("");
-  const [whyInterested, setWhyInterested] = useState("");
-  const [status, setStatus] = useState<FormStatus>("idle");
-
-  const canSubmit = name.trim().length > 0 && phone.trim().length > 0 && city.trim().length > 0;
-
-  // WhatsApp-First Application™ — the WhatsApp tab is opened synchronously,
-  // inside this same click/submit event, before any `await` — required
-  // for the redirect to reliably open the WhatsApp app (not get silently
-  // blocked as a popup) on mobile Safari and other browsers that revoke
-  // "user activation" the moment an async gap is crossed. The
-  // franchise_leads DB save is a best-effort backup record only: fired
-  // after the redirect, never awaited, and its failure is deliberately
-  // never surfaced to the visitor — the WhatsApp message they're about to
-  // send is the real application either way.
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    if (!canSubmit) return;
-
-    const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-    const trimmedCity = city.trim();
-    const trimmedBackground = background.trim();
-    const trimmedWhyInterested = whyInterested.trim();
-
-    const whatsAppLink = buildFranchiseApplicationWhatsAppLink({
-      name: trimmedName,
-      phone: trimmedPhone,
-      city: trimmedCity,
-      background: trimmedBackground,
-      whyInterested: trimmedWhyInterested,
-    });
-    window.open(whatsAppLink, "_blank", "noopener,noreferrer");
-
-    setStatus("success");
-
-    void submitFranchiseLead({
-      name: trimmedName,
-      phone: trimmedPhone,
-      city: trimmedCity,
-      background: trimmedBackground.length > 0 ? trimmedBackground : undefined,
-      whyInterested: trimmedWhyInterested.length > 0 ? trimmedWhyInterested : undefined,
-    }).catch(() => {
-      // Silent by design — see this function's own doc comment.
-    });
-  }
 
   return (
     <div className="warm-light min-h-screen font-sans antialiased">
@@ -367,7 +331,44 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 7. How It Works */}
+        {/* 7. Earning Potential — placed right after the real trainer/
+            student proof and before the process/fee detail, so financial
+            upside is visible well before FAQ or the bottom of the page.
+            Every figure carries the same "illustrative, not guaranteed"
+            disclaimer it always has — nothing here is a new claim. */}
+        <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-content">
+            <div className="mb-10 max-w-xl sm:mb-12">
+              <Eyebrow color="text-teal">{page.earning.eyebrow}</Eyebrow>
+              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.earning.headline}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              {page.earning.scenarios.map((scenario, index) => {
+                const Icon = EARNING_ICONS[index % EARNING_ICONS.length] ?? Clock;
+                return (
+                  <div key={scenario.label} className="rounded-sm border border-line-strong bg-panel2 p-6 text-center">
+                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-teal/40 bg-teal-soft">
+                      <Icon className="h-5 w-5 text-teal" aria-hidden="true" />
+                    </div>
+                    <h3 className="mt-4 text-[15.5px] font-bold text-ink">{scenario.label}</h3>
+                    <p className="mt-1 text-[12.5px] text-ink-faint">{scenario.desc}</p>
+                    <p className="mt-3 text-[21px] font-extrabold tabular-nums text-teal">{scenario.range}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mx-auto mt-7 flex max-w-2xl items-start gap-3 rounded-sm border border-gold/40 bg-gold-soft px-5 py-4">
+              <Info className="mt-0.5 h-4 w-4 flex-none text-gold-dim" aria-hidden="true" />
+              <p className="text-[13px] leading-relaxed text-ink-dim">{page.earning.disclaimer}</p>
+            </div>
+
+            <SectionCta label={page.applyCta} />
+          </div>
+        </section>
+
+        {/* 8. How It Works */}
         <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
@@ -392,7 +393,7 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 8. Business Model — every fee visible at once, including the
+        {/* 9. Business Model — every fee visible at once, including the
             ₹5,000 renewal fee (previously not mentioned anywhere on this
             page), plus an explicit "We Provide / You Bring" split so the
             page never implies students are provided or income is
@@ -455,7 +456,7 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 9. Who Is This For */}
+        {/* 10. Who Is This For */}
         <section className="border-b border-line px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
@@ -479,7 +480,7 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 10. FAQ */}
+        {/* 11. FAQ */}
         <section className="border-b border-line bg-panel px-6 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto max-w-content">
             <div className="mb-10 max-w-xl sm:mb-12">
@@ -503,130 +504,41 @@ export default function FranchisePageContent(): React.JSX.Element {
           </div>
         </section>
 
-        {/* 11. Application Form */}
-        <section id="apply" className="px-6 py-16 sm:px-8 sm:py-20">
+        {/* 12. Apply — WhatsApp-First, No-Form™ (see this component's own
+            top-of-file doc comment). A single instant-apply CTA replaces
+            the old name/phone/city form; no typed fields are required to
+            start the conversation. */}
+        <section id="apply" className="border-b border-line bg-panel px-6 py-16 text-center sm:px-8 sm:py-24">
           <div className="mx-auto max-w-xl">
-            <div className="mb-8 text-center sm:mb-10">
-              <div className="flex justify-center">
-                <Eyebrow color="text-teal">{page.apply.eyebrow}</Eyebrow>
-              </div>
-              <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.apply.title}</h2>
-              <p className="mt-3 text-[14px] leading-relaxed text-ink-dim">{page.apply.sub}</p>
+            <div className="flex justify-center">
+              <Eyebrow color="text-teal">{page.apply.eyebrow}</Eyebrow>
+            </div>
+            <h2 className="mt-4 text-[24px] font-extrabold leading-tight sm:text-[30px]">{page.apply.title}</h2>
+            <p className="mt-3 text-[14px] leading-relaxed text-ink-dim">{page.apply.sub}</p>
+
+            <a
+              href={WHATSAPP_FRANCHISE_INSTANT_APPLY_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackGaEvent("whatsapp_click", { location: "franchise_apply_instant" })}
+              className="group mt-8 inline-flex items-center gap-3 rounded-sm bg-[#25D366] px-9 py-[18px] text-[16px] font-bold text-[#062112] shadow-[0_14px_35px_rgba(37,211,102,0.35)] transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 flex-none fill-current">
+                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.87 9.87 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm5.8 14.16c-.24.68-1.4 1.32-1.93 1.4-.5.08-1.12.11-1.8-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.14-4.9-4.34-.14-.2-1.17-1.56-1.17-2.97 0-1.41.74-2.1 1-2.39.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.58.81 2 .88 2.15.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.12.57.17.29.75 1.24 1.61 2.01 1.11 1 2.05 1.31 2.33 1.46.29.14.46.12.63-.07.17-.19.72-.84.92-1.13.19-.29.38-.24.64-.14.26.1 1.66.79 1.95.93.29.14.48.21.55.33.07.12.07.68-.17 1.35Z" />
+              </svg>
+              {page.apply.instantApplyCta}
+            </a>
+
+            <div>
               <a
                 href={WHATSAPP_FRANCHISE_TEAM_INQUIRY_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-teal hover:underline"
+                className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-teal hover:underline"
               >
                 {page.apply.talkToTeamLabel}
               </a>
             </div>
-
-            {status === "success" ? (
-              <div className="flex flex-col items-center gap-3 rounded-sm border border-teal/40 bg-teal-soft px-7 py-10 text-center">
-                <CheckCircle2 className="h-8 w-8 text-teal" aria-hidden="true" />
-                <h3 className="text-[17px] font-bold text-ink">{page.apply.successTitle}</h3>
-                <p className="max-w-sm text-[14px] leading-relaxed text-ink-dim">{page.apply.successDesc}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate className="rounded-sm border border-line-strong bg-panel2 p-6 sm:p-8">
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="franchise-name" className="text-[12.5px] font-semibold text-ink-dim">
-                      {page.apply.nameLabel}
-                    </label>
-                    <input
-                      id="franchise-name"
-                      type="text"
-                      required
-                      autoComplete="name"
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      className="mt-1.5 w-full rounded-sm border border-line-strong bg-panel px-4 py-3 text-[14px] text-ink outline-none transition-colors focus:border-teal/60"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="franchise-phone" className="text-[12.5px] font-semibold text-ink-dim">
-                      {page.apply.phoneLabel}
-                    </label>
-                    <input
-                      id="franchise-phone"
-                      type="tel"
-                      required
-                      autoComplete="tel"
-                      value={phone}
-                      onChange={(event) => setPhone(event.target.value)}
-                      className="mt-1.5 w-full rounded-sm border border-line-strong bg-panel px-4 py-3 text-[14px] text-ink outline-none transition-colors focus:border-teal/60"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="franchise-city" className="text-[12.5px] font-semibold text-ink-dim">
-                      {page.apply.cityLabel}
-                    </label>
-                    <input
-                      id="franchise-city"
-                      type="text"
-                      required
-                      autoComplete="address-level2"
-                      value={city}
-                      onChange={(event) => setCity(event.target.value)}
-                      className="mt-1.5 w-full rounded-sm border border-line-strong bg-panel px-4 py-3 text-[14px] text-ink outline-none transition-colors focus:border-teal/60"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="franchise-background" className="flex items-baseline gap-2 text-[12.5px] font-semibold text-ink-dim">
-                      {page.apply.backgroundLabel}
-                      <span className="font-mono text-[10.5px] font-normal uppercase tracking-[0.05em] text-ink-faint">
-                        {page.apply.backgroundOptionalTag}
-                      </span>
-                    </label>
-                    <select
-                      id="franchise-background"
-                      value={background}
-                      onChange={(event) => setBackground(event.target.value)}
-                      className="mt-1.5 w-full rounded-sm border border-line-strong bg-panel px-4 py-3 text-[14px] text-ink outline-none transition-colors focus:border-teal/60"
-                    >
-                      <option value="" disabled>
-                        {page.apply.backgroundPlaceholder}
-                      </option>
-                      {page.apply.backgroundOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="franchise-why-interested" className="flex items-baseline gap-2 text-[12.5px] font-semibold text-ink-dim">
-                      {page.apply.whyInterestedLabel}
-                      <span className="font-mono text-[10.5px] font-normal uppercase tracking-[0.05em] text-ink-faint">
-                        {page.apply.whyInterestedOptionalTag}
-                      </span>
-                    </label>
-                    <textarea
-                      id="franchise-why-interested"
-                      rows={3}
-                      placeholder={page.apply.whyInterestedPlaceholder}
-                      value={whyInterested}
-                      onChange={(event) => setWhyInterested(event.target.value)}
-                      className="mt-1.5 w-full resize-none rounded-sm border border-line-strong bg-panel px-4 py-3 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-teal/60"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={!canSubmit}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-sm bg-teal px-7 py-[15px] text-[14.5px] font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-teal-light disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-                >
-                  {page.apply.submitLabel}
-                </button>
-              </form>
-            )}
           </div>
         </section>
       </main>
