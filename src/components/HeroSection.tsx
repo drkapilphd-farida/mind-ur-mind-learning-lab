@@ -93,22 +93,22 @@ export default function HeroSection(): React.JSX.Element {
         <div className="relative mx-auto w-full max-w-[340px] lg:mx-0 lg:ml-auto">
           <div className="relative overflow-hidden rounded-sm border border-line-strong bg-transparent">
             <div className="relative aspect-[4/5] w-full">
-              {/* Seamless Blend™ — founder-warm.jpg is founder.jpg (the
-                  real, untouched original — kept as-is on disk) with its
-                  plain studio backdrop content-aware-replaced by
-                  scripts/recolorFounderBackdrop.py, matched pixel-for-
-                  pixel to this page's --color-void (#EFEAE2). A CSS
-                  vignette was tried first but only faded the outer rim —
-                  the backdrop dominates most of the crop, so the actual
-                  fix had to touch the image, not just its edges. See
-                  that script to regenerate if the palette or photo ever
-                  changes. */}
+              {/* Approved Founder Asset™ — dr-kapil-home-hero.png.png (the
+                  real supplied file; note the doubled .png.png extension
+                  on disk, kept exactly as delivered per explicit "do not
+                  rename" instruction). The source file is a full 1672x941
+                  marketing composition with its own baked-in logo/headline/
+                  buttons on the left half — object-right + object-cover
+                  crops to just the photographed founder on the right side
+                  of the frame (plain CSS cropping only, no pixel of the
+                  photo itself touched), so it doesn't visually duplicate
+                  this section's own real headline/CTAs. */}
               <Image
-                src="/founder-warm.jpg"
+                src="/dr-kapil-home-hero.png.png"
                 alt={t.hero.portraitName}
                 fill
                 sizes="(min-width: 1024px) 340px, 80vw"
-                className="object-cover object-top"
+                className="object-cover object-right"
                 priority
               />
             </div>

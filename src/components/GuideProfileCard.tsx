@@ -15,6 +15,11 @@ type GuideProfileCardProps = {
   // preserves every existing caller's exact current behavior (no CTA).
   ctaLabel?: string;
   ctaHref?: string;
+  // Which approved founder photo to show — defaults to the original
+  // /founder-warm.jpg so every existing caller's exact current behavior
+  // is unchanged unless it explicitly opts into one of the newer
+  // per-purpose approved assets (dr-kapil-*.png.png).
+  imageSrc?: string;
 };
 
 const ACCENT_CLASSES = {
@@ -39,6 +44,7 @@ export default function GuideProfileCard({
   accent = "rose",
   ctaLabel,
   ctaHref,
+  imageSrc = "/founder-warm.jpg",
 }: GuideProfileCardProps): React.JSX.Element {
   const accentClasses = ACCENT_CLASSES[accent];
 
@@ -53,7 +59,7 @@ export default function GuideProfileCard({
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[200px_1fr] lg:items-start">
           <div className={`relative aspect-square w-full max-w-[200px] overflow-hidden rounded-sm border ${accentClasses.ring}`}>
-            <Image src="/founder-warm.jpg" alt={title} fill sizes="200px" className="object-cover object-top" />
+            <Image src={imageSrc} alt={title} fill sizes="200px" className="object-cover object-top" />
           </div>
 
           <div>
