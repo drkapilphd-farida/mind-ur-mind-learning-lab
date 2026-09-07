@@ -92,24 +92,27 @@ export default function HeroSection(): React.JSX.Element {
         {/* portrait card */}
         <div className="relative mx-auto w-full max-w-[360px] lg:mx-0 lg:ml-auto">
           <div className="relative overflow-hidden rounded-sm border border-line-strong bg-panel2">
-            <div className="relative aspect-[753/815] w-full">
+            <div className="relative aspect-[520/660] w-full">
               {/* Approved Founder Asset™ — dr-kapil-home-hero-portrait.png
                   is a crop of the real supplied file (dr-kapil-home-hero
                   .png.png, untouched, unchanged, still on disk exactly as
                   delivered). That source is a full 1672x941 marketing
                   composition with its own baked-in logo/headline/CTA on
                   the left half and a "More Within You" signature
-                  bottom-right — this crop (x:919-1672, y:0-815) keeps
-                  only the photographed founder with his full gesturing
-                  hand and genuine breathing room beneath it (the source
-                  photo's own signature overlay sits immediately below
-                  that, at y:820+, so 815 is the tallest crop that shows
-                  the complete hand without also revealing it). No AI
-                  involved — a single mechanical crop. The aspect-ratio
-                  below matches these exact pixel dimensions and
-                  object-contain is used (not object-cover) specifically
-                  so the browser can never crop any further, at any
-                  container width — the full portrait is always visible. */}
+                  bottom-right, and the founder himself gesturing with
+                  BOTH arms spread wide — too wide to fit a tall portrait
+                  card without either cutting one hand off mid-gesture
+                  (the previous crop's actual defect: his left hand was
+                  sliced at the frame edge, leaving a stray blurred
+                  fragment) or bleeding in the left-side text. This crop
+                  (x:960-1480, y:0-660) instead frames head, glasses,
+                  shoulders and upper torso only, stopping above where
+                  either hand enters frame — no partial limb, no baked-in
+                  text/logo/signature, nothing accidentally clipped. The
+                  aspect-ratio below matches these exact pixel dimensions
+                  and object-contain is used (not object-cover) so the
+                  browser can never crop any further, at any container
+                  width — the full portrait is always visible. */}
               <Image
                 src="/dr-kapil-home-hero-portrait.png"
                 alt={t.hero.portraitName}

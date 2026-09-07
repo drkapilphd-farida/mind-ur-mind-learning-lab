@@ -71,12 +71,17 @@ export default function PrefrontalPowerHero(): React.JSX.Element {
         </div>
 
         <div className="relative mx-auto w-full max-w-[300px] lg:mx-0 lg:max-w-none lg:justify-self-end">
-          {/* aspect-[580/1020] matches dr-kapil-prefrontal-hero-portrait
-              .png's exact crop dimensions (a crop of the approved
-              dr-kapil-about.png.png, x:500-1080, y:0-1020 — head to
-              lap, hand resting naturally, no baked-in text/signature)
-              so object-contain never has to crop anything further. */}
-          <div className="relative aspect-[580/1020] w-full max-w-[340px] overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_28px_60px_rgba(34,31,29,0.14)] lg:ml-auto">
+          {/* aspect-[750/1020] matches dr-kapil-prefrontal-hero-portrait
+              .png's exact crop dimensions — a crop of the approved
+              dr-kapil-about.png.png, x:330-1080, y:0-1020. The previous
+              crop (x:500-1080) sliced through his raised hand, leaving a
+              stray cut-off fingers fragment at the left edge — the
+              actual defect. Shifting the left edge to x:330 falls in the
+              vertical gap between the wall-text block (which sits higher,
+              y:100-400) and the hand's own position (y:540+), so the
+              full hand is visible with no text/logo bleeding in and
+              object-contain never has to crop anything further. */}
+          <div className="relative aspect-[750/1020] w-full max-w-[340px] overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_28px_60px_rgba(34,31,29,0.14)] lg:ml-auto">
             <Image
               src="/dr-kapil-prefrontal-hero-portrait.png"
               alt="Dr. Kapil Sharma, trainer of PREfrontal POWER"
