@@ -148,3 +148,15 @@ export const WHATSAPP_COURSE_INQUIRY_LINK =
 export function buildResidentialWhatsAppLink(detail: string): string {
   return `https://wa.me/919540123161?text=${encodeURIComponent(`Hi Dr. Kapil, I want to secure my seat — ${detail}`)}`
 }
+
+// PREfrontal POWER (27 Sept 2026, Mumbai, ₹3,500, 40 seats) — same "no
+// dedicated checkout exists yet" situation as the Retreats and Personal
+// Class links above, so this is the real, working, primary registration
+// path today (not a dead "#" placeholder), following the exact same
+// WHATSAPP_*_INQUIRY_LINK pattern already established for every other
+// date-bound/limited-seat live offer on this site. If a real payment
+// link or booking form is set up later, only this one constant needs to
+// change — every component importing it (hero, nav, mobile sticky bar,
+// final CTA, and the homepage teaser section) updates automatically.
+export const PREFRONTAL_POWER_REGISTRATION_URL =
+  'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20want%20to%20reserve%20my%20seat%20for%20PREfrontal%20POWER%20on%2027%20September%202026%20in%20Mumbai'

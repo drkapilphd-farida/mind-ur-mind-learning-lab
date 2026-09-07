@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/Navbar'
+import HomeAnnouncementStrip from '@/components/HomeAnnouncementStrip'
 import HeroSection from '@/components/HeroSection'
 import ProgramSelector from '@/components/ProgramSelector'
+import HomePrefrontalPowerFeature from '@/components/HomePrefrontalPowerFeature'
 import HomeHabitBuilderFeature from '@/components/HomeHabitBuilderFeature'
 import HomeOverviewVideo from '@/components/HomeOverviewVideo'
 import ProgramCardsGrid from '@/components/ProgramCardsGrid'
@@ -37,10 +39,19 @@ export const metadata: Metadata = {
 export default function HomePage(): React.JSX.Element {
   return (
     <div className="warm-light min-h-screen font-sans antialiased">
+      <HomeAnnouncementStrip />
       <Navbar />
       <main>
         <HeroSection />
         <ProgramSelector />
+        {/* PREfrontal POWER (27 Sept 2026, Mumbai) — a date-bound live
+            event, not a sixth evergreen digital program, so it sits
+            between the pathway cards and the featured Habit Builder
+            rather than inside the 01-05 "Explore Our Programs" catalog
+            or immediately after/inside Habit Builder itself (which is
+            the lead conversion offer and shouldn't get a second,
+            unrelated CTA interrupting it). */}
+        <HomePrefrontalPowerFeature />
         <HomeHabitBuilderFeature />
         <HomeOverviewVideo />
         <ProgramCardsGrid />

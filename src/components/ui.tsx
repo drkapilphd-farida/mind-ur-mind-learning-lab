@@ -24,6 +24,12 @@ type ButtonProps = {
   accent?: "gold" | "teal";
   className?: string;
   onClick?: () => void;
+  // Undefined (the default) preserves every existing caller's exact
+  // current behavior (same-tab navigation). Pass true for links that
+  // leave the site entirely mid-funnel (e.g. wa.me), matching the
+  // target="_blank" rel="noopener noreferrer" convention already used
+  // everywhere else on this site for that same kind of link.
+  openInNewTab?: boolean;
 };
 
 export function CtaButton({
@@ -33,6 +39,7 @@ export function CtaButton({
   accent = "gold",
   className = "",
   onClick,
+  openInNewTab,
 }: ButtonProps): React.JSX.Element {
   const base =
     "group inline-flex items-center gap-2.5 rounded-sm px-7 py-[15px] text-[14.5px] font-semibold tracking-tight transition-transform duration-200 hover:-translate-y-0.5";
@@ -49,7 +56,13 @@ export function CtaButton({
   };
 
   return (
-    <a href={href} onClick={onClick} className={`${base} ${styles[variant]} ${className}`}>
+    <a
+      href={href}
+      onClick={onClick}
+      target={openInNewTab === true ? "_blank" : undefined}
+      rel={openInNewTab === true ? "noopener noreferrer" : undefined}
+      className={`${base} ${styles[variant]} ${className}`}
+    >
       {children}
       <span className="transition-transform duration-200 group-hover:translate-x-1">
         →
