@@ -28,6 +28,22 @@ type WhatsAppWidgetProps = {
   // never removed) — see QsrWhatsAppWidget.tsx for the one page that
   // opts into this.
   autoDismissBubbleMs?: number;
+  // Hero-Clear Reveal™ — on pages whose hero includes a right-aligned
+  // founder portrait, this fixed bottom-right widget can land directly
+  // over the portrait's lower-right corner (confirmed on the homepage —
+  // at 1024x768 the widget's top edge overlapped the portrait's bottom
+  // edge by ~13px, right over the hand; on a 390px-wide mobile viewport
+  // the stacked text-then-portrait layout is much taller, so a single
+  // fixed pixel threshold that clears desktop still lands the widget on
+  // top of the portrait on mobile). The widget measures the bottom edge
+  // of the element with this id (both pages' hero <section> already use
+  // id="top") on mount/resize and stays hidden — same fade as the sticky
+  // bars elsewhere on this site — until scrolled a bit past it. Falls
+  // back to revealAfterScrollPx (or stays hidden) if the element isn't
+  // found. Undefined (the default) preserves today's always-visible
+  // behavior everywhere else this widget is used.
+  revealAfterElementId?: string;
+  revealAfterScrollPx?: number;
 };
 
 // Floating WhatsApp Widget™ — fixed to the viewport (outside <main>'s
@@ -53,9 +69,37 @@ export default function WhatsAppWidget({
   bottomClassName = "bottom-16 sm:bottom-7",
   analyticsLocation,
   autoDismissBubbleMs,
+  revealAfterElementId,
+  revealAfterScrollPx,
 }: WhatsAppWidgetProps): React.JSX.Element {
   const { t } = useLanguage();
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
+  const revealDisabled = revealAfterElementId === undefined && revealAfterScrollPx === undefined;
+  const [revealed, setRevealed] = useState(revealDisabled);
+
+  useEffect(() => {
+    if (revealDisabled) return undefined;
+
+    function isPastHero(): boolean {
+      const el = revealAfterElementId !== undefined ? document.getElementById(revealAfterElementId) : null;
+      // Fully out of view (bottom edge above the viewport top) — the
+      // strongest guarantee that the widget can never coincide with it,
+      // regardless of viewport height or how tall the hero renders.
+      if (el !== null) return el.getBoundingClientRect().bottom <= 0;
+      return window.scrollY > (revealAfterScrollPx ?? Infinity);
+    }
+
+    function handleScroll(): void {
+      setRevealed(isPastHero());
+    }
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [revealDisabled, revealAfterElementId, revealAfterScrollPx]);
 
   useEffect(() => {
     if (autoDismissBubbleMs === undefined) return undefined;
@@ -79,7 +123,11 @@ export default function WhatsAppWidget({
   }, [autoDismissBubbleMs]);
 
   return (
-    <div className={`fixed right-5 z-50 flex flex-col items-end gap-3 sm:right-7 ${bottomClassName}`}>
+    <div
+      className={`fixed right-5 z-50 flex flex-col items-end gap-3 transition-opacity duration-300 sm:right-7 ${bottomClassName} ${
+        revealed ? "opacity-100" : "pointer-events-none opacity-0"
+      }`}
+    >
       {!bubbleDismissed && (
         // Mobile QA™ — hidden below sm: on a typical phone viewport this
         // bubble sat directly over the hero's primary CTA button on

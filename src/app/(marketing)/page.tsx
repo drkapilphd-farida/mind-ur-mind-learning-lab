@@ -77,8 +77,17 @@ export default function HomePage(): React.JSX.Element {
           of it persistently covering hero/testimonial content while
           scrolling; the compact button alone remains available. Footer's
           own bottom padding (see Footer.tsx) is what keeps the button
-          clear of the footer's copyright/link row at max scroll. */}
-      <WhatsAppWidget bottomClassName="bottom-24 sm:bottom-7" autoDismissBubbleMs={6000} />
+          clear of the footer's copyright/link row at max scroll.
+          revealAfterElementId="top": measured via Playwright that at
+          1024x768 this widget's fixed bottom-right position overlaps the
+          hero founder portrait's bottom-right corner (the hand) by ~13px
+          — confirmed real, not a false positive. A fixed pixel threshold
+          cleared that breakpoint but still overlapped on mobile (much
+          taller stacked hero) — measuring the actual hero section
+          (id="top") and revealing only once it's fully scrolled out of
+          view removes the overlap at every breakpoint, not just the one
+          it was tuned against. */}
+      <WhatsAppWidget bottomClassName="bottom-24 sm:bottom-7" autoDismissBubbleMs={6000} revealAfterElementId="top" />
     </div>
   )
 }

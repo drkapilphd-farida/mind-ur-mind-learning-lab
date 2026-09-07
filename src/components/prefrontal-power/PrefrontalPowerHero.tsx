@@ -70,15 +70,20 @@ export default function PrefrontalPowerHero(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[320px] lg:mx-0 lg:max-w-none lg:justify-self-end">
-          <div className="relative aspect-[580/820] w-full max-w-[360px] overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_28px_60px_rgba(34,31,29,0.14)] lg:ml-auto">
+        <div className="relative mx-auto w-full max-w-[300px] lg:mx-0 lg:max-w-none lg:justify-self-end">
+          {/* aspect-[580/1020] matches dr-kapil-prefrontal-hero-portrait
+              .png's exact crop dimensions (a crop of the approved
+              dr-kapil-about.png.png, x:500-1080, y:0-1020 — head to
+              lap, hand resting naturally, no baked-in text/signature)
+              so object-contain never has to crop anything further. */}
+          <div className="relative aspect-[580/1020] w-full max-w-[340px] overflow-hidden rounded-sm border border-line-strong bg-panel2 shadow-[0_28px_60px_rgba(34,31,29,0.14)] lg:ml-auto">
             <Image
               src="/dr-kapil-prefrontal-hero-portrait.png"
               alt="Dr. Kapil Sharma, trainer of PREfrontal POWER"
               fill
               priority
-              sizes="(min-width: 1024px) 360px, (min-width: 640px) 320px, 80vw"
-              className="object-cover"
+              sizes="(min-width: 1024px) 340px, (min-width: 640px) 300px, 78vw"
+              className="object-contain"
             />
           </div>
           <div

@@ -90,30 +90,32 @@ export default function HeroSection(): React.JSX.Element {
         </div>
 
         {/* portrait card */}
-        <div className="relative mx-auto w-full max-w-[340px] lg:mx-0 lg:ml-auto">
-          <div className="relative overflow-hidden rounded-sm border border-line-strong bg-transparent">
-            <div className="relative aspect-[753/811] w-full">
+        <div className="relative mx-auto w-full max-w-[360px] lg:mx-0 lg:ml-auto">
+          <div className="relative overflow-hidden rounded-sm border border-line-strong bg-panel2">
+            <div className="relative aspect-[753/815] w-full">
               {/* Approved Founder Asset™ — dr-kapil-home-hero-portrait.png
-                  is a plain rectangular crop of the real supplied file
-                  (dr-kapil-home-hero.png.png, untouched, unchanged, still
-                  on disk exactly as delivered). That source is a full
-                  1672x941 marketing composition with its own baked-in
-                  logo/headline/CTA on the left half and a "More Within
-                  You" signature bottom-right — this crop (x:919-1672,
-                  y:0-811) keeps only the photographed founder, his whole
-                  gesturing hand with clean margin, and excludes both the
-                  left-side text/CTA and the bottom-right signature. No
-                  AI involved — a single mechanical crop, same category as
-                  the object-position cropping already used elsewhere on
-                  this site; the aspect-ratio here matches the crop's exact
-                  pixel dimensions 1:1, so object-cover performs no further
-                  cropping at all. */}
+                  is a crop of the real supplied file (dr-kapil-home-hero
+                  .png.png, untouched, unchanged, still on disk exactly as
+                  delivered). That source is a full 1672x941 marketing
+                  composition with its own baked-in logo/headline/CTA on
+                  the left half and a "More Within You" signature
+                  bottom-right — this crop (x:919-1672, y:0-815) keeps
+                  only the photographed founder with his full gesturing
+                  hand and genuine breathing room beneath it (the source
+                  photo's own signature overlay sits immediately below
+                  that, at y:820+, so 815 is the tallest crop that shows
+                  the complete hand without also revealing it). No AI
+                  involved — a single mechanical crop. The aspect-ratio
+                  below matches these exact pixel dimensions and
+                  object-contain is used (not object-cover) specifically
+                  so the browser can never crop any further, at any
+                  container width — the full portrait is always visible. */}
               <Image
                 src="/dr-kapil-home-hero-portrait.png"
                 alt={t.hero.portraitName}
                 fill
-                sizes="(min-width: 1024px) 340px, 80vw"
-                className="object-cover"
+                sizes="(min-width: 1024px) 360px, 85vw"
+                className="object-contain"
                 priority
               />
             </div>

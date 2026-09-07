@@ -27,7 +27,7 @@ export default function PrefrontalPowerModules(): React.JSX.Element {
       <div className="mx-auto max-w-content">
         <div className="mb-4 max-w-xl">
           <h2 className="text-[24px] font-extrabold uppercase leading-tight sm:text-[30px]">This Is Not a Lecture.</h2>
-          <div className="mt-4 flex items-center gap-2 font-mono text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
+          <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             Understand <span aria-hidden="true">→</span> Experience <span aria-hidden="true">→</span> Practise{" "}
             <span aria-hidden="true">→</span> Apply
           </div>
