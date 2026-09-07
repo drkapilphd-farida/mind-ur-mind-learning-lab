@@ -40,7 +40,7 @@ export default function ProgramSelector(): React.JSX.Element {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {section.paths.map((path) => {
+          {section.paths.map((path, index) => {
             const Icon = PATH_ICONS[path.key] ?? BookOpen;
             const isHabit = path.key === "habit";
             return (
@@ -53,15 +53,18 @@ export default function ProgramSelector(): React.JSX.Element {
                     : "border-line-strong bg-panel2 hover:border-ink-dim hover:shadow-[0_16px_36px_rgba(34,31,29,0.08)]"
                 }`}
               >
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-full border ${
-                    isHabit ? "border-gold/50 bg-gold-soft" : "border-teal/40 bg-teal-soft"
-                  }`}
-                >
-                  <Icon className={`h-5 w-5 ${isHabit ? "text-gold" : "text-teal"}`} aria-hidden="true" />
+                <div className="flex items-center justify-between">
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-full border ${
+                      isHabit ? "border-gold/50 bg-gold-soft" : "border-teal/40 bg-teal-soft"
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 ${isHabit ? "text-gold" : "text-teal"}`} aria-hidden="true" />
+                  </div>
+                  <span className="font-mono text-[11px] text-ink-faint">0{index + 1}</span>
                 </div>
                 <Eyebrow color={isHabit ? "text-gold" : "text-ink-faint"}>{path.eyebrowLabel}</Eyebrow>
-                <h3 className="mt-4 text-[18px] font-bold leading-snug text-ink">{path.title}</h3>
+                <h3 className="mt-4 font-display text-[20px] font-bold leading-snug text-ink">{path.title}</h3>
                 <p className="mt-2.5 flex-1 text-[13.5px] leading-relaxed text-ink-dim">{path.desc}</p>
                 {path.priceLine !== undefined && (
                   <p className="mt-4 font-mono text-[11.5px] uppercase tracking-[0.05em] text-gold">{path.priceLine}</p>

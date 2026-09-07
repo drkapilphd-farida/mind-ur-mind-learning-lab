@@ -159,4 +159,4 @@ export function buildResidentialWhatsAppLink(detail: string): string {
 // change — every component importing it (hero, nav, mobile sticky bar,
 // final CTA, and the homepage teaser section) updates automatically.
 export const PREFRONTAL_POWER_REGISTRATION_URL =
-  'https://wa.me/919540123161?text=Hi%20Dr.%20Kapil,%20I%20want%20to%20reserve%20my%20seat%20for%20PREfrontal%20POWER%20on%2027%20September%202026%20in%20Mumbai'
+  "https://wa.me/919540123161?text=Hi,%20I'm%20interested%20in%20attending%20PREfrontal%20POWER%20on%2027%20September%20in%20Mumbai.%20Please%20share%20the%20registration%20details."

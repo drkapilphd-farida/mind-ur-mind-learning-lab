@@ -1,14 +1,17 @@
 const AREAS = [
-  { label: "Career", desc: "Focus, priorities, and follow-through." },
-  { label: "Business", desc: "More deliberate decisions, even under pressure." },
-  { label: "Relationships", desc: "A pause before the reaction." },
-  { label: "Personal Growth", desc: "Turning awareness into consistent action." },
-  { label: "Health & Daily Life", desc: "Practical routines for stress and everyday mental performance." },
+  { label: "Career", desc: "Focus, priorities and execution." },
+  { label: "Business", desc: "More deliberate decisions under pressure." },
+  { label: "Relationships", desc: "More awareness before reacting." },
+  { label: "Personal Life", desc: "Consistency, clarity and better daily habits." },
+  {
+    label: "Health & Daily Life",
+    desc: "Practical approaches to stress regulation, recovery and mental performance.",
+  },
 ];
 
 export default function PrefrontalPowerApplication(): React.JSX.Element {
   return (
-    <section className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
+    <section className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-content">
         <h2 className="mx-auto max-w-2xl text-center text-[24px] font-extrabold uppercase leading-tight sm:text-[30px]">
           Brain Training Should Work Beyond the Workshop.

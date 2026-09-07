@@ -6,14 +6,13 @@ import { trackGaEvent } from "@/lib/analytics/ga4";
 
 export default function PrefrontalPowerFinalCta(): React.JSX.Element {
   return (
-    <section className="border-b border-line bg-panel px-6 py-20 text-center sm:px-8 sm:py-24">
+    <section className="border-b border-line px-6 py-20 text-center sm:px-8 sm:py-24">
       <div className="mx-auto max-w-xl">
-        <h2 className="text-[28px] font-extrabold uppercase leading-tight sm:text-[36px]">
-          Ready to Train Your Brain?
+        <h2 className="text-[24px] font-extrabold uppercase leading-tight sm:text-[30px]">
+          You Don&apos;t Need More Information.
+          <br />
+          <span className="text-gold">You Need a Better Way to Use What You Already Know.</span>
         </h2>
-        <p className="mx-auto mt-4 max-w-md text-[15.5px] leading-relaxed text-ink-dim">
-          You don&apos;t need more information. You need a better way to use what you already know.
-        </p>
 
         <div className="mx-auto mt-8 max-w-xs border-y border-line-strong py-4">
           <p className="text-[15px] font-bold uppercase tracking-[0.02em] text-ink">PREfrontal POWER</p>

@@ -6,10 +6,9 @@ import { Eyebrow } from "../ui";
 // given, so it's deliberately left out rather than listed as included in
 // a paid ₹3,500 seat. Add it here (and nowhere else) once confirmed.
 const INCLUDES = [
-  "Full-day experiential workshop",
-  "Printed Brain Training Workbook",
+  "Brain Training Workbook",
   "MOVERS™ 10-Minute Protocol",
-  "21-Day Brain Training Tracker",
+  "21-Day Tracker",
   "Guided Practice Audio",
   "Personal Brain Training Plan",
   "Digital Resources",
@@ -18,7 +17,7 @@ const INCLUDES = [
 
 export default function PrefrontalPowerIncludes(): React.JSX.Element {
   return (
-    <section className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
+    <section className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-content">
         <div className="mx-auto mb-12 flex max-w-xl justify-center text-center">
           <Eyebrow color="text-gold">What You Take Home</Eyebrow>

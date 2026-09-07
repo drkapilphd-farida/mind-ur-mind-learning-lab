@@ -3,16 +3,15 @@ import { buildFaqPageSchema } from '@/lib/seo/faqSchema'
 import PrefrontalPowerNav from '@/components/prefrontal-power/PrefrontalPowerNav'
 import PrefrontalPowerHero from '@/components/prefrontal-power/PrefrontalPowerHero'
 import PrefrontalPowerProblem from '@/components/prefrontal-power/PrefrontalPowerProblem'
-import PrefrontalPowerScience from '@/components/prefrontal-power/PrefrontalPowerScience'
+import PrefrontalPowerPromise from '@/components/prefrontal-power/PrefrontalPowerPromise'
 import PrefrontalPowerModules from '@/components/prefrontal-power/PrefrontalPowerModules'
+import PrefrontalPowerTestimonials from '@/components/prefrontal-power/PrefrontalPowerTestimonials'
 import PrefrontalPowerMovers from '@/components/prefrontal-power/PrefrontalPowerMovers'
 import PrefrontalPowerApplication from '@/components/prefrontal-power/PrefrontalPowerApplication'
 import PrefrontalPowerPlan from '@/components/prefrontal-power/PrefrontalPowerPlan'
 import PrefrontalPowerIncludes from '@/components/prefrontal-power/PrefrontalPowerIncludes'
-import PrefrontalPowerNotThis from '@/components/prefrontal-power/PrefrontalPowerNotThis'
 import PrefrontalPowerTrainer from '@/components/prefrontal-power/PrefrontalPowerTrainer'
 import PrefrontalPowerSchedule from '@/components/prefrontal-power/PrefrontalPowerSchedule'
-import PrefrontalPowerTrust from '@/components/prefrontal-power/PrefrontalPowerTrust'
 import PrefrontalPowerFaq, { PREFRONTAL_POWER_FAQ_ITEMS } from '@/components/prefrontal-power/PrefrontalPowerFaq'
 import PrefrontalPowerFinalCta from '@/components/prefrontal-power/PrefrontalPowerFinalCta'
 import PrefrontalPowerStickyBar from '@/components/prefrontal-power/PrefrontalPowerStickyBar'
@@ -33,28 +32,22 @@ export const metadata: Metadata = {
   },
 }
 
-// PREfrontal POWER — Mumbai Workshop Landing Page™. English-only launch
-// (confirmed with the site owner: premium-editorial English for a Mumbai
-// professional audience — no Hindi pass yet, so this page's own copy is
-// hardcoded rather than routed through the site's t.* i18n system; the
-// shared Navbar/LanguageToggle chrome still appears for visual
-// consistency, it just won't translate this page's body).
+// PREfrontal POWER V2™ — a focused conversion + visual rewrite of the
+// original 16-section page down to the 13-section architecture below.
+// Trimmed hardest: the old full 13-row timetable (now compact by default,
+// full detail behind a <details> disclosure — see PrefrontalPowerSchedule
+// .tsx), the old standalone "Emotional Control" module tile (folded into
+// the Promise/Application/Schedule sections instead), and the old "What
+// This Is Not" section (dropped entirely, not part of this architecture).
+// New: a mandatory real-video-testimonials section reusing the same
+// already-vetted QSR_ADULT_VIDEO_REVIEWS pool via the shared
+// VideoReviewGrid component — no new assets fabricated.
 //
-// Section order matches the approved copy doc exactly: Hero -> Problem ->
-// Science -> Workshop Experience (6 modules) -> MOVERS(tm) Protocol ->
-// Real-Life Application -> 21-Day Plan -> What You Take Home -> What
-// This Is Not -> Meet Your Trainer -> Schedule -> Trust -> FAQ -> Final
-// CTA -> Footer, with a scroll-reveal mobile sticky bar throughout. No
-// separate floating WhatsApp widget on top of the sticky bar — both
-// would point at the same registration link and compete for the same
-// screen corner on mobile, so only the sticky bar (plus the Nav/Hero/
-// Final CTA buttons) carries the WhatsApp CTA.
+// CTA discipline: exactly three placements (Hero, after Testimonials,
+// Final CTA) plus the persistent mobile sticky bar — not sprinkled into
+// every section, per explicit "do not overuse CTA" instruction.
 //
-// PREFRONTAL_POWER_REGISTRATION_URL (see whatsappSupportLink.ts) is
-// currently a real, working WhatsApp pre-filled message — the same "no
-// dedicated checkout exists yet" pattern already used for Retreats and
-// Personal Class. Swap that one constant for a real payment/booking URL
-// later; no component here needs to change.
+// Still English-only (see PrefrontalPowerNav.tsx's own doc comment).
 export default function PrefrontalPowerMumbaiPage(): React.JSX.Element {
   const faqSchema = buildFaqPageSchema([...PREFRONTAL_POWER_FAQ_ITEMS])
 
@@ -65,16 +58,15 @@ export default function PrefrontalPowerMumbaiPage(): React.JSX.Element {
       <main>
         <PrefrontalPowerHero />
         <PrefrontalPowerProblem />
-        <PrefrontalPowerScience />
+        <PrefrontalPowerPromise />
         <PrefrontalPowerModules />
+        <PrefrontalPowerTestimonials />
         <PrefrontalPowerMovers />
         <PrefrontalPowerApplication />
         <PrefrontalPowerPlan />
         <PrefrontalPowerIncludes />
-        <PrefrontalPowerNotThis />
         <PrefrontalPowerTrainer />
         <PrefrontalPowerSchedule />
-        <PrefrontalPowerTrust />
         <PrefrontalPowerFaq />
         <PrefrontalPowerFinalCta />
       </main>

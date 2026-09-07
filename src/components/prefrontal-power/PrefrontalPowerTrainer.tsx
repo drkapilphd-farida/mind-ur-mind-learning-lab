@@ -28,11 +28,12 @@ export default function PrefrontalPowerTrainer(): React.JSX.Element {
 
           <div>
             <h2 className="text-[22px] font-extrabold text-ink">Dr. Kapil Sharma</h2>
-            <p className="mt-1 text-[13.5px] font-semibold text-ink-dim">Mind Trainer &amp; Life Coach</p>
-            <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-ink-dim">
-              With over two decades of experience in mind training, meditation and human potential, Dr. Kapil
-              Sharma has spent his career helping people move from mental overload to clarity — turning what
-              he&apos;s learned over the years into a single, practical day.
+            <p className="mt-1 font-mono text-[11.5px] uppercase tracking-[0.05em] text-ink-faint">
+              Mind Trainer &amp; Life Coach · 26 Years Experience
+            </p>
+            <p className="mt-5 max-w-xl text-[15.5px] leading-relaxed text-ink-dim">
+              Over two decades of experience in mind training, meditation and human potential — turning what
+              he&apos;s learned into a single, practical day.
             </p>
           </div>
         </div>

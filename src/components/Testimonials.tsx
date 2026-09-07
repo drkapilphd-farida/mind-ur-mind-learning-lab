@@ -3,6 +3,8 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { Eyebrow } from "./ui";
 import { isRealUrl } from "@/lib/isRealUrl";
+import VideoReviewGrid from "./VideoReviewGrid";
+import { QSR_ADULT_VIDEO_REVIEWS } from "@/config/qsrVideoReviews";
 
 export default function Testimonials(): React.JSX.Element {
   const { t } = useLanguage();
@@ -33,6 +35,23 @@ export default function Testimonials(): React.JSX.Element {
             {section.viewAll}
             <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </a>
+        </div>
+
+        {/* Real video testimonials — honestly labeled by their actual
+            program (Quantum Speed Reading), not implied to represent
+            every program on this page. The quote cards below have no
+            real videoUrls yet (all still placeholders), so this is an
+            addition, not an "upgrade" of those cards. */}
+        <div className="mb-14">
+          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-faint">
+            {section.videoLabel}
+          </p>
+          <VideoReviewGrid
+            videos={QSR_ADULT_VIDEO_REVIEWS}
+            aspectRatioClassName="aspect-[9/16]"
+            cardLabel="Quantum Speed Reading Program"
+            className="mx-auto max-w-3xl"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

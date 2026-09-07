@@ -1,55 +1,46 @@
 import { Eyebrow } from "../ui";
 
-// Exported so page.tsx can build the same real FAQ content into
-// schema.org FAQPage JSON-LD via buildFaqPageSchema — single source of
-// truth, not separately maintained content that could drift.
+// V2 — trimmed from 9 to 8 questions, per explicit "keep only useful
+// questions... keep answers short" instruction. Exported so page.tsx can
+// build the same real content into schema.org FAQPage JSON-LD.
 export const PREFRONTAL_POWER_FAQ_ITEMS: readonly { question: string; answer: string }[] = [
   {
     question: "Is this a meditation workshop?",
-    answer:
-      "No. Meditation is one small part of a larger, practical day covering focus, stress, emotion and decision-making.",
+    answer: "No. Meditation is one small part of a day covering focus, stress, emotion and decision-making.",
   },
   {
-    question: "Do I need previous meditation or self-help experience?",
+    question: "Do I need previous meditation experience?",
     answer: "None. The workshop is designed for complete beginners.",
   },
   {
-    question: "Is this a medical or psychological treatment?",
-    answer:
-      "No. It's an educational and experiential workshop, not therapy or a clinical intervention. If you're managing a diagnosed condition, please consult a qualified professional alongside attending.",
+    question: "Is this medical or psychological treatment?",
+    answer: "No. It's educational and experiential, not therapy or a clinical intervention.",
   },
   {
     question: "Will I learn neuroscience?",
-    answer: "You'll learn accessible, research-informed concepts — explained simply, through experience, not lectures.",
+    answer: "Accessible, research-informed concepts — explained through experience, not lectures.",
   },
   {
     question: "Will one day change my brain?",
-    answer:
-      "One day won't rewire anything by itself. It gives you the understanding and the starting system — the 21-day plan is where the practice happens.",
+    answer: "One day gives you the understanding and a starting system — the 21-day plan is where the practice happens.",
   },
   {
-    question: "Is this only for working professionals?",
-    answer:
-      "No. It's built for anyone who feels mentally overloaded and wants a practical way forward — professionals, entrepreneurs, students, parents.",
+    question: "What is included in ₹3,500?",
+    answer: "The full-day workshop, brain training workbook, MOVERS™ protocol, 21-day tracker, guided audio, digital resources and certificate.",
   },
   {
     question: "What should I bring?",
     answer: "A notebook, an open mind, and comfortable clothing. Materials are provided.",
   },
   {
-    question: "What's included in ₹3,500?",
-    answer:
-      "The full-day workshop, printed workbook, MOVERS™ protocol, 21-day tracker, guided audio, digital resources and certificate.",
-  },
-  {
-    question: "What happens after I register?",
-    answer: "You'll receive a confirmation with venue details and a pre-workshop note by email/WhatsApp.",
+    question: "How do I reserve my seat?",
+    answer: "Tap Reserve My Seat and message us on WhatsApp — we'll confirm your spot and share the venue details.",
   },
 ];
 
 export default function PrefrontalPowerFaq(): React.JSX.Element {
   return (
-    <section id="faq" className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
+    <section id="faq" className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-content">
         <div className="mb-12 max-w-xl">
           <Eyebrow color="text-gold">Questions</Eyebrow>
