@@ -23,7 +23,7 @@ const MODULES: readonly Module[] = [
 
 export default function PrefrontalPowerModules(): React.JSX.Element {
   return (
-    <section id="experience" className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
+    <section id="experience" className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-content">
         <div className="mb-4 max-w-xl">
           <h2 className="text-[24px] font-extrabold uppercase leading-tight sm:text-[30px]">This Is Not a Lecture.</h2>

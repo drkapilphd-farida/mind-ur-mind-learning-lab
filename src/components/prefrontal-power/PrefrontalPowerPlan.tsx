@@ -13,7 +13,7 @@ const PLAN_ITEMS = [
 // explicit instruction not to state that as scientific fact.
 export default function PrefrontalPowerPlan(): React.JSX.Element {
   return (
-    <section className="border-b border-line bg-panel px-6 py-20 sm:px-8 sm:py-24">
+    <section className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
         <div className="flex justify-center">
           <Eyebrow color="text-gold">Your 21-Day Brain Training Plan</Eyebrow>

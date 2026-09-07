@@ -32,16 +32,17 @@ export const metadata: Metadata = {
   },
 }
 
-// PREfrontal POWER V2™ — a focused conversion + visual rewrite of the
-// original 16-section page down to the 13-section architecture below.
-// Trimmed hardest: the old full 13-row timetable (now compact by default,
-// full detail behind a <details> disclosure — see PrefrontalPowerSchedule
-// .tsx), the old standalone "Emotional Control" module tile (folded into
-// the Promise/Application/Schedule sections instead), and the old "What
-// This Is Not" section (dropped entirely, not part of this architecture).
-// New: a mandatory real-video-testimonials section reusing the same
-// already-vetted QSR_ADULT_VIDEO_REVIEWS pool via the shared
-// VideoReviewGrid component — no new assets fabricated.
+// PREfrontal POWER V3™ — social proof moved ahead of the curriculum
+// (Testimonials now sits right after Promise, before Modules/Movers/Plan)
+// so a visitor sees real participant videos before being asked to read
+// through workshop detail — per explicit "proof before a lot of workshop
+// detail" instruction. Testimonials now uses 11 real, individually
+// supplied YouTube Shorts (prefrontalPowerVideoReviews.ts), not the
+// earlier QSR-program placeholder pool.
+//
+// The detailed 13-row timetable stays compact by default, full detail
+// behind a <details> disclosure (see PrefrontalPowerSchedule.tsx), which
+// now also carries the ₹3,500 price block.
 //
 // CTA discipline: exactly three placements (Hero, after Testimonials,
 // Final CTA) plus the persistent mobile sticky bar — not sprinkled into
@@ -59,11 +60,11 @@ export default function PrefrontalPowerMumbaiPage(): React.JSX.Element {
         <PrefrontalPowerHero />
         <PrefrontalPowerProblem />
         <PrefrontalPowerPromise />
-        <PrefrontalPowerModules />
         <PrefrontalPowerTestimonials />
+        <PrefrontalPowerModules />
         <PrefrontalPowerMovers />
-        <PrefrontalPowerApplication />
         <PrefrontalPowerPlan />
+        <PrefrontalPowerApplication />
         <PrefrontalPowerIncludes />
         <PrefrontalPowerTrainer />
         <PrefrontalPowerSchedule />

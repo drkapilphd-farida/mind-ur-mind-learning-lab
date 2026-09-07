@@ -29,6 +29,15 @@ const FULL_SCHEDULE = [
 // with the full time-by-time detail behind a native <details> disclosure
 // ("VIEW FULL SCHEDULE +") — present for anyone who wants it, never
 // forced on everyone by default.
+//
+// V3 — added a dedicated price block (₹3,500 / person, real inclusions,
+// no fake discounting). A "Founding Mumbai Edition ₹2,999" launch offer
+// is explicitly described in the brief as OPTIONAL and must stay off
+// unless a real launch offer is confirmed — that confirmation hasn't
+// happened, so LAUNCH_OFFER_ACTIVE stays false. Flip it (and fill in the
+// seat count) only once the business confirms a real, live offer.
+const LAUNCH_OFFER_ACTIVE = false;
+
 export default function PrefrontalPowerSchedule(): React.JSX.Element {
   return (
     <section id="schedule" className="border-b border-line px-6 py-20 sm:px-8 sm:py-24">
@@ -41,20 +50,47 @@ export default function PrefrontalPowerSchedule(): React.JSX.Element {
           <p className="text-[20px] font-extrabold uppercase leading-tight text-ink sm:text-[24px]">
             27 September 2026 · Mumbai
           </p>
-          <p className="mt-2 font-mono text-[13px] uppercase tracking-[0.05em] text-ink-dim">
-            10:00 AM – 6:30 PM · ₹3,500
-          </p>
+          <p className="mt-2 font-mono text-[13px] uppercase tracking-[0.05em] text-ink-dim">10:00 AM – 6:30 PM</p>
           <p className="mt-1 font-mono text-[12px] font-semibold uppercase tracking-[0.05em] text-gold">
             Limited to 40 Participants
           </p>
 
-          <div className="mx-auto mt-9 grid max-w-2xl grid-cols-1 gap-5 border-t border-line pt-8 text-left sm:grid-cols-2">
-            {COMPACT_PHASES.map((phase) => (
-              <div key={phase.label}>
-                <p className="font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-gold">{phase.label}</p>
-                <p className="mt-1 text-[13.5px] leading-relaxed text-ink-dim">{phase.items}</p>
-              </div>
-            ))}
+          <div className="mx-auto mt-8 max-w-md border-t border-line pt-7">
+            {LAUNCH_OFFER_ACTIVE ? (
+              <>
+                <p className="font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-gold">
+                  Founding Mumbai Edition
+                </p>
+                <p className="mt-1 text-[32px] font-extrabold text-ink">₹2,999</p>
+                <p className="text-[12px] text-ink-faint">First 10 seats · Regular price ₹3,500</p>
+              </>
+            ) : (
+              <>
+                <p className="text-[32px] font-extrabold text-ink">
+                  ₹3,500 <span className="text-[13px] font-semibold uppercase tracking-[0.04em] text-ink-faint">/ person</span>
+                </p>
+                <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-faint">
+                  One-Day Experience · All Workshop Materials Included
+                </p>
+              </>
+            )}
+            <p className="mx-auto mt-3 max-w-sm text-[13px] leading-relaxed text-ink-dim">
+              Includes: Workbook + guided audio + 21-day tracker + digital resources + certificate.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-9 max-w-2xl border-t border-line pt-8 text-left">
+            <p className="mb-5 text-center font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-ink">
+              The Day at a Glance
+            </p>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {COMPACT_PHASES.map((phase) => (
+                <div key={phase.label}>
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-gold">{phase.label}</p>
+                  <p className="mt-1 text-[13.5px] leading-relaxed text-ink-dim">{phase.items}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <details className="group mx-auto mt-9 max-w-2xl border-t border-line pt-6 text-left">

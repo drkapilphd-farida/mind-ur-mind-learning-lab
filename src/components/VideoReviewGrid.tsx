@@ -18,6 +18,11 @@ type VideoReviewGridProps = {
   // show — also strengthens the thumbnail alt text and button
   // aria-label. Omitted by default (existing behavior unchanged).
   cardLabel?: string;
+  // Optional override for the grid wrapper's column classes (e.g. a
+  // fixed 2-up/4-up layout for a "show exactly N videos" section).
+  // Defaults to the original responsive 1/2/3-column behavior, so every
+  // existing caller is unaffected.
+  gridClassName?: string;
 };
 
 function buildEmbedUrl(videoId: string): string {
@@ -40,6 +45,7 @@ export default function VideoReviewGrid({
   className = "",
   aspectRatioClassName = "aspect-video",
   cardLabel,
+  gridClassName = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3",
 }: VideoReviewGridProps): React.JSX.Element {
   const [openVideoId, setOpenVideoId] = useState<string | null>(null);
   const isVertical = aspectRatioClassName !== "aspect-video";
@@ -62,7 +68,7 @@ export default function VideoReviewGrid({
 
   return (
     <>
-      <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 ${className}`}>
+      <div className={`${gridClassName} ${className}`}>
         {videos.map((video) => (
           <div key={video.videoId}>
             <button
